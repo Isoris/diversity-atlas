@@ -1,0 +1,155 @@
+<div id="page4" class="page active">
+  <div class="page-content">
+    <div class="page-title">Ancestry × diversity</div>
+    <div class="page-subtitle">
+      K=8 NGSadmix structure × H and F_ROH. Plus K=2–12 sweep, per-Q correlations, BH-adjusted pairwise contrasts.
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">S5 · The all226 → pruned81 collapse</div>
+        <div class="card-tag shipped">central finding</div>
+      </div>
+      <p>
+        F_ROH × ancestry differs significantly in the full 226-sample panel
+        (KW P = 2.9 × 10⁻⁴) but the signal collapses to non-significance
+        in pruned81 (P = 0.59). H × ancestry is non-significant in either
+        panel. Interpretation: covariance reflects recent shared inbreeding
+        among siblings within ancestry components, not divergence among
+        founder lineages.
+      </p>
+      <table class="dt" id="kwTable">
+        <thead>
+          <tr>
+            <th>test</th>
+            <th>variable</th>
+            <th>panel</th>
+            <th>n</th>
+            <th>statistic H</th>
+            <th>P-value</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">S5 · Significant pairwise Wilcoxon F_ROH contrasts (all226, BH-adjusted)</div>
+        <div class="card-tag shipped">5 contrasts</div>
+      </div>
+      <p style="color: var(--ink-dim); font-size: 10.5px;">
+        All five significant contrasts involve K5 — but K5 has the
+        <i>lowest</i> median F_ROH (0.247), not the highest. K5 is the
+        cluster being depressed below K1, K2, K6, K7, K8.
+      </p>
+      <table class="dt" id="pairwiseTable">
+        <thead><tr><th>contrast</th><th>P (BH-adj.)</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">S9 · K=8 cluster summary</div>
+        <div class="card-tag shipped">8 rows</div>
+      </div>
+      <table class="dt" id="clusterTable">
+        <thead>
+          <tr>
+            <th data-sort="k">cluster</th>
+            <th data-sort="n">n</th>
+            <th data-sort="mean_h">mean H</th>
+            <th data-sort="median_h">median H</th>
+            <th data-sort="sd_h">SD H</th>
+            <th data-sort="iqr_h">IQR H</th>
+            <th data-sort="min_h">min H</th>
+            <th data-sort="max_h">max H</th>
+            <th data-sort="mean_qmax">mean Q_max</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">S7 · NGSadmix K = 2–12 sweep × H</div>
+        <div class="card-tag shipped">22 rows</div>
+      </div>
+      <table class="dt" id="kSweepTable">
+        <thead>
+          <tr>
+            <th data-sort="k">K</th>
+            <th data-sort="panel">panel</th>
+            <th data-sort="n">n</th>
+            <th data-sort="n_groups">n groups</th>
+            <th data-sort="kw_p">KW P</th>
+            <th data-sort="anova_p">ANOVA P</th>
+            <th data-sort="strongest_q">strongest Q</th>
+            <th data-sort="rho">strongest ρ</th>
+            <th data-sort="rho_p">P</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">S10 · K=8 Q-component × H correlations</div>
+        <div class="card-tag shipped">8 rows</div>
+      </div>
+      <p style="color: var(--ink-dim); font-size: 10.5px;">
+        No Q-component shows a significant Pearson or Spearman correlation
+        with per-individual H after BH adjustment — consistent with the
+        non-significant overall KW H × ancestry test (S5).
+      </p>
+      <table class="dt" id="qHTable">
+        <thead>
+          <tr>
+            <th data-sort="comp">component</th>
+            <th data-sort="panel">panel</th>
+            <th data-sort="n">n</th>
+            <th data-sort="pearson_r">Pearson r</th>
+            <th data-sort="pearson_p">Pearson P</th>
+            <th data-sort="pearson_p_bh">P (BH)</th>
+            <th data-sort="spearman_rho">Spearman ρ</th>
+            <th data-sort="spearman_p">Spearman P</th>
+            <th data-sort="spearman_p_bh">P (BH)</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">Ancestry plots</div>
+        <div class="card-tag shipped">4 panels</div>
+      </div>
+      <div class="plot-grid">
+        <div class="plot-card">
+          <div class="plot-card-title">F_ROH per K=8 cluster (box plot)<span class="src">S1 · S9</span></div>
+          <div class="plot-card-sub">Box: Q25–Q75. Whisker: P5–P95. Stripe: cohort mean. K5 (green) carries the lowest median.</div>
+          <div id="plotClusterFRoh"></div>
+        </div>
+        <div class="plot-card">
+          <div class="plot-card-title">H per K=8 cluster (box plot)<span class="src">S1 · S9</span></div>
+          <div class="plot-card-sub">Boxes essentially overlapping — KW P = 0.150, no ancestry-level H differentiation.</div>
+          <div id="plotClusterH"></div>
+        </div>
+        <div class="plot-card">
+          <div class="plot-card-title">K-sweep KW P (H) trajectory<span class="src">S7</span></div>
+          <div class="plot-card-sub">−log₁₀(P) for KW H × cluster, plotted vs. K = 2–12 for both panels (all226 + pruned81). Reference lines at α = 0.05, 0.01.</div>
+          <div id="plotKSweep"></div>
+        </div>
+        <div class="plot-card">
+          <div class="plot-card-title">Q × H Spearman ρ per K=8 component<span class="src">S10</span></div>
+          <div class="plot-card-sub">Per-component ρ with H, error bars: 95% CI proxy from P-value. None significant after BH.</div>
+          <div id="plotQH"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

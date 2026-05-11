@@ -1,0 +1,5 @@
+{
+  "$schema": "../../../../core/registry_core.schema.json",
+  "_doc": "AtlasState slots for the diversity atlas. Round-1 is intentionally empty — every page renders from the embedded_tables.json snapshot, no inter-page state is shared, no cross-atlas slots are promoted. Per-page UI state (sort key, search text, filter pills) lives in module-scope variables inside each pageN.js, mirroring the legacy IIFE. When scope-pickers arrive (activeChrom, activeCluster, ancestryQ_labels), register them here.",
+  "slots": {}
+}

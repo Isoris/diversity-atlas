@@ -1,0 +1,10 @@
+{
+  "$schema": "../../../../core/registry_core.schema.json",
+  "_doc": "Layer inventory for the diversity atlas. Round-1 is intentionally empty: every page reads the bulk embedded_tables.json snapshot via atlases/diversity/shared/data_loader.js, not via the layer-router. When the atlas grows beyond the MODULE_3 snapshot (per-sample θπ tracks, kinship matrix, ngsF-HMM per-window calls, ...), those data products should be registered as layers here on a per-page basis — see KICKOFF_diversity_atlas.md Q4 for the lazy-promotion strategy.",
+  "_tier_legend": {
+    "hot":  "RAM-pinned at trigger event; pages read state directly; <1ms",
+    "warm": "IndexedDB-cached at trigger event; first read async ~50ms; subsequent ~10ms",
+    "cold": "Fetched on demand; spinner allowed"
+  },
+  "layers": {}
+}

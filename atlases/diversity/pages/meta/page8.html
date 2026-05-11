@@ -1,0 +1,85 @@
+<div id="page8" class="page active">
+  <div class="page-content">
+    <div class="page-title">Roadmap</div>
+    <div class="page-subtitle">
+      What's shipped (tabs 1–7) and what's still planned.
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">v2 — what's shipped</div>
+        <div class="card-tag shipped">✓ this version</div>
+      </div>
+      <ul>
+        <li><b>All 19 supplementary tables surfaced</b> — S1, S2, S3, S4, S5 (KW + pairwise), S6, S7, S8, S8b, S9, S10, S11, SZ, ST1, ST2, ST3, ST3b, plus methods docs SD1–SD8.</li>
+        <li><b>20+ plots</b>: distributions (H, F_ROH, θπ), pairwise scatters (H × F_ROH coloured by K=8, H × longest, θ in/out), per-chromosome bars (θπ ranked, F_ROH ranked, KW −log P, HMM stability ribbon), per-cluster boxes (F_ROH, H), genome-wide hotspot manhattan, per-sample × hotspot heatmap, per-chr × per-sample F_ROH heatmap, ROH length spectrum, stacked F_ROH composition, K-sweep trajectory, Q × H bars.</li>
+        <li><b>Sortable, filterable, click-to-detail tables</b>: 226-row sample, 28-row per-chr (3 tables), 19-row hotspots, 1,130-row F_ROH bins, 226-row pruning, 28-row HMM stability.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">Phase 3 — needs new compute</div>
+        <div class="card-tag planned">⚪ next sessions</div>
+      </div>
+      <p>
+        Outputs gated on cluster compute (LANTA jobs to come back from
+        maintenance). SAF files already on disk for option (a) per-sample θπ.
+      </p>
+      <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 12px; margin-top: 10px;">
+        <div class="panel-slot">
+          <div class="panel-slot-title">Per-sample θπ tracks (28 chrom)</div>
+          <div class="panel-slot-desc">28-chrom θπ ribbons per sample with cohort 5–95 percentile band shaded behind. Click chrom → drill into multiscale.</div>
+          <div class="panel-slot-mockup">░░░ ribbon mockup ░░░</div>
+          <div class="panel-slot-foot">needs: per-sample thetaStat from SAFs (~1 hr cluster)</div>
+        </div>
+        <div class="panel-slot">
+          <div class="panel-slot-title">Multiscale θπ — selected chrom (M3_ST5)</div>
+          <div class="panel-slot-desc">Stacked 5kb / 10kb / 50kb / 500kb θπ for one chromosome. M3_ST5 currently has [fill] placeholders.</div>
+          <div class="panel-slot-mockup">░░░ multiscale stack mockup ░░░</div>
+          <div class="panel-slot-foot">needs: M3_ST5 filled out (cluster compute)</div>
+        </div>
+        <div class="panel-slot">
+          <div class="panel-slot-title">Per-sample × per-chr H matrix (M3_S4b)</div>
+          <div class="panel-slot-desc">Sample × chromosome H heatmap, mirror of S8b but for H. Currently scaffold only ([fill]).</div>
+          <div class="panel-slot-mockup">░░░ S4b heatmap mockup ░░░</div>
+          <div class="panel-slot-foot">needs: per-window theta aggregated to per-(sample, chrom) H</div>
+        </div>
+        <div class="panel-slot">
+          <div class="panel-slot-title">Kinship / relatedness</div>
+          <div class="panel-slot-desc">Pairwise kinship heatmap from ngsRelate, hatchery-broodline clustering.</div>
+          <div class="panel-slot-mockup">░░░ kinship mockup ░░░</div>
+          <div class="panel-slot-foot">needs: ngsRelate KING/θ matrix JSON-ified</div>
+        </div>
+        <div class="panel-slot">
+          <div class="panel-slot-title">Family-restricted LD</div>
+          <div class="panel-slot-desc">LD blocks within single broodlines — detects family-private inversions.</div>
+          <div class="panel-slot-mockup">░░░ family-LD mockup ░░░</div>
+          <div class="panel-slot-foot">needs: ngsLD per-family runs (~6 hr cluster)</div>
+        </div>
+        <div class="panel-slot">
+          <div class="panel-slot-title">M3_REF · per-candidate θ tracks</div>
+          <div class="panel-slot-desc">Theta tracks fed into MODULE_5E for inversion confirmation (per-candidate).</div>
+          <div class="panel-slot-mockup">░░░ candidate tracks mockup ░░░</div>
+          <div class="panel-slot-foot">needs: STEP_A04/B01 fills [fill] in M3_REF</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">Open questions for the next session</div>
+        <div class="card-tag">decision points</div>
+      </div>
+      <ol>
+        <li>Should the Diversity Atlas's tab-1 row drill-down link out to the Inversion Atlas's per-sample dashboard (when that exists), or stay self-contained?</li>
+        <li>Per-sample θπ — run thetaStat on existing SAFs as a one-shot batch, or roll into the next MODULE_3 refresh?</li>
+        <li><s>Population Atlas pages 4/5/6 — deprecate, or convert to "summary pages" linking to this atlas?</s> <b>Resolved (this session)</b>: pages 4/5/6 became cohort-summary landing cards with green callout buttons that open the corresponding Diversity Atlas tabs.</li>
+        <li><s>Tab-4 cluster boxes — add strip-plot of 226 individual points on top of the boxes?</s> <b>Resolved (this session)</b>: 226-sample jittered strip plots overlaid on K=8 F_ROH boxes, K=8 H boxes, and Pruning Retained-vs-Removed boxes.</li>
+        <li><s>Tab-5 stacked composition — show all 226, or keep top-60 + bottom-60 contrast?</s> <b>Resolved (this session)</b>: three-mode toggle — top60+bot60 (default), all-226, top-100 — pill-controlled.</li>
+        <li><i>New</i>: kinship heatmap (ngsRelate output) — JSON-ify and surface as Tab 4 panel? Bridges family structure into this atlas where it currently lives only in Population Atlas page 3.</li>
+        <li><i>New</i>: per-sample θπ ribbons across all 28 chromosomes — once batch thetaStat completes, surface as Tab 1 click-to-detail expansion?</li>
+      </ol>
+    </div>
+  </div>
+</div>

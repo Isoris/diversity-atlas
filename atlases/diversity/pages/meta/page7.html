@@ -1,0 +1,208 @@
+<div id="page7" class="page active">
+  <div class="page-content">
+    <div class="page-title">About this atlas</div>
+    <div class="page-subtitle">
+      Scope, four-atlas family, headline numbers, MODULE_3 methods documentation, glossary, lineage.
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">What this atlas is</div>
+        <div class="card-tag">scope</div>
+      </div>
+      <p>
+        The Diversity Atlas v2 is the population-genetics-reviewer-facing
+        view of the 226-sample <i>C. gariepinus</i> hatchery cohort —
+        a deep per-sample and per-chromosome lens on nucleotide diversity,
+        autozygosity (F_ROH), ROH composition, and ancestry-stratified
+        tests. Backing data is the MODULE_3 supplementary table package
+        (<code>MODULE3_Supplementary_Tables_7</code>) — all 19 tables
+        embedded directly in this HTML so the atlas is fully offline.
+      </p>
+      <p>
+        It is the second of four sibling atlases (ADR-14):
+      </p>
+      <div class="pg" style="grid-template-columns: 0.4fr 1.4fr 1.6fr; margin-top: 6px;">
+        <div class="pg-header">atlas</div>
+        <div class="pg-header">scope</div>
+        <div class="pg-header">audience</div>
+
+        <div style="color: rgb(64, 144, 220);">Inversion</div>
+        <div>Phase-2 inversion discovery and per-candidate refinement</div>
+        <div>Manuscript reviewers; the PI running candidate review</div>
+
+        <div style="color: var(--accent);"><b>Diversity</b></div>
+        <div>θπ, F_ROH, ROH atlas, ancestry-Q stratification, kinship/relatedness</div>
+        <div>Population-genetics reviewers</div>
+
+        <div style="color: rgb(228, 138, 60);">Genome</div>
+        <div>Chromosome-scale assembly stats, synteny, gene tracks, repeats / TE landscape, conserved elements</div>
+        <div>Genome-assembly reviewers</div>
+
+        <div style="color: rgb(232, 196, 76);">Population</div>
+        <div>Samples / QC / families / heterozygosity / diversity / inbreeding (cohort-summary scaffolds)</div>
+        <div>Breeding-program collaborators</div>
+      </div>
+      <p style="margin-top: 10px;">
+        <b>Topic overlap with the Population Atlas is intentional.</b> Both
+        atlases cover heterozygosity / diversity / inbreeding biologically —
+        Population Atlas's pages 4/5/6 are now cohort-summary landing cards
+        with green "→ Diversity Atlas" callouts that take readers
+        straight here for the depth view. Two products, two depths, one
+        source of truth (MODULE_3 supp tables).
+      </p>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">Headline numbers</div>
+        <div class="card-tag">paste-into-MS-ready</div>
+      </div>
+      <div class="stat-strip" id="aboutHeadline"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">SD1 · Pipeline steps</div>
+        <div class="card-tag">methods</div>
+      </div>
+      <table class="dt" id="sd1Table"><thead></thead><tbody></tbody></table>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">SD2 · ANGSD / realSFS / thetaStat parameters</div>
+        <div class="card-tag">methods</div>
+      </div>
+      <table class="dt" id="sd2Table"><thead></thead><tbody></tbody></table>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">SD3 · Theta-window scales</div>
+        <div class="card-tag">methods</div>
+      </div>
+      <table class="dt" id="sd3Table"><thead></thead><tbody></tbody></table>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">SD5 · Key design decisions</div>
+        <div class="card-tag">methods</div>
+      </div>
+      <table class="dt" id="sd5Table"><thead></thead><tbody></tbody></table>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">SD6 · Output directories</div>
+        <div class="card-tag">methods</div>
+      </div>
+      <table class="dt" id="sd6Table"><thead></thead><tbody></tbody></table>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">SD7 · Canonical output files (downstream contracts)</div>
+        <div class="card-tag">methods</div>
+      </div>
+      <table class="dt" id="sd7Table"><thead></thead><tbody></tbody></table>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">SD8 · Software dependencies</div>
+        <div class="card-tag">methods</div>
+      </div>
+      <table class="dt" id="sd8Table"><thead></thead><tbody></tbody></table>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">Supplementary table coverage map</div>
+        <div class="card-tag">25 source tables</div>
+      </div>
+      <p style="color: var(--ink-dim); font-size: 10.5px;">
+        Every sheet in <code>MODULE3_Supplementary_Tables_7.xlsx</code> mapped to where it
+        is surfaced in this atlas. Tables marked <span style="color:var(--good);">✓ shipped</span>
+        carry real data; <span style="color:var(--accent);">◐ partial</span> means the data
+        is derivable / surfaced as a subset; <span style="color:var(--ink-dim);">⚪ pending</span>
+        marks tables whose source xlsx contains <code>[fill]</code> placeholders awaiting
+        upstream computation.
+      </p>
+      <table class="dt" id="coverageTable"><thead></thead><tbody></tbody></table>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">S4b · Per-sample × per-chromosome H</div>
+        <div class="card-tag pending">⚪ computation pending</div>
+      </div>
+      <div id="s4bMetaBlock" style="font-size:10.5px;"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">ST4 · Per-sample × per-window θπ (Supplementary Data pointer)</div>
+        <div class="card-tag">📦 external file</div>
+      </div>
+      <p style="color: var(--ink-dim); font-size: 10.5px;">
+        The full per-sample × per-window θπ table is provided as a separate
+        Supplementary Data file (too large for both the xlsx workbook and
+        for inline JSON embedding). Schema and location below.
+      </p>
+      <div id="st4MetaBlock" style="font-size:10.5px;"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">ST5 · Multi-scale θπ summary</div>
+        <div class="card-tag pending">⚪ computation pending</div>
+      </div>
+      <div id="st5MetaBlock" style="font-size:10.5px;"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">REF · Inversion-support θπ tracks</div>
+        <div class="card-tag pending">⚪ MODULE_5E integration pending</div>
+      </div>
+      <div id="refMetaBlock" style="font-size:10.5px;"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">Glossary</div>
+        <div class="card-tag">12 terms</div>
+      </div>
+      <ul>
+        <li><b>H</b> — genome-wide heterozygosity from the ANGSD folded SFS over the callable mask. Population-diversity estimator equivalent to θπ under the infinite-sites model.</li>
+        <li><b>θπ</b> — Tajima's π, mean pairwise nucleotide differences per site. Computed in 500 kb windows by ANGSD thetaStat from per-sample SFS.</li>
+        <li><b>F_ROH</b> — fraction of the callable genome covered by runs of homozygosity ≥ 1 Mb, an ROH-based estimator of inbreeding.</li>
+        <li><b>F_HOM</b> — H-based inbreeding estimator: 1 − H_i / H̄_pop. Linearly inverse-related to H, so ρ(F_HOM, F_ROH) = +0.704 mirrors ρ(H, F_ROH) = −0.704 — HMM-free cross-validation of ngsF-HMM.</li>
+        <li><b>ROH bins</b> — short (&lt;1 Mb), medium (1–5 Mb), long (&gt;5 Mb). Long ROH = recent inbreeding; short = ancient.</li>
+        <li><b>θ in/out ROH</b> — ratio of mean Watterson θ inside vs. outside ROH segments. Typical 0.20–0.30 (4–5× depression).</li>
+        <li><b>callable genome</b> — 576.9 Mb of mappable, depth-passed positions (mosdepth); F_ROH denominator.</li>
+        <li><b>K=8 NGSadmix</b> — best-seed assignment to the K=8 solution. Clusters represent hatchery <i>broodline</i> structure.</li>
+        <li><b>pruned81</b> — 81 individuals retained after first-degree kinship pruning (NAToRA, θ ≥ 0.177).</li>
+        <li><b>folded SFS</b> — site-frequency spectrum without ancestral polarisation (no clean outgroup for hatchery cohorts).</li>
+        <li><b>ngsF-HMM stability</b> — 26/28 chromosomes labelled 'very stable' across 20 random-seed restarts (SZ).</li>
+        <li><b>broodline</b> — a genealogically distinct hatchery line. K=8 clusters are read as broodline groups.</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">Cross-references</div>
+        <div class="card-tag">where to look next</div>
+      </div>
+      <ul>
+        <li><b>Inversion Atlas page 12 (local PCA θπ)</b> — per-window θπ scrubber for hotspot follow-up.</li>
+        <li><b>Inversion Atlas per-band θπ panel</b> — orthogonal genotype validation for inversion candidates.</li>
+        <li><b>Population Atlas pages 4 / 5 / 6</b> — same biological topics at cohort-summary depth.</li>
+        <li><b>Genome Atlas (planned)</b> — chromosome assembly stats; will overlay these θπ peaks on gene tracks.</li>
+        <li><b>MS_Inversions_North_african_catfish manuscript</b> — Tables S1–S12 + ST1–ST5 + SD1–SD8 sourced for this atlas.</li>
+      </ul>
+    </div>
+  </div>
+</div>

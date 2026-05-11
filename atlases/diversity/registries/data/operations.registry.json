@@ -1,0 +1,5 @@
+{
+  "$schema": "../../../../core/registry_core.schema.json",
+  "_doc": "Backend operations exposed for the diversity atlas. Round-1 is empty: every page is pure browser-side rendering off the embedded_tables.json snapshot. Server compute (per-sample thetaStat from SAFs, ngsRelate kinship rebuild, multi-scale θπ aggregation) lands on the roadmap (page 8) and gets registered here when the LANTA jobs ship.",
+  "operations": {}
+}

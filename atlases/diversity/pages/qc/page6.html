@@ -1,0 +1,120 @@
+<div id="page6" class="page active">
+  <div class="page-content">
+    <div class="page-title">Pruning &amp; QC</div>
+    <div class="page-subtitle">
+      Cross-validation and quality controls: NAToRA pruning (S11), ngsF-HMM convergence (SZ), Spearman correlation matrix (S3), het in/out ROH (S12 / S1).
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">S11 · First-degree kinship pruning (NAToRA, θ ≥ 0.177)</div>
+        <div class="card-tag shipped">226 rows · 81 retained</div>
+      </div>
+      <p style="color: var(--ink-dim); font-size: 10.5px;">
+        Graph-based first-degree kinship pruning yields a maximum
+        independent set of 81 samples. The ancestry × F_ROH signal in
+        all226 (S5, P = 2.9 × 10⁻⁴) collapses in the pruned81 panel
+        (P = 0.59) — confirming the signal is family structure within
+        ancestry clusters, not founder-lineage divergence.
+      </p>
+      <div class="toolbar">
+        <span class="pill on" data-prune-status="all">all 226</span>
+        <span class="pill" data-prune-status="Retained">retained (81)</span>
+        <span class="pill" data-prune-status="Removed">removed (145)</span>
+        <select id="prClusterFilter"><option value="">all K=8 clusters</option></select>
+        <span class="count" id="prCount"></span>
+      </div>
+      <div style="max-height: 320px; overflow-y: auto; border: 1px solid var(--rule); border-radius: 3px;">
+        <table class="dt" id="pruneTable">
+          <thead>
+            <tr>
+              <th data-sort="sample">sample</th>
+              <th data-sort="status">status</th>
+              <th data-sort="k8">K=8</th>
+              <th data-sort="h">H</th>
+              <th data-sort="f_hom">F_HOM</th>
+              <th data-sort="f_roh">F_ROH</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">SZ · ngsF-HMM convergence per chromosome</div>
+        <div class="card-tag shipped">28 rows · 20 seeds each</div>
+      </div>
+      <p style="color: var(--ink-dim); font-size: 10.5px;">
+        20 random-seed replicates per chromosome (seeds 32–51); the highest
+        log-likelihood replicate is retained. 'Gap best–worst' = absolute
+        log-likelihood difference between best and worst seed. Lower = more
+        consistent convergence. 26/28 chromosomes labelled 'very stable'.
+      </p>
+      <table class="dt" id="hmmTable">
+        <thead>
+          <tr>
+            <th data-sort="chr">chromosome</th>
+            <th data-sort="reps">reps</th>
+            <th data-sort="best_rep">best rep</th>
+            <th data-sort="best_ll">best log-lik</th>
+            <th data-sort="gap_worst">gap best–worst</th>
+            <th data-sort="gap_5th">gap best–5th</th>
+            <th data-sort="stability">stability</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">S3 · Spearman correlations between H-based and ROH-based estimators</div>
+        <div class="card-tag shipped">4 rows</div>
+      </div>
+      <p style="color: var(--ink-dim); font-size: 10.5px;">
+        H × F_ROH (ρ = −0.704) and F_HOM × F_ROH (ρ = +0.704) have equal
+        magnitude because F_HOM is a linear transform of H. This equivalence
+        is an HMM-free cross-validation of the ngsF-HMM ROH calls.
+      </p>
+      <table class="dt" id="spearmanTable">
+        <thead>
+          <tr>
+            <th>variable 1</th>
+            <th>variable 2</th>
+            <th>n</th>
+            <th>Spearman ρ</th>
+            <th>P-value</th>
+            <th>direction</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">QC plots</div>
+        <div class="card-tag shipped">3 panels</div>
+      </div>
+      <div class="plot-grid">
+        <div class="plot-card">
+          <div class="plot-card-title">F_ROH: pruned81 vs. removed<span class="src">S11</span></div>
+          <div class="plot-card-sub">Side-by-side box of F_ROH within retained vs. removed samples. The pruning step does <i>not</i> select for low-F_ROH individuals; both groups span similar F_ROH.</div>
+          <div id="plotPruneFRoh"></div>
+        </div>
+        <div class="plot-card">
+          <div class="plot-card-title">ngsF-HMM stability ranked<span class="src">SZ</span></div>
+          <div class="plot-card-sub">28 chromosomes ranked by best–worst log-lik gap (smaller = more stable). Two outlier chromosomes flagged for higher seed sensitivity.</div>
+          <div id="plotHMMRanked"></div>
+        </div>
+        <div class="plot-card">
+          <div class="plot-card-title">Het in vs. out ROH ratio (cohort)<span class="src">S1 · S12</span></div>
+          <div class="plot-card-sub">Per-sample ratio of θ inside ROH / θ outside ROH. Distribution centered around 0.20–0.30 (4–5× depression inside ROH); high outliers may flag false-positive tracts.</div>
+          <div id="plotHetInOutHist"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

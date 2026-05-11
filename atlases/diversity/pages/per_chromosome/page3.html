@@ -1,0 +1,67 @@
+<div id="page3" class="page active">
+  <div class="page-content">
+    <div class="page-title">θπ hotspots</div>
+    <div class="page-subtitle">
+      19 outlier windows above the 99th percentile (mean θπ &gt; 5.27 × 10⁻³). Strongest peak: LG22 19.0–19.5 Mb at 1.07 × 10⁻² (2.4× genome mean).
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">Genome-wide θπ landscape</div>
+        <div class="card-tag shipped">ST1 + ST3</div>
+      </div>
+      <div class="plot-card-sub">
+        Per-chromosome mean θπ shown as horizontal bars (length = chromosome
+        length scaled, height = mean θπ at chrom scale); outlier 500 kb
+        windows from ST3 plotted as red ticks at their genomic position.
+        Zoomable horizontal layout — click a chromosome to filter the table.
+      </div>
+      <div id="plotGenomeManhattan"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">ST3 · 19 outlier windows (mean θπ &gt; 99th percentile)</div>
+        <div class="card-tag shipped">19 rows</div>
+      </div>
+      <p style="color: var(--ink-dim); font-size: 10.5px;">
+        Adjacent-window groups (within 1 Mb on the same chromosome) are
+        flagged as one cluster — they likely reflect single localised
+        diversity peaks spanning 1–4 Mb, not independent loci. LG12 4.5–8.5
+        Mb is one cluster of 9 windows, not 9 hits.
+      </p>
+      <table class="dt" id="hotspotTable">
+        <thead>
+          <tr>
+            <th data-sort="chr">chr</th>
+            <th data-sort="start">start (Mb)</th>
+            <th data-sort="end">end (Mb)</th>
+            <th data-sort="mean_th">mean θπ</th>
+            <th data-sort="fold">× genome mean</th>
+            <th data-sort="pct">percentile</th>
+            <th data-sort="cluster">cluster</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">ST3b · Per-sample θπ heatmap at the 19 hotspots</div>
+        <div class="card-tag shipped">226 × 19 matrix</div>
+      </div>
+      <p style="color: var(--ink-dim); font-size: 10.5px;">
+        Rows: 226 samples (sorted by mean θπ across these 19 windows,
+        descending). Columns: 19 outlier windows in ST3 column order. Hue:
+        per-sample θπ value. Hover any cell to read the exact value and
+        sample. Reveals which samples drive each hotspot — wide variation
+        across samples at one window suggests a polymorphic signal
+        (candidate inversion); uniform colour suggests a fixed feature.
+      </p>
+      <div class="heatmap-wrap">
+        <div id="plotHotspotHeatmap"></div>
+      </div>
+    </div>
+  </div>
+</div>

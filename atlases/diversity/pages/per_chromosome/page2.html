@@ -1,0 +1,117 @@
+<div id="page2" class="page active">
+  <div class="page-content">
+    <div class="page-title">Per-chromosome diversity</div>
+    <div class="page-subtitle">
+      28 linkage groups × θπ (ST1) and F_ROH (S4). Plus per-chromosome ancestry KW tests (S6).
+    </div>
+
+    <div class="stat-strip" id="chrTopStrip"></div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">ST1 · Per-chromosome θπ (500 kb non-overlapping)</div>
+        <div class="card-tag shipped">28 rows · 1,895 windows</div>
+      </div>
+      <table class="dt" id="thetaChrTable">
+        <thead>
+          <tr>
+            <th data-sort="chr">chromosome</th>
+            <th data-sort="n_win">n windows</th>
+            <th data-sort="mean">mean θπ</th>
+            <th data-sort="median">median</th>
+            <th data-sort="iqr">IQR</th>
+            <th data-sort="q25">Q25</th>
+            <th data-sort="q75">Q75</th>
+            <th data-sort="min">min</th>
+            <th data-sort="max">max</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">S4 · Per-chromosome F_ROH</div>
+        <div class="card-tag shipped">28 rows</div>
+      </div>
+      <p style="color: var(--ink-dim); font-size: 10.5px;">
+        A small number of individuals carry chromosome-level F_ROH &gt; 1
+        (max reaches ~1.4 on LG15). This reflects ROH tracts extending past
+        the per-chromosome callable-mask denominator — not biologically
+        impossible autozygosity, and does not affect rank-based tests.
+      </p>
+      <table class="dt" id="frohChrTable">
+        <thead>
+          <tr>
+            <th data-sort="chr">chromosome</th>
+            <th data-sort="n">n samples</th>
+            <th data-sort="mean">mean F_ROH</th>
+            <th data-sort="median">median</th>
+            <th data-sort="sd">SD</th>
+            <th data-sort="min">min</th>
+            <th data-sort="max">max</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">S6 · Per-chromosome F_ROH × K=8 ancestry KW tests (all226)</div>
+        <div class="card-tag shipped">28 rows · BH-adjusted</div>
+      </div>
+      <p style="color: var(--ink-dim); font-size: 10.5px;">
+        Per-chromosome Kruskal–Wallis F_ROH × K=8 ancestry test. n varies
+        because individuals with zero callable sites on a given chromosome
+        are dropped. Significance: *** P ≤ 0.001, ** P ≤ 0.01, * P ≤ 0.05,
+        all BH-adjusted across 28 chromosomes.
+      </p>
+      <table class="dt" id="kwChrTable">
+        <thead>
+          <tr>
+            <th data-sort="chr">chromosome</th>
+            <th data-sort="n">n</th>
+            <th data-sort="median_froh">median F_ROH</th>
+            <th data-sort="iqr_froh">IQR</th>
+            <th data-sort="h">KW H</th>
+            <th data-sort="p_raw">P (raw)</th>
+            <th data-sort="p_bh">P (BH)</th>
+            <th data-sort="sig">sig.</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">Per-chromosome plots</div>
+        <div class="card-tag shipped">4 panels</div>
+      </div>
+      <div class="plot-grid">
+        <div class="plot-card">
+          <div class="plot-card-title">Mean θπ per chromosome (ranked)<span class="src">ST1</span></div>
+          <div class="plot-card-sub">Bars: cohort-mean θπ; whiskers: Q25–Q75. Genome mean dashed reference.</div>
+          <div id="plotChrTheta"></div>
+        </div>
+        <div class="plot-card">
+          <div class="plot-card-title">Mean F_ROH per chromosome (ranked)<span class="src">S4</span></div>
+          <div class="plot-card-sub">Bars: per-chr mean F_ROH; error bars: ±SD across 222–225 samples.</div>
+          <div id="plotChrFroh"></div>
+        </div>
+        <div class="plot-card">
+          <div class="plot-card-title">−log₁₀(P_BH) — F_ROH × K=8 per-chr<span class="src">S6</span></div>
+          <div class="plot-card-sub">Per-chromosome Kruskal–Wallis P, BH-adjusted across 28 chromosomes. Reference lines at α = 0.05, 0.01, 0.001.</div>
+          <div id="plotChrKW"></div>
+        </div>
+        <div class="plot-card">
+          <div class="plot-card-title">ngsF-HMM convergence stability<span class="src">SZ</span></div>
+          <div class="plot-card-sub">Per-chromosome 'Gap best–worst' across 20 random-seed replicates. Lower = more stable. Ribbon: Gap best–5th.</div>
+          <div id="plotHMMStability"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

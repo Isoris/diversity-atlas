@@ -1,0 +1,103 @@
+{
+  "atlas_id": "diversity",
+  "atlas_name": "Diversity Atlas",
+  "atlas_version": "2026-05-11-round1",
+  "atlas_description": "Per-sample diversity / ROH / θπ landscape for the 226-sample pure C. gariepinus hatchery cohort. Decomposed from Diversity_atlas.html v2.4 (37 embedded tables, 8 page-level tabs).",
+  "pages": [
+    {
+      "id": "page1",
+      "label": "samples",
+      "stage": "per_sample",
+      "fragment": "atlases/diversity/pages/per_sample/page1.html",
+      "module": "atlases/diversity/pages/per_sample/page1.js",
+      "tooltip": "Per-sample table — H, F_ROH, ROH bins, θπ summaries. Click row for drill-down."
+    },
+    {
+      "id": "page2",
+      "label": "chromosomes",
+      "stage": "per_chromosome",
+      "fragment": "atlases/diversity/pages/per_chromosome/page2.html",
+      "module": "atlases/diversity/pages/per_chromosome/page2.js",
+      "tooltip": "Per-chromosome diversity — θπ + F_ROH + per-chromosome KW tests."
+    },
+    {
+      "id": "page3",
+      "label": "hotspots",
+      "stage": "per_chromosome",
+      "fragment": "atlases/diversity/pages/per_chromosome/page3.html",
+      "module": "atlases/diversity/pages/per_chromosome/page3.js",
+      "tooltip": "θπ outlier windows — 19 hotspots above 99th percentile, with per-sample heatmap."
+    },
+    {
+      "id": "page4",
+      "label": "ancestry",
+      "stage": "stratified",
+      "fragment": "atlases/diversity/pages/stratified/page4.html",
+      "module": "atlases/diversity/pages/stratified/page4.js",
+      "tooltip": "Ancestry × diversity — K=8 clusters, K-sweep K=2-12, per-Q correlations, KW + pairwise tests."
+    },
+    {
+      "id": "page5",
+      "label": "ROH",
+      "stage": "per_sample",
+      "fragment": "atlases/diversity/pages/per_sample/page5.html",
+      "module": "atlases/diversity/pages/per_sample/page5.js",
+      "tooltip": "ROH composition — length-class bins, per-chr × per-sample F_ROH heatmap, length spectrum."
+    },
+    {
+      "id": "page6",
+      "label": "pruning & QC",
+      "stage": "qc",
+      "fragment": "atlases/diversity/pages/qc/page6.html",
+      "module": "atlases/diversity/pages/qc/page6.js",
+      "tooltip": "Pruning & QC — NAToRA pruning, ngsF-HMM stability, Spearman correlation matrix, het in/out ROH."
+    },
+    {
+      "id": "page7",
+      "label": "about",
+      "stage": "meta",
+      "fragment": "atlases/diversity/pages/meta/page7.html",
+      "module": "atlases/diversity/pages/meta/page7.js",
+      "tooltip": "About — methods (SD1-SD8), glossary, headline numbers, data lineage."
+    },
+    {
+      "id": "page8",
+      "label": "roadmap",
+      "stage": "meta",
+      "fragment": "atlases/diversity/pages/meta/page8.html",
+      "module": "atlases/diversity/pages/meta/page8.js",
+      "tooltip": "Roadmap — what's still planned but not yet shipped."
+    }
+  ],
+  "registries": {
+    "layers":     "atlases/diversity/registries/data/layers.registry.json",
+    "files":      "atlases/diversity/registries/data/files.registry.json",
+    "operations": "atlases/diversity/registries/data/operations.registry.json",
+    "pages":      "atlases/diversity/registries/data/pages.registry.json",
+    "slots":      "atlases/diversity/registries/data/slots.registry.json"
+  },
+  "shared_modules": {
+    "data_loader": "atlases/diversity/shared/data_loader.js",
+    "formatters":  "atlases/diversity/shared/formatters.js",
+    "tooltip":     "atlases/diversity/shared/tooltip.js",
+    "svg":         "atlases/diversity/shared/svg.js",
+    "plots":       "atlases/diversity/shared/plots.js",
+    "tables":      "atlases/diversity/shared/tables.js"
+  },
+  "engines_dir":  "atlases/diversity/engines/",
+  "analysis_dir": "atlases/diversity/analysis/",
+  "css_dir":      "atlases/diversity/css/",
+  "stylesheets": [
+    "atlases/diversity/css/diversity.css"
+  ],
+  "_stylesheets_doc": "Round-1 ships one bundle (verbatim extraction of the legacy <style> block). Future work: split into per-page stylesheets (atlases/diversity/css/pages/page1.css etc.) and reference them from each page entry's `stylesheet` field — the router loads page-stylesheet on mount.",
+  "scope_pickers": [],
+  "_scope_pickers_doc": "No per-atlas scope pickers in round 1 — every page reads from the embedded_tables.json snapshot. When per-chromosome or per-cohort scope arrives, add pickers here (mirrors inversion-atlas activeChrom).",
+  "stages": [
+    { "id": "per_sample",     "label": "per-sample",     "order": 1 },
+    { "id": "per_chromosome", "label": "per-chromosome", "order": 2 },
+    { "id": "stratified",     "label": "stratified",     "order": 3 },
+    { "id": "qc",             "label": "QC",             "order": 4 },
+    { "id": "meta",           "label": "about",          "order": 5 }
+  ]
+}

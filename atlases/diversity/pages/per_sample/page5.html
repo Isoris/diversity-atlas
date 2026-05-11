@@ -1,0 +1,164 @@
+<div id="page5" class="page active">
+  <div class="page-content">
+    <div class="page-title">ROH composition</div>
+    <div class="page-subtitle">
+      ROH length-class decomposition (S8), per-chromosome × per-sample F_ROH heatmap (S8b), and ROH length spectrum.
+    </div>
+
+    <div class="stat-strip" id="rohTopStrip"></div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">SD4 · ROH length-bin classification scheme</div>
+        <div class="card-tag">methods</div>
+      </div>
+      <table class="dt" id="binSchemeTable"><thead></thead><tbody></tbody></table>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">S8 · Per-sample F_ROH by length class (long format)</div>
+        <div class="card-tag shipped">1,130 rows</div>
+      </div>
+      <p style="color: var(--ink-dim); font-size: 10.5px;">
+        For each (sample × length class), tract count and total bp inside
+        ROH of that class. Visualised as stacked composition bars below.
+      </p>
+      <div class="toolbar">
+        <input id="rohSearch" type="search" placeholder="filter sample…" style="width:160px;" />
+        <select id="rohClassFilter">
+          <option value="">all length classes</option>
+        </select>
+        <span class="count" id="rohCount"></span>
+      </div>
+      <div style="max-height: 320px; overflow-y: auto; border: 1px solid var(--rule); border-radius: 3px;">
+        <table class="dt" id="rohBinsTable">
+          <thead>
+            <tr>
+              <th data-sort="sample">sample</th>
+              <th data-sort="class">length class</th>
+              <th data-sort="n_tracts">n tracts</th>
+              <th data-sort="bp">ROH (bp)</th>
+              <th data-sort="bp_mb">ROH (Mb)</th>
+              <th data-sort="pct">% callable</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">ROH composition plots</div>
+        <div class="card-tag shipped">3 panels</div>
+      </div>
+      <div class="plot-grid">
+        <div class="plot-card" style="grid-column: 1 / -1;">
+          <div class="plot-card-title">Cohort ROH length spectrum<span class="src">S8</span></div>
+          <div class="plot-card-sub">Aggregated tract count + total Mb per length class across the cohort. Long tracts (&gt; 5 Mb) are recent inbreeding signal; short tracts (&lt; 1 Mb) are ancient bottleneck.</div>
+          <div id="plotROHSpectrum"></div>
+        </div>
+        <div class="plot-card" style="grid-column: 1 / -1;">
+          <div class="plot-card-title">Per-sample stacked F_ROH composition<span class="src">S8</span></div>
+          <div class="plot-card-sub">Stacked bars: composition of total F_ROH across length classes. Sorted by total F_ROH desc; legend by class. Shows the qualitative shift from short-dominated (ancient inbreeding) to long-dominated (recent) as F_ROH increases.</div>
+          <div class="toolbar">
+            <span class="pill on" data-stack-view="contrast">top 60 + bottom 60</span>
+            <span class="pill" data-stack-view="all">all 226</span>
+            <span class="pill" data-stack-view="top">top 100</span>
+            <span class="count" id="stackCount"></span>
+          </div>
+          <div id="plotROHStacked"></div>
+        </div>
+        <div class="plot-card" style="grid-column: 1 / -1;">
+          <div class="plot-card-title">S8b · Per-chromosome × per-sample F_ROH heatmap<span class="src">S8b</span></div>
+          <div class="plot-card-sub">Rows: 226 samples (sorted by total F_ROH descending). Columns: 28 chromosomes. Hue: F_ROH on that chromosome (capped at 1.0; cells &gt; 1 are flagged from per-chr callable-mask shortfalls). Hover for sample × chrom F_ROH.</div>
+          <div class="heatmap-wrap" style="margin-top: 4px;">
+            <div id="plotChrSampleHeatmap"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">S12 · Heterozygosity inside vs outside ROH (per sample)</div>
+        <div class="card-tag shipped">226 rows · derived from S1 θ_in / θ_out</div>
+      </div>
+      <p style="color: var(--ink-dim); font-size: 10.5px;">
+        Quantifies the diversity contrast between inbred (inside ROH) and
+        non-inbred (outside ROH) genomic segments. A high
+        <code>het_ratio_out_over_in</code> confirms the ROH calls are
+        real (true ROH should have very low internal heterozygosity).
+        Cohort median ratio: <span id="s12MedianRatio">—</span>;
+        outliers flagged where ratio ≤ Q05 (<span id="s12Q05">—</span>) — these are
+        candidates for ngsF-HMM mis-calls or coverage artefact.
+      </p>
+      <div class="toolbar">
+        <input id="s12Search" type="search" placeholder="filter sample…" style="width:160px;" />
+        <span class="pill on" data-s12-filter="all">all 226</span>
+        <span class="pill" data-s12-filter="outliers">outliers only</span>
+        <span class="count" id="s12Count"></span>
+      </div>
+      <div style="max-height: 320px; overflow-y: auto; border: 1px solid var(--rule); border-radius: 3px;">
+        <table class="dt" id="s12Table">
+          <thead>
+            <tr>
+              <th data-sort="sample">sample</th>
+              <th data-sort="callable_bp_in_ROH">callable bp in ROH</th>
+              <th data-sort="callable_bp_out_ROH">callable bp out ROH</th>
+              <th data-sort="het_in_ROH">het in ROH</th>
+              <th data-sort="het_out_ROH">het out ROH</th>
+              <th data-sort="het_ratio_out_over_in">ratio out/in</th>
+              <th data-sort="is_outlier_low_ratio">outlier?</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">S8c · Long-ROH tract atlas (≥ 1 Mb)</div>
+        <div class="card-tag shipped">5,850 of 681,286 tracts</div>
+      </div>
+      <p style="color: var(--ink-dim); font-size: 10.5px;">
+        Individual ROH tracts (the manuscript-relevant subset, length ≥ 1 Mb).
+        Each row is one ROH segment in one sample. The full S8c table
+        contains 681,286 rows — embedding all of them would require ~28 MB
+        of JSON, so this view shows the long-tract subset that drives the
+        F_ROH calculations (≥ 1 Mb is the ngsF-HMM detection threshold for
+        ~9× coverage). Filter by sample, chromosome, or length to drill
+        into specific founder events.
+      </p>
+      <div class="toolbar">
+        <input id="s8cSearch" type="search" placeholder="filter sample…" style="width:160px;" />
+        <select id="s8cChrFilter">
+          <option value="">all chromosomes</option>
+        </select>
+        <select id="s8cLenFilter">
+          <option value="1">≥ 1 Mb (default)</option>
+          <option value="2">≥ 2 Mb</option>
+          <option value="4">≥ 4 Mb</option>
+          <option value="8">≥ 8 Mb (recent inbreeding)</option>
+        </select>
+        <span class="count" id="s8cCount"></span>
+      </div>
+      <div style="max-height: 320px; overflow-y: auto; border: 1px solid var(--rule); border-radius: 3px;">
+        <table class="dt" id="s8cTable">
+          <thead>
+            <tr>
+              <th data-sort="sample">sample</th>
+              <th data-sort="chr">chr</th>
+              <th data-sort="start">start (Mb)</th>
+              <th data-sort="end">end (Mb)</th>
+              <th data-sort="len_bp">length (Mb)</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>

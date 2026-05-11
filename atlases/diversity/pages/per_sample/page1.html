@@ -1,0 +1,98 @@
+<div id="page1" class="page active">
+  <div class="page-content">
+    <div class="page-title">Sample diversity</div>
+    <div class="page-subtitle">
+      Per-individual H · F_ROH · ROH counts · θ in/out ROH for all 226 broodstock. Click rows for drill-down. Plots below: distributions and pairwise relationships.
+    </div>
+
+    <div class="stat-strip" id="ssTopStrip"></div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">S1 · Per-sample master table</div>
+        <div class="card-tag shipped">✓ 226 rows</div>
+      </div>
+
+      <div class="toolbar">
+        <input id="ssSearch" type="search" placeholder="filter by sample id…" style="width:180px;" />
+        <span class="pill" data-prune-filter="all">all 226</span>
+        <span class="pill" data-prune-filter="pruned81">pruned81 only</span>
+        <span class="pill" data-prune-filter="dropped">dropped (kin-related)</span>
+        <select id="ssClusterFilter">
+          <option value="">all K=8 clusters</option>
+        </select>
+        <span class="count" id="ssCount"></span>
+      </div>
+
+      <div style="max-height: 400px; overflow-y: auto; border: 1px solid var(--rule); border-radius: 3px;">
+        <table class="dt" id="sampleTable">
+          <thead>
+            <tr>
+              <th data-sort="sample">sample</th>
+              <th data-sort="k8">K8</th>
+              <th data-sort="pruned81">pruned81</th>
+              <th data-sort="h">H</th>
+              <th data-sort="f_roh">F_ROH</th>
+              <th data-sort="f_hom">F_HOM</th>
+              <th data-sort="roh_n">ROH n</th>
+              <th data-sort="roh_total_bp">ROH Mb</th>
+              <th data-sort="roh_longest_bp">longest Mb</th>
+              <th data-sort="roh_mean_bp">mean kb</th>
+              <th data-sort="th_in">θ in</th>
+              <th data-sort="th_out">θ out</th>
+              <th data-sort="th_ratio">in/out</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+
+      <div id="sampleDetail">
+        <span class="closebtn" data-action="closeSampleDetail">close</span>
+        <div class="card-title" id="sdTitle">—</div>
+        <div style="color: var(--ink-dim); margin-top: 4px;" id="sdSubtitle">—</div>
+        <div class="grid" id="sdGrid"></div>
+        <div style="margin-top: 12px; color: var(--ink-dim); font-size: 10.5px; line-height: 1.6;" id="sdNotes"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">Distribution &amp; relationship plots</div>
+        <div class="card-tag shipped">5 panels</div>
+      </div>
+      <div class="plot-grid">
+        <div class="plot-card">
+          <div class="plot-card-title">Genome-wide H distribution<span class="src">S1 · S2</span></div>
+          <div class="plot-card-sub">226 samples, mean = 4.55 × 10⁻³, range 2.83 × 10⁻³ to 7.08 × 10⁻³.</div>
+          <div id="plotHHist"></div>
+        </div>
+        <div class="plot-card">
+          <div class="plot-card-title">Genome-wide F_ROH distribution<span class="src">S1 · S2</span></div>
+          <div class="plot-card-sub">226 samples, mean = 0.277, IQR 0.250–0.308, max = 0.407.</div>
+          <div id="plotFRohHist"></div>
+        </div>
+        <div class="plot-card">
+          <div class="plot-card-title">H × F_ROH (Spearman ρ = −0.704)<span class="src">S1 · S3</span></div>
+          <div class="plot-card-sub">Per-individual scatter, dots coloured by K=8 ancestry. The two estimators agree strongly: P = 3.4 × 10⁻³⁵.</div>
+          <div id="plotHvsFroh"></div>
+        </div>
+        <div class="plot-card">
+          <div class="plot-card-title">H × longest ROH (ρ = −0.242)<span class="src">S1 · S3</span></div>
+          <div class="plot-card-sub">Weaker than total F_ROH: longest single tract carries different information.</div>
+          <div id="plotHvsLongest"></div>
+        </div>
+        <div class="plot-card">
+          <div class="plot-card-title">θ inside vs outside ROH<span class="src">S1 · S12</span></div>
+          <div class="plot-card-sub">QC for ROH calls — typical ratio 0.20–0.30 (4–5× depression inside ROH). High ratios may flag false-positive tracts.</div>
+          <div id="plotThetaInOut"></div>
+        </div>
+        <div class="plot-card">
+          <div class="plot-card-title">Per-sample θπ summary (ST2)<span class="src">ST2</span></div>
+          <div class="plot-card-sub">Per-sample mean θπ across 1,895 windows. Cohort tightly clustered around 4.5 × 10⁻³.</div>
+          <div id="plotPerSampleTheta"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

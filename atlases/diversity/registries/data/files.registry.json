@@ -1,0 +1,15 @@
+{
+  "$schema": "../../../../core/registry_core.schema.json",
+  "_doc": "Static file inventory for the diversity atlas. Round-1 ships exactly one file: the bulk JSON snapshot of the 37 MODULE_3 tables embedded in the legacy v2.4 HTML. The shell does not preload it via the file registry today — the data_loader module fetches it directly. Listed here for packaging and integrity checks.",
+  "files": {
+    "embedded_tables": {
+      "path_template":     "atlases/diversity/data/embedded_tables.json",
+      "scope":             "cohort",
+      "tier":              "warm",
+      "preload_on":        "atlas_register",
+      "estimated_size_mb": 2.4,
+      "workflow":          "diversity",
+      "_doc":              "Single JSON with all 37 dt_* blobs from Diversity_atlas.html v2.4 (D.globals + D.S1..D.S12 + D.ST1..D.ST5 + D.SD1..D.SD8 + D.SZ + D.REF + meta blocks). Loaded once by shared/data_loader.js."
+    }
+  }
+}
