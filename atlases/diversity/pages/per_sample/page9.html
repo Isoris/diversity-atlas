@@ -1,0 +1,123 @@
+<div id="page9" class="page active">
+  <div class="page-content">
+    <div class="page-title">Per-sample texture — DDI &amp; χ<sub>min</sub></div>
+    <div class="page-subtitle">
+      Within-genome heterogeneity of per-window H. Separates diffusely-diverse from mosaic-rich broodstock, and diffusely-depleted from mosaic-poor. Companion to the F_ROH|H framework on page 5.
+    </div>
+
+    <div class="stat-strip" id="txTopStrip"></div>
+
+    <div class="card" id="txMissingCard" style="display:none;">
+      <div class="card-head">
+        <div class="card-title">Texture metrics — data pending</div>
+        <div class="card-tag pending">⏳ awaiting pipeline step 04</div>
+      </div>
+      <p style="color: var(--ink-dim);">
+        This page renders once <code>atlases/diversity/data/texture_metrics.json</code>
+        is populated by the upstream pipeline. The substrate is the per-sample
+        <code>${SAMPLE}.win50000.step50000.pestPG</code> output of
+        <code>phase_2_discovery/02_run_heterozygosity.sh</code> in
+        <code>catfish-diversity-analysis</code>. Step 04
+        (<code>04_window_H_and_DDI.sh</code>, to-be-written) computes
+        H<sub>w</sub> = tP / nSites per 50 kb non-overlapping window and emits
+        the per-sample summary + cohort window matrix that this page consumes.
+      </p>
+      <p style="color: var(--ink-dim); margin-top: 8px;">
+        Expected schema (see <code>shared/data_loader.js</code> for the canonical loader):
+      </p>
+      <pre style="font-size:10px; color:var(--ink-dim); background:var(--panel); padding:8px; border-radius:3px; overflow:auto;">{
+  params: { win_kb, step_kb, min_callable_per_window,
+            mad_constant, chi_min_neighbors, h_proxy },
+  cohort_summary: { n_samples, n_windows,
+                    ddi_median, ddi_p25, ddi_p75, ddi_min, ddi_max,
+                    chi_min_median, h_gw_median },
+  per_sample: [ { sample, h_gw, ddi, chi_min,
+                  chi_min_chr, chi_min_pos,
+                  median_H_w, mad_H_w } ],
+  windows: { chroms: [ { chr, n_windows, len_bp } ],
+             cohort_median_H_w, cohort_q25_H_w, cohort_q75_H_w },
+  per_sample_H_w: { sample_id: [ … H_w per window, null if filtered ] }
+}</pre>
+    </div>
+
+    <div class="card" id="txScatterCard">
+      <div class="card-head">
+        <div class="card-title">DDI × genome-wide H — cohort scatter</div>
+        <div class="card-tag" id="txScatterTag">— rows</div>
+      </div>
+      <p style="color: var(--ink-dim); font-size: 10.5px;">
+        Dot colour: K=8 ancestry. Dot size scales with F_ROH (recent
+        autozygosity). Dashed reference lines at cohort median(H) and median(DDI)
+        define four broodstock classes:
+        <span style="color:var(--ink);">diffusely diverse</span> (high H, low DDI) ·
+        <b style="color:var(--accent);">mosaic-rich</b> (high H, high DDI) ·
+        <span style="color:var(--ink);">diffusely depleted</span> (low H, low DDI) ·
+        <span style="color:var(--ink);">mosaic-poor</span> (low H, high DDI).
+        Click any dot to load the per-window H strip below.
+      </p>
+      <div id="plotDdiVsH"></div>
+      <div class="toolbar" style="margin-top: 8px;">
+        <select id="txClusterFilter">
+          <option value="">all K=8 clusters</option>
+        </select>
+        <span class="pill on" data-tx-class="all">all</span>
+        <span class="pill" data-tx-class="mosaic_rich">mosaic-rich</span>
+        <span class="pill" data-tx-class="mosaic_poor">mosaic-poor</span>
+        <span class="pill" data-tx-class="diffuse_diverse">diffuse-diverse</span>
+        <span class="pill" data-tx-class="diffuse_depleted">diffuse-depleted</span>
+        <span class="count" id="txCount"></span>
+      </div>
+    </div>
+
+    <div class="card" id="txStripCard">
+      <div class="card-head">
+        <div class="card-title">Per-window H strip — selected sample</div>
+        <div class="card-tag" id="txStripTag">click a dot above</div>
+      </div>
+      <div class="plot-card-sub" style="margin-bottom: 8px;">
+        x: genome position (chromosomes concatenated; faint verticals at
+        boundaries). y: H<sub>w</sub> per 50 kb window. Grey ribbon:
+        cohort Q25–Q75. Dashed line: this sample's median H<sub>w</sub>.
+        Red marker: χ<sub>min</sub> window (most depleted relative to the
+        cohort, on the ±5-window-smoothed denominator).
+      </div>
+      <div id="plotTxStrip"></div>
+      <div id="txSampleDetail" style="display:none; margin-top: 12px; padding: 10px 12px; background: var(--panel); border: 1px solid var(--rule); border-radius: 3px;">
+        <span class="closebtn" data-action="closeTxDetail">close</span>
+        <div class="card-title" id="txdTitle">—</div>
+        <div style="color: var(--ink-dim); margin-top: 4px;" id="txdSubtitle">—</div>
+        <div class="grid" id="txdGrid"></div>
+        <div style="margin-top: 10px; color: var(--ink-dim); font-size: 10.5px; line-height: 1.6;" id="txdNotes"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">Methods note — definitions</div>
+        <div class="card-tag">defs</div>
+      </div>
+      <p>
+        <b>H<sub>w</sub></b> — per-sample heterozygosity per non-overlapping 50 kb window,
+        computed as tP / nSites from the ANGSD per-sample pestPG output (filter:
+        nSites ≥ 30% of nominal window size).
+      </p>
+      <p>
+        <b>DDI</b> — diversity dispersion index, per sample:
+        <code>DDI = MAD(H<sub>w</sub>) / median(H<sub>w</sub>)</code>.
+        MAD is the median absolute deviation with constant 1.4826 (Gaussian-consistent;
+        see open question Q3 in the round handoff for the non-Gaussian alternative).
+        Low DDI = flat genome (diffusely-distributed diversity); high DDI = mosaic
+        genome (peaks adjacent to valleys), consistent with heterozygous large
+        inversions, recent introgression, or shared ROH on a partly outbred background.
+      </p>
+      <p>
+        <b>χ<sub>min</sub></b> — per-sample cohort-relative diversity floor:
+        <code>χ<sub>min</sub> = min<sub>w</sub> [ H<sub>w</sub> / median<sub>cohort</sub>(H<sub>w</sub>) ]</code>.
+        Indexed on windows (not whole chromosomes), so it captures sub-chromosomal
+        collapse zones. Scale-free, cohort-relative (1.0 ≡ cohort median at that
+        window). Cohort denominator smoothed over ±5 neighbouring windows to
+        suppress single-window noise.
+      </p>
+    </div>
+  </div>
+</div>

@@ -10,6 +10,16 @@
       "estimated_size_mb": 2.4,
       "workflow":          "diversity",
       "_doc":              "Single JSON with all 37 dt_* blobs from Diversity_atlas.html v2.4 (D.globals + D.S1..D.S12 + D.ST1..D.ST5 + D.SD1..D.SD8 + D.SZ + D.REF + meta blocks). Loaded once by shared/data_loader.js."
+    },
+    "texture_metrics": {
+      "path_template":     "atlases/diversity/data/texture_metrics.json",
+      "scope":             "cohort",
+      "tier":              "warm",
+      "preload_on":        "atlas_register",
+      "estimated_size_mb": 25,
+      "workflow":          "diversity",
+      "optional":          true,
+      "_doc":              "Per-sample texture metrics consumed by page9. Round-2 ships an empty stub; the full payload is emitted by catfish-diversity-analysis phase_2_discovery/04_window_H_and_DDI.sh and contains: params{}, cohort_summary{}, per_sample[] (sample, h_gw, ddi, chi_min, chi_min_chr, chi_min_pos, median_H_w, mad_H_w), windows{ chroms[], cohort_median_H_w[], cohort_q25_H_w[], cohort_q75_H_w[] }, per_sample_H_w{ sample_id: [H_w per window] }. Estimated full size ~25 MB at 50 kb windows × 226 samples; consider parquet/binary if it grows beyond browser-comfort range. Loaded by shared/data_loader.js in parallel with embedded_tables; a missing file resolves to null and page9 renders the 'data pending' card."
     }
   }
 }

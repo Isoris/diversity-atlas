@@ -1,8 +1,8 @@
 {
   "atlas_id": "diversity",
   "atlas_name": "Diversity Atlas",
-  "atlas_version": "2026-05-11-round1",
-  "atlas_description": "Per-sample diversity / ROH / θπ landscape for the 226-sample pure C. gariepinus hatchery cohort. Decomposed from Diversity_atlas.html v2.4 (37 embedded tables, 8 page-level tabs).",
+  "atlas_version": "2026-05-12-round2-texture",
+  "atlas_description": "Per-sample diversity / ROH / θπ landscape for the 226-sample pure C. gariepinus hatchery cohort. Decomposed from Diversity_atlas.html v2.4 (37 embedded tables, 8 page-level tabs). Round 2 adds page9 'texture' (DDI + χ_min) for per-sample within-genome heterogeneity, gated on an optional texture_metrics.json that the upstream pipeline emits.",
   "pages": [
     {
       "id": "page1",
@@ -67,6 +67,14 @@
       "fragment": "atlases/diversity/pages/meta/page8.html",
       "module": "atlases/diversity/pages/meta/page8.js",
       "tooltip": "Roadmap — what's still planned but not yet shipped."
+    },
+    {
+      "id": "page9",
+      "label": "texture",
+      "stage": "per_sample",
+      "fragment": "atlases/diversity/pages/per_sample/page9.html",
+      "module": "atlases/diversity/pages/per_sample/page9.js",
+      "tooltip": "Per-sample texture — DDI (within-genome dispersion of H_w) and χ_min (cohort-relative diversity floor). Companion to the F_ROH|H framework on page 5. Appended at end to preserve existing page numbering per the migration-discipline rule."
     }
   ],
   "registries": {
