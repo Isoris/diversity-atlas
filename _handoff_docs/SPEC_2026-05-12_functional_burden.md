@@ -2,37 +2,48 @@
 
 **Date:** 2026-05-12
 **Target atlas:** diversity-atlas (new page — "main home" for functional burden)
-**Target page:** new `atlases/diversity/pages/<section>/pageN.{html,js}` —
-  *Functional Burden / Selection Efficacy*. Section + page-number deferred (see §6.1).
+**Target page:** **`atlases/diversity/pages/functional/page10.{html,js}`** —
+  *Functional Burden / Selection Efficacy*. Dedicated new section
+  `functional/`. User direction 2026-05-12: *"it should be on its own
+  page — we have evolution of proteins + VESM + deleterious functional
+  and per group of genes and many things"*.
 **Companion overlay:** Inversion Atlas per-candidate consequence panel —
   small per-karyotype subset of the same layers (see §10). **Not** a new
   Inversion Atlas page; a panel inside the existing per-candidate view.
 **Status:** spec only. No pipeline run. No new page code.
 
-> ## ⚠ UNFINISHED — decisions deferred
+> ## ⚠ Resolved decisions (2026-05-12 round-1 session)
 >
-> User wrote this page brief on 2026-05-12 but several upstream choices
-> are still open. Do not start the build session without resolving them.
+> Four of the six original UNFINISHED decisions were resolved
+> interactively. Two remain.
 >
-> 1. **Page location & number.** Options on the table: new
->    `stratified/page10.html` (alongside page 4) / new
->    `per_sample/page10.html` (alongside pages 1, 5, 9) / new
->    `functional/page10.html` (new section) / fold into existing
->    page 5 as a second tab. See §6.1.
-> 2. **πN/πS estimator.** Options on the table: site-count ratio
->    (Σ πN_sites / Σ πS_sites) / Watterson-θ ratio (θN/θS) / Tajima-θ
->    ratio per-window then averaged / block-jackknife mean across
->    chromosomes. See §6.2.
-> 3. **0-fold/4-fold degeneracy source.** Options on the table:
->    snpEff CDS annotations + custom degeneracy classifier / VEP
->    + Ensembl degeneracy table / custom from genome-atlas CDS FASTA
->    (Biopython three-codon enumeration) / dN/dS-pipeline by-product
->    if (D) below is already chosen for ROH-burden spec. See §6.3.
-> 4. **VESM payload source.** Options on the table: pre-computed
->    VESM scores from genome-atlas (canonical) / on-the-fly VESM
->    prediction per-cohort / a non-VESM substitute (SIFT / PolyPhen-2
->    / MutPred / AlphaMissense-fish) if VESM-for-catfish isn't ready.
->    See §6.4.
+> 1. ✅ **Page location:** new `functional/` section, dedicated
+>    `page10.html` + `page10.js`. (§6.1 below — resolved.)
+> 2. ✅ **πN/πS estimator:** deferred to the **unified ancestry
+>    repo** dispatcher. The atlas does not pick the method; it
+>    reads whatever the pipeline emits via the same dispatcher
+>    pattern already used by `texture_metrics.json`. The unified
+>    ancestry repo owns the method choice. (§6.2 below — resolved.)
+> 3. **0-fold/4-fold degeneracy source.** Constrained by the
+>    annotator pick (see (5) below). bcftools csq + snpEff give
+>    per-site syn/missense/LOF tags but neither emits 0/4-fold
+>    directly — a small custom degeneracy classifier from
+>    genome-atlas CDS FASTA is still needed downstream. Decision
+>    deferred to upstream pipeline session. (§6.3.)
+> 4. **VESM payload source.** Still data-blocked — VESM-for-catfish
+>    does not exist yet. The atlas reads `vesm_burden` from the
+>    payload; the predictor choice (canonical VESM / on-the-fly /
+>    AlphaMissense-fish substitute) is owned by the upstream
+>    pipeline session. (§6.4.)
+> 5. ✅ **Annotator tool:** **bcftools csq + snpEff** (both, cross-confirm).
+>    csq is haplotype-aware (correct syn/nonsyn calls for MNPs and
+>    adjacent variants); snpEff provides the HIGH-impact LOF tags
+>    and broad annotation. Agreement between the two becomes a
+>    confidence filter on the LOF set. (§6.5 below — resolved.)
+> 6. ✅ **Stratification axis:** **all modes selectable** — pill
+>    toggle with K=8 (default) / per-family / per-sample drill-down
+>    / F_ROH-quartile. Same pill set is used by the ROH-burden page.
+>    (§6.6 below — resolved.)
 > 5. **LOF caller.** Options on the table: snpEff "HIGH" impact
 >    (stop-gain / start-loss / splice-donor/acceptor / frameshift)
 >    / LOFTEE (Ensembl VEP plugin) / custom rule set. See §6.5.
@@ -136,6 +147,11 @@ more JSON slots loaded by `shared/data_loader.js`.
 │   π    πN/πS    π0/π4    VESM burden    LOF count                 │
 │  (with sub-line: 226 samples · K=8 grouping · genome-wide)         │
 ├────────────────────────────────────────────────────────────────────┤
+│ Variant-inventory panel (cohort-wide) — §3.1                       │
+│   Horizontal bar chart, 19 mutation types × log10(N SNPs),         │
+│   coloured by snpEff impact class (High/Moderate/Low/Modifier).    │
+│   Reference: black-grouse Nature 2024 Fig 2c.                      │
+├────────────────────────────────────────────────────────────────────┤
 │ Stratification pill toggle: [K=8 ▼] [family] [F_ROH-quartile]      │
 │                                                  [sample drill ▼]  │
 ├────────────────────────────────────────────────────────────────────┤
@@ -150,12 +166,25 @@ more JSON slots loaded by `shared/data_loader.js`.
 ├────────────────────────────────────────────────────────────────────┤
 │ Sortable table: per-sample, 226 rows                               │
 │   sample · K=8 · F_ROH · π · πN · πS · πN/πS · π0/π4 ·             │
-│   VESM_burden · LOF_count · ROH_overlap_fraction                   │
+│   VESM_burden · LOF_count · splice_count · ROH_overlap_fraction    │
 │   (CIs on πN/πS and π0/π4 via block-jackknife — see §6.2)          │
 ├────────────────────────────────────────────────────────────────────┤
 │ ROH-overlap stripe (full-width):                                   │
 │   For each group, what fraction of VESM/LOF variants falls inside  │
 │   ROH? Stacked bar — "in ROH" vs "outside ROH"                     │
+├────────────────────────────────────────────────────────────────────┤
+│ Transcript-view panel (per-gene picker) — §13                      │
+│   Gene structure track (exons/introns/UTRs), variant lollipops     │
+│   coloured by effect class, splice gain/loss flags from the        │
+│   custom splice module overlaid as ▲/▼ marks.                       │
+├────────────────────────────────────────────────────────────────────┤
+│ MSA panel (per-variant picker) — §14                               │
+│   pyMSAviz-rendered SVG of catfish + ~6–10 teleost orthologs       │
+│   ±30 aa around the selected missense variant. Consensus track,    │
+│   variant-position marker, conservation colouring.                  │
+├────────────────────────────────────────────────────────────────────┤
+│ Interpretation card (§8)        │ πN/πS in context (§11)            │
+│ — three-case text from §1 —     │   cohort value + 8-row table      │
 └────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -169,6 +198,123 @@ UI affordances (matching existing diversity-atlas page conventions):
 - Click a group label → filter to that group across all plots
   (intra-page brushing, not implemented elsewhere yet — flag if
   out of scope for v1).
+- **Click a variant lollipop in the transcript-view panel** → loads
+  the MSA panel for that variant (§14).
+- **Gene picker in the transcript-view panel** → defaults to the
+  top-burden gene per K=8 group (one per group, 8-entry dropdown);
+  also accepts free-text gene symbol / ENS ID search.
+
+### 3.1 Variant-inventory panel — black-grouse Fig 2c style
+
+Cohort-wide descriptive panel sitting above the stratified group
+boxes. Reference: user-provided figure from the *Nature* 2024
+black-grouse paper "Deleterious mutations and the architecture of
+male reproductive success in a lekking bird", Fig 2c.
+
+Visual:
+- Horizontal bar chart.
+- Y-axis: 19 mutation-type categories (sorted ascending by count):
+  `Initiator codon variant`, `Stop codon retained`, `Stop codon lost`,
+  `Start codon lost`, `5' UTR premature start codon`, `Splice acceptor
+  variant`, `3' UTR variant`, `Splice donor variant`, `Nonsense
+  mediated decay`, `5' UTR variant`, `Stop codon gained`, `Loss of
+  function`, `Splice region variant`, `Synonymous variant`,
+  `Missense variant`, `Downstream gene variant`, `Upstream gene
+  variant`, `Intron variant`, `Intergenic region`.
+- X-axis: log10(N SNPs).
+- Colour: snpEff impact class — **High** (dark slate `#3F4D6A`),
+  **Moderate** (light blue `#8FA8C8`), **Low** (mauve `#8F5577`),
+  **Modifier** (yellow `#E6C26B`). Matches the published figure's
+  palette closely enough for visual continuity.
+- Bar labels: exact count at the bar end.
+- Tooltip per bar: `mutation_type · impact class · N (raw) · N
+  per Mb of relevant feature class`.
+
+Source: snpEff output post-`bcftools csq` cross-check. The
+pipeline writes one cohort-level summary row per `(mutation_type,
+impact_class)` pair into `functional_burden.json` under a new
+`variant_inventory` block:
+
+```json
+"variant_inventory": [
+  { "type": "Missense variant", "impact": "Moderate", "n": null },
+  { "type": "Loss of function", "impact": "High",     "n": null },
+  ...
+]
+```
+
+The panel is **cohort-wide**, not stratified. It answers the
+descriptive question *"what does our cohort's variant set look like
+by functional class?"* before the page dives into the group
+comparisons below.
+
+**Companion mini-panel — snpEff impact totals** (also from the
+black-grouse paper, Fig 2 panel beside Fig 2c). A 4-row collapsed
+roll-up of the same data: just High / Moderate / Low / Modifier
+totals as a small 4-bar horizontal chart. Renders next to the full
+inventory; gives a quick "how big is the High-impact set?" read
+without scanning the 19-row chart. The High bar is highlighted
+(dark slate) to anchor the eye on the LOF-relevant tier.
+
+### 3.2 GERP constraint-score inventory panel — **OFF BY DEFAULT (no time)**
+
+Sibling panel to §3.1, also cohort-wide. Reference: user-provided
+figure from the same black-grouse *Nature* 2024 paper (Fig 2 GERP
+panel). Bins variants by per-site GERP (Genomic Evolutionary Rate
+Profiling) score — a multi-species-alignment-derived measure of
+evolutionary constraint.
+
+**Status (2026-05-12, user direction): off by default — no time to
+compute the upstream teleost GERP track right now.** The panel
+ships in the page scaffold but renders a "data pending — GERP track
+not yet computed in genome-atlas" fallback card unless
+`gerp_inventory` is non-null in the payload. A small pill toggle
+on the variant-inventory area lets the user enable the panel if
+the data lands later; default state is off.
+
+Visual (when data lands):
+- Horizontal bar chart.
+- Y-axis: 6 GERP-score bins, sorted high-constraint at top:
+  `≥4`, `3–4`, `2–3`, `1–2`, `0–1`, `<0`.
+- X-axis: log10(N SNPs).
+- Colour: uniform grey by default, with **GERP ≥ 4 highlighted**
+  in salmon/coral (`#E89A8A`) — matches the published figure and
+  flags the high-constraint bin where deleterious variants are
+  expected to be enriched.
+- Bar labels: exact count at the bar end.
+- Tooltip: `GERP bin · N variants · fraction of total · fraction
+  predicted LOF/missense in this bin`.
+
+Source (eventually): per-site GERP++ scores from a teleost
+multi-species alignment, computed upstream in `genome-atlas`.
+Cross-tabulated with the variant call set to produce one count per
+bin. The pipeline writes:
+
+```json
+"gerp_inventory": [
+  { "bin": ">=4", "n": null, "n_lof": null, "n_missense": null },
+  { "bin": "3-4", "n": null, ... },
+  ...
+]
+```
+
+**Cost note (why this is deferred).** Building a teleost GERP track
+requires:
+- A multi-species alignment across ≥10 teleost genomes
+  (zebrafish + medaka + tilapia + stickleback + salmon + …, plus
+  catfish itself);
+- GERP++ run across the alignment to produce per-site RS scores;
+- Per-variant intersection with the cohort VCF.
+
+This is real upstream work that the user has correctly flagged as
+out of scope for this round. The panel is in the page scaffold so
+nothing changes when the data lands — just flip the toggle.
+
+**Future implication for the ROH-burden spec.** If/when GERP lands,
+it becomes the natural constraint proxy for the ROH-burden spec's
+§6.2 (pLI analog). Until then, that question stays data-blocked.
+**Do not flip ROH-burden §6.2 to resolved on this basis right
+now** — the GERP track does not exist yet.
 
 ---
 
@@ -276,40 +422,54 @@ Pipeline detail beyond this spec is up to the analysis repo.
 
 ## 6. Open design questions
 
-### 6.1 Page location & number — **UNFINISHED**
+### 6.1 Page location & number — ✅ RESOLVED (2026-05-12)
 
-No section / page-number chosen as of 2026-05-12. Options:
+**Decision:** option (C) — new `functional/` section, dedicated
+`page10.{html,js}`. User wording: *"it should be on its own page —
+we have evolution of proteins + VESM + deleterious functional and
+per group of genes and many things"*.
 
-- **(A) `stratified/page10.html`** — alongside page 4 (K=8 boxes).
-  Functional burden is mostly a group-stratification view, so this
-  groups it with the other stratification page.
-- **(B) `per_sample/page10.html`** — alongside pages 1, 5, 9. The
-  per-sample table is the second-most-prominent component, so this
-  groups it with the other per-sample pages.
-- **(C) `functional/page10.html`** — new section. Cleaner conceptually:
-  functional burden is its own theme, not a sub-flavour of "stratified"
-  or "per_sample". Matches the user wording "Functional Burden /
-  Selection Efficacy".
-- **(D) Fold into page 5 as a second tab.** Page 5 is ROH; ROH-overlap
-  is one of the five layers. Risks overloading page 5 with a
-  conceptually broader payload.
+Concretely: create `atlases/diversity/pages/functional/page10.html`
+and `page10.js`. Register in `manifest.json` as page 10 with a
+new section label (proposed: "functional"). Tab tooltip:
+"Functional burden / selection efficacy".
 
-Recommendation if no decision: (C), new `functional/` section, since
-the user explicitly framed this as a top-level page ("Diversity Atlas
-page: 'Functional Burden / Selection Efficacy'").
+The section is sized for growth — protein-evolution layers beyond
+the v1 five (e.g. per-gene-family burden tables, dN/dS heatmaps
+once that pipeline exists) will land as additional pages in
+`functional/`.
 
-### 6.2 πN/πS estimator — **UNFINISHED**
+### 6.2 πN/πS estimator — ✅ RESOLVED (2026-05-12)
 
-- **(A) Site-count ratio** — Σ pairwise diffs at N-sites ÷ Σ pairwise
-  diffs at S-sites. Simplest; what most papers report. Sensitive to
-  small-denominator noise when stratified to small groups.
-- **(B) Watterson θ ratio** — θN/θS. More variance-robust at low
-  sample counts; less directly comparable to literature.
-- **(C) Per-window Tajima θ, then mean** — robust to large-effect
-  windows. Adds a window-size hyperparameter.
-- **(D) Block-jackknife mean across chromosomes** — same estimator
-  as (A) but with proper CIs. Probably wanted *on top* of whichever
-  point estimator wins, not instead of one.
+**Decision:** **deferred to the unified ancestry repo** (pipeline
+side, not atlas side). User direction: *"it's in the unified
+ancestry repo so just write() to a dispatcher or add to a file
+so it will wire to the server later"*.
+
+The atlas does **not** pick the estimator. It reads `piN`, `piS`,
+`piN_piS`, and `piN_piS_ci` from the `functional_burden.json`
+payload via a dispatcher in `shared/data_loader.js`, in exactly the
+same pattern as the existing `texture_metrics.json` reader.
+
+Concrete atlas-side wiring (to land at build time):
+
+```js
+// shared/data_loader.js — add to the parallel-fetch block:
+const FUNCTIONAL_BURDEN_PATH =
+  'atlases/diversity/data/functional_burden.json';
+// ... in loadAll():
+const fbResp = await fetch(FUNCTIONAL_BURDEN_PATH).catch(() => null);
+ctx.FUNCTIONAL_BURDEN = fbResp && fbResp.ok ? await fbResp.json() : null;
+```
+
+`ctx.FUNCTIONAL_BURDEN === null` → page 10 renders the "data
+pending" fallback card (same pattern as page 9). The unified
+ancestry repo owns the method choice; whatever it writes into the
+JSON, the page surfaces.
+
+This keeps the atlas method-agnostic: if the pipeline changes from
+site-count to Watterson-θ later, the atlas needs no changes — only
+the JSON contents shift.
 
 ### 6.3 0-fold/4-fold degeneracy source — **UNFINISHED**
 
@@ -334,28 +494,102 @@ page: 'Functional Burden / Selection Efficacy'").
   ready yet. The page label changes accordingly ("missense
   deleterious score" — agnostic to predictor).
 
-### 6.5 LOF caller — **UNFINISHED**
+### 6.5 Annotator stack — ✅ RESOLVED (2026-05-12)
 
-- **(A) snpEff "HIGH" impact** — stop-gain, start-loss,
-  splice-donor/acceptor, frameshift. Loose definition;
-  high recall, lower precision.
-- **(B) LOFTEE (Ensembl VEP plugin).** Stricter; designed to
-  exclude likely-benign LOFs. Needs VEP, not snpEff.
-- **(C) Custom rule set.** Define HIGH-impact criteria locally;
-  most control, least standard.
+**Decision:** **four-tool stack** — bcftools csq + snpEff + VESM
+(missense) + custom splice module.
 
-### 6.6 Stratification axis — **UNFINISHED**
+User direction (2026-05-12): *"csq and snpeff"*, then *"VESM is
+also the annotator for missense. and we have a splice module too.
+its custom… like snpeff but focus on splice so its a transcript
+track showing splice sites gain and loss"*.
 
-Same question as `SPEC_2026-05-12_roh_gene_burden.md` §6.3. Whatever
-is picked there **must match here** for visual consistency across
-the burden pages (page 5 ROH-burden and the new functional-burden
-page should share the same pill toggle).
+Each tool owns one slice of the annotation surface; outputs feed
+the payload (§4) and the dedicated panels (§3 variant inventory,
+§15 transcript view, §16 MSA).
 
-- **(A) K=8 group only.**
-- **(B) K=8 + per-family toggle.**
-- **(C) K=8 + per-sample drill-down.**
-- **(D) K=8 + F_ROH-quartile toggle.**
-- **(E) All modes selectable.**
+| Tool | Role | Output used by |
+|---|---|---|
+| **bcftools csq** | Haplotype-aware syn/missense classification across MNPs and adjacent variants — the πN vs πS partition's source-of-truth | πN/πS, π0/π4 (§3 group boxplots; §11 mini-table) |
+| **snpEff** | Impact-class inventory (High/Moderate/Low/Modifier) across all 19 mutation types — the inventory chart's source | §3 variant-inventory panel (new — see below); LOF count |
+| **VESM** | Per-missense deleteriousness score AND missense-variant annotator. Replaces a separate missense-effect predictor — VESM does both labelling and scoring | §3 VESM-burden boxplot; §3 inversion-overlay; §11 mini-table |
+| **Custom splice module** | Transcript-track style splice-site gain/loss caller (described by user as "like snpEff but focus on splice"). Owned by upstream pipeline; atlas reads its output | §15 transcript-view panel (new — see below) |
+
+**Concrete LOF criterion (high-confidence, default `lof_count`):**
+snpEff `IMPACT=HIGH` AND csq consequence in {`stop_gained`,
+`start_lost`, `splice_acceptor`, `splice_donor`, `frameshift`}.
+
+**Loose LOF (surfaced via pill toggle):** snpEff `IMPACT=HIGH` OR
+csq `splice_region`/`stop_lost` OR custom splice module flagging
+a high-disruption splice gain/loss event.
+
+The payload carries `lof_count_strict`, `lof_count_loose`, and
+`splice_disruption_count` per sample. Pill toggle switches the
+LOF boxplot between strict and loose; splice-disruption count is
+its own column in the per-sample table.
+
+**Cross-tool confidence flag (per variant, in payload):**
+`confidence_tier ∈ {high, medium, low}` where:
+- **high** = csq + snpEff + (VESM if missense) all agree on
+  deleterious / LOF
+- **medium** = two of three agree
+- **low** = only one tool flags
+
+Variants flagged "high" by the cross-tool consensus are the ones
+shown by default in the transcript view and the MSA panel.
+
+### 6.5.1 Custom splice module — open spec question
+
+User noted (2026-05-12) that this module is custom and earlier
+chat history may describe it ("idk maybe you can add to the spec
+or read previous chats"). Per build-session researcher: confirm
+whether the upstream "splice module" is:
+
+- **(A) SpliceAI-style deep-learning splice predictor** (per-base
+  ΔPSI gain/loss scores), wrapped locally;
+- **(B) Pangolin / MMSplice style splice-effect predictor**, locally
+  wrapped;
+- **(C) Fully custom rule-based splice-site annotator** producing
+  per-variant `splice_gain` / `splice_loss` / `splice_disruption`
+  flags;
+- **(D) Hybrid** (deep predictor + rule-based confirmation).
+
+The atlas does not depend on the choice — it reads
+`splice_events[]` from the payload regardless. But the methods card
+(§9) needs the real name + version, so confirm at build time.
+
+**Payload addition (per variant included in transcript-view panel):**
+
+```json
+"splice_events": [
+  {
+    "variant_id": "chr07:12345678:A:G",
+    "gene": "ENSCGA00000012345",
+    "transcript": "ENSCGA00000012345-T1",
+    "event": "splice_donor_loss",      // canonical: gain | loss | shift
+    "delta_score": 0.83,               // [0, 1] — predictor-specific scale
+    "tool": "<TBD — see 6.5.1 above>",
+    "tool_version": "<TBD>"
+  }
+]
+```
+
+### 6.6 Stratification axis — ✅ RESOLVED (2026-05-12)
+
+**Decision:** option (E) — **all modes selectable**. Pill toggle
+with four states:
+  1. **K=8** (default) — 8 ancestry-cluster boxes
+  2. **per-family** — one box per `family_id` (only samples with
+     metadata; falls back to "no family labels available" if the
+     metadata column is empty)
+  3. **per-sample drill-down** — table-row click overlays one
+     sample's values on top of the K=8 view
+  4. **F_ROH quartile** — Q1–Q4 by genome-wide F_ROH, 4 boxes
+
+**Same pill set** must appear on the ROH-burden page
+(`SPEC_2026-05-12_roh_gene_burden.md` §6.3, also resolved to
+option E). Implement the pill renderer in `shared/` so both pages
+share one component.
 
 ---
 
@@ -671,7 +905,236 @@ and the BH correction. No client-side K–S.
 
 ---
 
-## 13. Open questions for the next session
+## 13. Transcript-view panel — gene-track of what's affected
+
+Per-gene panel showing the affected transcript anatomy: exon /
+intron / UTR structure with variant lollipops overlaid, plus
+splice-site gain/loss flags from the custom splice module (§6.5).
+Answers the per-page question *"for this gene, where exactly do
+the deleterious variants land?"*
+
+User direction (2026-05-12): *"we need one panel for transcript
+view too. like whats affected"*.
+
+### 13.1 Visual
+
+```
+   gene: ENSCGA00000012345 (myh7-like)        K=8 group G3 drives this gene
+   ──────────────────────────────────────────────────────────────────────
+   5'UTR     exon1        intron1       exon2   intron2   exon3    3'UTR
+   ──■■■■──████████──────────────────████──────────────████──────■■■■──
+                  ●                       ●▲                ●
+                  ↑ missense (VESM 0.82)   ↑ stop_gained     ↑ missense
+                                          ↑ splice_donor_loss (Δ=0.83)
+```
+
+- Track 1: gene structure — boxes for exons (filled), lines for
+  introns, hatched boxes for UTRs. Strand arrow at the right end.
+- Track 2 (overlay): **variant lollipops** at variant positions.
+  - Circle marker.
+  - Marker fill colour: snpEff impact (High slate / Moderate light
+    blue / Low mauve / Modifier yellow — same palette as §3.1).
+  - Marker outline colour: VESM tier (dark red for VESM_score > 0.8,
+    orange for 0.5–0.8, grey otherwise — for missense variants
+    only; non-missense markers have no outline).
+  - Lollipop height: VESM_score (missense) or fixed (LOF).
+- Track 3 (overlay): **splice-event markers** — ▲ for splice gain,
+  ▼ for splice loss, ⬥ for splice shift; coloured by `delta_score`
+  from the custom splice module.
+- Click a lollipop → loads the MSA panel (§14) for that variant.
+- Hover → tooltip with `gene · transcript · cDNA pos · protein pos ·
+  consequence · snpEff impact · VESM score · csq HGVSp · splice delta`.
+
+### 13.2 Gene picker
+
+The page's transcript view shows **one gene at a time**. Picker
+options (default + user-driven):
+
+- **Default selection:** top-burden gene per K=8 group — 8-entry
+  dropdown labelled `G1: <gene_X>`, `G2: <gene_Y>`, etc. "Top-burden"
+  = highest sum of (VESM_score × allele_count) across samples in
+  that group. Pipeline emits one gene_id per group into
+  `top_burden_genes_by_group` in the payload.
+- **Free-text search box** for gene symbol or ENS ID — autocomplete
+  against the gene-model loaded from the upstream payload.
+- **"Top-N cohort-wide" pill** — alternative seeding: top 10 genes
+  by total VESM burden across all 226 samples.
+
+### 13.3 Data dependency
+
+The atlas does not render the gene structure itself — it relies on
+a `transcripts.json` slot emitted by the pipeline:
+
+```json
+"transcripts": {
+  "ENSCGA00000012345-T1": {
+    "gene_id": "ENSCGA00000012345",
+    "gene_symbol": "myh7-like",
+    "chrom": "chr07",
+    "strand": "+",
+    "tx_start": 12340000,
+    "tx_end":   12360000,
+    "exons":  [ {"start": 12340000, "end": 12340500, "type": "5UTR"},
+                {"start": 12340500, "end": 12341200, "type": "CDS"},
+                ... ],
+    "variants": [
+      {
+        "pos": 12345678, "ref": "A", "alt": "G",
+        "consequence": "missense_variant",
+        "snpeff_impact": "Moderate",
+        "vesm_score": 0.82,
+        "csq_hgvsp": "p.Arg123Gly",
+        "splice_event": null,
+        "n_carriers": 12
+      },
+      ...
+    ]
+  },
+  ...
+}
+```
+
+**Size budget.** Loading transcripts for all ~25k catfish genes is
+infeasible client-side. Pipeline emits **only the top-burden gene
+set** by default (one per K=8 group + cohort-wide top 50 ≈ ~60
+transcripts). Free-text search beyond that → lazy fetch on demand
+from a per-gene endpoint (or a one-time bulk file if the upstream
+team prefers).
+
+### 13.4 Build-session decisions deferred
+
+- **Lollipop collision strategy.** When 5+ variants share one
+  exon, lollipops overlap. Stagger by row, or merge into a single
+  fat-circle marker labelled `(5)` that explodes on click?
+- **Domain track.** Should the transcript track also show Pfam /
+  InterPro domain boundaries (when available)? Adds another row to
+  the panel.
+- **Multiple transcripts per gene.** Default to canonical only?
+  Provide a transcript switcher? Drop down the rabbit hole?
+
+These are page-build decisions; flag for the build session, don't
+block the spec.
+
+---
+
+## 14. MSA panel — pyMSAviz-rendered teleost-ortholog alignment
+
+Per-variant panel showing the multiple sequence alignment around
+a selected missense variant. Standard variant-interpretation view —
+conservation of the affected residue across teleost orthologs is
+itself diagnostic. Pairs with the transcript view (§13): click a
+missense lollipop in §13 → MSA panel loads the alignment window
+centred on that variant.
+
+User direction (2026-05-12): *"maybe one MSA panel aswell"* —
+followed by a screenshot of [pyMSAviz](https://github.com/moshi4/pyMSAviz)
+documentation showing primate-ortholog MSAs (Gorilla, Homo, Nomascus,
+Pan, Pongo), residue colouring, consensus track, gap-region
+annotations.
+
+### 14.1 Tool: pyMSAviz
+
+Decided on this session, 2026-05-12: **pyMSAviz**
+(`moshi4/pyMSAviz`, Python 3.9+, BSD-licensed, MIT-style API
+inspired by Jalview and ggmsa). The atlas does not render MSAs
+client-side; instead the pipeline runs pyMSAviz and exports a
+static SVG per variant. The atlas-side panel is a region-aware
+image loader.
+
+Reasons over the alternatives:
+- **Pre-rendered SVG** is dramatically simpler than porting an MSA
+  renderer to JS, and lets the build session use any features of
+  pyMSAviz (markers, highlights, consensus bars, gap annotations)
+  with no atlas-side code.
+- **SVG (not PNG)** keeps the labels searchable / accessible /
+  zoomable, and the file size for ~10 × 60 residue windows is tiny
+  (a few KB per variant).
+- **pyMSAviz's marker / annotation API** lets the pipeline mark the
+  variant position explicitly (the `+` markers in pyMSAviz Fig 2
+  customised example).
+
+### 14.2 Visual
+
+Rendered by pyMSAviz, embedded as `<img src="…svg">`:
+
+```
+   variant: chr07:12345678 A→G  (p.Arg123Gly, VESM 0.82)
+   window: 30 aa upstream + 30 aa downstream
+   ──────────────────────────────────────────────────────────────
+                                          ↓ this position
+   C.gariepinus    M F G L F G L W R T F D S V V F Y L T L I V …
+   I.punctatus     M F G L F G L W R T F D S V V F Y L T L I V …
+   D.rerio         M F G L F G L W R T F D S V V F Y L T L I V …
+   O.latipes       M F G L F G L W R T F D S V V F Y L T L I V …
+   O.niloticus     M F G L F G L W R T F D S V V F Y L T L I V …
+   S.salar         M F G L F G L W R T F D S V V F Y L T L I V …
+   G.aculeatus     M F G L F G L W R T F D S V V F Y L T L I V …
+   ──────────────────────────────────────────────────────────────
+   Consensus       ████████████████████████████████████ (bar chart)
+```
+
+- Catfish (*C. gariepinus*) always pinned at the top.
+- 6–10 teleost orthologs below — proposed default set: *Ictalurus
+  punctatus* (channel catfish, closest), *Danio rerio* (zebrafish),
+  *Oryzias latipes* (medaka), *Oreochromis niloticus* (tilapia),
+  *Salmo salar* (Atlantic salmon), *Gasterosteus aculeatus*
+  (stickleback). Confirm the exact set at build time depending on
+  ortholog-table availability from genome-atlas.
+- Residue colouring: pyMSAviz default Clustal-style palette
+  (matches the reference screenshot).
+- Consensus track below the alignment (pyMSAviz built-in).
+- Variant position marked with a downward arrow (pyMSAviz markers
+  API).
+- Window size: ±30 aa around the variant (configurable per variant
+  in the payload).
+
+### 14.3 Pipeline product
+
+For each variant in the top-burden set (§13), the pipeline runs:
+
+1. Look up the protein sequence of the affected transcript in
+   catfish + each ortholog (via genome-atlas ortholog table).
+2. Run a fast MSA (MAFFT or MUSCLE) over the 6–10 sequences,
+   windowed to ±30 aa around the variant position.
+3. Render with pyMSAviz, save as
+   `atlases/diversity/data/msa/<variant_id>.svg`.
+
+The functional_burden.json payload references these files:
+
+```json
+"msa_links": {
+  "chr07:12345678:A:G": "atlases/diversity/data/msa/chr07_12345678_A_G.svg",
+  ...
+}
+```
+
+The atlas-side panel reads `msa_links[variant_id]` and renders
+`<img>` or `<object>` pointing at the SVG. Missing key → "MSA
+not available for this variant" fallback card.
+
+### 14.4 Size budget
+
+Pre-rendering ~60 variants (one per top-burden gene per group +
+cohort-wide top 50) × ~5–10 KB per SVG = **~0.3–0.6 MB total** in
+`atlases/diversity/data/msa/`. Acceptable on-disk; lazy-loaded
+client-side so the page itself stays light.
+
+If the user later wants on-demand MSA for arbitrary variants
+beyond the pre-rendered set, the build session needs a server
+endpoint that runs pyMSAviz on request. Out of scope for v1.
+
+### 14.5 Build-session decisions deferred
+
+- **Ortholog source.** genome-atlas's OrthoFinder vs Ensembl
+  Compara teleost orthologs vs a custom BLAST-based map. Pipeline
+  side, not atlas side.
+- **Alignment tool.** MAFFT (faster, decent quality) vs MUSCLE
+  (older but very stable). Pipeline side.
+- **Window size.** ±30 aa default; build session may adjust.
+
+---
+
+## 15. Open questions for the next session
 
 1. §6.1–§6.6 — six unfinished design decisions above.
 2. Should the per-sample drill-down (table click) open a panel
@@ -688,7 +1151,7 @@ and the BH correction. No client-side K–S.
 
 ---
 
-## 14. Summary
+## 16. Summary
 
 | What | Where |
 |---|---|

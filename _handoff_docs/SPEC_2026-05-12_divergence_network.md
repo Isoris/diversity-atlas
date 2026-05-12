@@ -262,26 +262,130 @@ session.
 
 ---
 
-## 8. Open design questions (all decided at build time)
+## 8. Design decisions — round-2 session, 2026-05-12
 
-1. **F<sub>ST</sub> estimator** — Weir & Cockerham (most common, mild
-   bias for small samples) vs Hudson (preferred for low-coverage
-   ANGSD pipelines) vs Reynolds. Pipeline-side decision; the page just
-   renders the number it's handed.
-2. **Edge thresholding** — at per-farm grouping the edge count can
-   pass 60. Cap at top-N by magnitude, or threshold by significance
-   (e.g. only show edges where F<sub>ST</sub> CI excludes 0)?
-3. **Node label readability vs node size** — at low *n* a small node
-   can't contain the π label. Show label on hover only? Or always but
-   offset outside the node?
-4. **Force-directed vs circular default** — force-directed gives
-   distance intuition but the layout is non-deterministic. Circular
-   is reproducible. Default to circular and let the user switch to
-   force?
-5. **CI display** — render edge CIs as a ±range under the edge label?
-   That adds ink to an already-busy diagram. Hover-only?
+Four of the five questions resolved interactively. One remains
+upstream / pipeline-side.
 
-None of these block the spec; all are page-build decisions.
+### 8.1 F<sub>ST</sub> estimator — **deferred to pipeline session**
+
+Weir & Cockerham (most common, mild bias for small samples) vs
+Hudson (preferred for low-coverage ANGSD pipelines) vs Reynolds.
+Pipeline-side decision; the page just renders the number it's
+handed. **Not an atlas-architecture question.** The build session
+should confirm which estimator the upstream realSFS pipeline uses
+and surface it in the methods card.
+
+### 8.2 Edge thresholding — ✅ RESOLVED — customizable with sensible defaults
+
+User direction (2026-05-12): *"we could customize it choose too,
+or have mini arrow down and click to open the menu, or like take
+the top 10 families by default or top 5-8 I'm not sure honestly
+I let you choose"*.
+
+**Decision:** mode-aware default + small caret-menu for manual override.
+
+**Default behaviour per grouping mode:**
+
+| Grouping mode | Default edge filter | Why |
+|---|---|---|
+| K=8 | **Show all 28** | Small enough to render every edge cleanly |
+| Sex | **Show all 1** | Trivial (2 nodes, 1 edge) |
+| Per-farm | **Top-8 by &#124;F<sub>ST</sub>&#124;** | Caps the busiest mode at the same visual density as K=8 |
+| Karyotype (per inversion) | **Show all 3** | 3 nodes, 3 edges; trivial |
+
+**Manual override (always available):** a small caret/down-arrow
+in the panel header opens a mini menu with three options:
+
+```
+Edge filter ⌄
+┌───────────────────────────────────┐
+│ ○ Show all                         │
+│ ● Top N by │F_ST│   N = [  8  ]    │
+│ ○ Significant only (CI excludes 0) │
+└───────────────────────────────────┘
+```
+
+- "Show all" — no filter.
+- "Top N" — slider/number input, default `8`. Re-renders on change.
+- "Significant only" — keep only edges where the bootstrap F<sub>ST</sub>
+  CI excludes 0.
+
+Mode-aware default applies on initial render; once the user picks
+a manual override, it persists for the rest of the session.
+
+### 8.3 Node labels — ✅ RESOLVED — adaptive inside/outside
+
+The π label sits **inside** the node when the node is large enough
+to contain the text legibly; it offsets **outside** with a small
+leader line when the node is too small.
+
+Implementation sketch:
+- Measure rendered π text width (`getBBox().width`).
+- If node radius × 2 ≥ text width + 4 px padding → inside.
+- Else → outside, ~6 px gap, leader line only if the offset crosses
+  another node or edge.
+
+This is the cleanest single rule for the full range of node sizes
+the page can produce (K=8 default groups all big enough for inside;
+small per-family groups need outside).
+
+### 8.4 Layout default — ✅ RESOLVED — circular default, force toggle
+
+**Default:** circular layout, deterministic order:
+- K=8 mode: clockwise `G1 → G8` starting at 12 o'clock.
+- Per-farm mode: clockwise alphabetical by farm ID.
+- Sex mode: 2 nodes, left/right.
+- Karyotype mode: 3 nodes, equilateral triangle (STD/HET/INV).
+
+Fully reproducible — no information leaks from spatial position to
+divergence interpretation. The user reads divergence from edge
+thickness + colour, not from node distance.
+
+**Toggle:** pill labelled `layout: ● circular  ○ force-directed`
+in the panel header. Force-directed runs D3-force with a fixed
+RNG seed (so it's still reproducible across reloads); edges weighted
+by `1 - F_ST` so high-divergence pairs repel.
+
+### 8.5 Edge CIs — ✅ RESOLVED — hover-only tooltip
+
+Edge labels on the canvas show the **point estimate only** (e.g.
+`F_ST = 0.124`). Bootstrap CIs are revealed on hover:
+
+```
+hover tooltip:
+┌──────────────────────────────────────────┐
+│ G3 ↔ G6                                   │
+│ F_ST = 0.124  (95% CI: 0.098 – 0.151)     │
+│ D_XY = 0.0042 (95% CI: 0.0038 – 0.0047)   │
+│ d_A   = 0.0019                            │
+│ n samples: G3 = 23, G6 = 31                │
+│ bootstrap reps: 1000                       │
+└──────────────────────────────────────────┘
+```
+
+Keeps the canvas uncluttered (especially at per-farm mode with
+top-8 edges drawn); CI information stays one hover away.
+
+---
+
+## 8a. Implementation notes for the build session
+
+- **Edge-filter caret menu** lives in the panel header, not in
+  the global toolbar. Pattern: same as the prune-status pill on
+  `qc/page6.html:21-23`, but a `<details><summary>` element so
+  click-toggle is native.
+- **Layout toggle** is a 2-state pill, same as the page-5
+  composition-mode toggle on `per_sample/page5.html`.
+- **Adaptive node labels** belong in `shared/svg.js` as a
+  `placeNodeLabel(node, text, radius)` helper — reusable by other
+  pages later.
+- **Hover tooltip** reuses `shared/tooltip.js`'s `bindTip` /
+  `showTip` / `hideTip` exactly as page 3's manhattan plot already
+  does (page3.js:106-107).
+
+No new dependencies needed beyond D3 (already loaded). Estimated
+build effort unchanged from §6 (4–5 h once data exists).
 
 ---
 

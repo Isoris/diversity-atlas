@@ -257,27 +257,116 @@ not, and should not, appear inside the Diversity Atlas.
 about DDI/χ_min and are settled by atlas-side defaults until pipeline
 emits them.)
 
-1. **Estimator for pairwise θπ within a window:** simple per-site
-   IBS-based 2pq estimator, or the ANGSD `-doPwTheta`-style maximum-
-   likelihood pairwise SAF? IBS is faster; ML is more correct under low
-   coverage.
-2. **Inversion-segment definition:** the entire BED interval, or
-   BED minus the breakpoint padding zone? The breakpoints themselves
-   often carry mapping artifacts.
-3. **Heterozygous-inversion threshold:** require pair to be (1, 0) or
-   (0, 1), or also include (1, 1) pairs (both het, possibly in
-   *trans* haplotypes that still separate inversion-internal lineages)?
-   The biology argues for (1, 0)/(0, 1) only; the statistics may benefit
-   from including (1, 1).
-4. **Cluster-pair palette:** how to colour 28 K-pair categories
-   distinctly? Reuse the K=8 ancestry palette and combine pairs via
-   midpoint blending, or use a separate categorical 28-class palette?
-5. **Pair-density rendering:** at 25k overlapping dots, switching from
-   alpha-blended scatter to 2D hex-bin density (with cross-K pairs
-   overlaid as individual dots) avoids the visual mush at the origin.
+### 9.1 Pairwise θπ estimator — **deferred to pipeline session**
 
-All of these are pipeline / rendering choices, not atlas-architecture
-choices. Decide at population-atlas page-build time.
+Simple per-site IBS-based 2pq estimator, or the ANGSD `-doPwTheta`-style
+maximum-likelihood pairwise SAF? IBS is faster; ML is more correct
+under low coverage. Pipeline-side decision; the page renders whatever
+the upstream `pairwise_segclass.json` ships. Build session should
+confirm the estimator and surface it in the methods card.
+
+### 9.2 Inversion-segment definition — ✅ RESOLVED (2026-05-12)
+
+**Decision:** **BED interval minus 50 kb breakpoint padding** on each
+side. Drops the highest-mapping-artefact zones where read-depth and
+genotype error spike. Standard practice in inversion-aware popgen
+pipelines.
+
+The 50 kb pad is configurable per inversion (some short inversions
+may need a smaller pad to retain usable signal), exposed in the
+upstream pipeline config as `breakpoint_pad_bp` with default 50000.
+Atlas reads the trimmed segment definition from the BED that ships
+with `pairwise_segclass.json` — no atlas-side toggle.
+
+### 9.3 Het-inversion pair threshold — ✅ RESOLVED (2026-05-12)
+
+**Decision:** **(1, 0) and (0, 1) only** — one carrier, one non-carrier.
+
+Cleanest biology: a het inversion pair means one sample has the
+inversion arrangement and the other doesn't, so the pairwise θπ
+between them captures arrangement-vs-standard divergence. Matches
+standard usage in the inversion popgen literature.
+
+Excluded:
+- **(1, 1) pairs (both het)** — possibly in *trans* haplotypes that
+  separate inversion-internal lineages; mixes the arrangement-vs-
+  standard signal with within-arrangement diversity. Statistical
+  power gain is not worth the interpretation cost.
+- **(0, 0) and (2, 2) pairs** — same arrangement on both sides;
+  these are the *outside-inversion* baseline, not het-inversion
+  pairs. They populate the collinear-segment distribution.
+
+The pipeline emits two pair lists:
+- `het_inversion_pairs[]` — (1,0)/(0,1) pairs only, feeds the
+  het-segment θπ distribution.
+- `collinear_pairs[]` — all pairs, used for the outside-inversion
+  baseline.
+
+### 9.4 Cluster-pair palette — ✅ RESOLVED (2026-05-12)
+
+**Decision:** **midpoint blending of the existing K=8 palette.**
+
+Each (G_i, G_j) pair gets the visual midpoint (Lab-space average)
+of group i's and group j's colours from `shared/palette.js`'s K=8
+ramp. Within-K pairs (G_i, G_i) keep the pure K colour.
+
+Concrete:
+```js
+function pairColor(ki, kj, k8palette) {
+  if (ki === kj) return k8palette[ki];
+  const ci = d3.lab(k8palette[ki]);
+  const cj = d3.lab(k8palette[kj]);
+  return d3.lab((ci.l + cj.l) / 2, (ci.a + cj.a) / 2, (ci.b + cj.b) / 2).formatHex();
+}
+```
+
+Maintains visual continuity with page 4's K=8 cluster boxes — the
+reader can mentally decode (G_i, G_j) from the blend, no legend
+required for the within-K pairs. Cross-K pair blends are still
+better than a 28-class categorical palette because consecutive
+K-pairs end up perceptually adjacent rather than randomly distributed.
+
+Helper lives in `shared/palette.js` as `pairColor(ki, kj)`; legend
+on the page shows the 8 K colours + a "cross-K = blend of pair" note.
+
+### 9.5 Pair-density rendering — ✅ RESOLVED (2026-05-12)
+
+**Decision:** **hex-bin density background + cross-K pair-points overlaid.**
+
+Two-layer rendering:
+
+1. **Background layer — within-K pair density** (where the bulk of
+   the 25k points sits). 2D hex-bin over within-K pairs only,
+   coloured by count on a perceptual sequential ramp (light grey
+   → dark grey). Hex cells render with no stroke.
+2. **Foreground layer — cross-K pairs as individual dots.** Plotted
+   with the midpoint-blended palette from §9.4. These are the
+   lower-density, biologically interesting subset (between-ancestry
+   pairs); preserving per-point identity matters here so hover
+   tooltips can name (sample_i, sample_j, K_i, K_j).
+
+Best of both: density where it matters (within-K bulk), point
+detail where the signal lives (cross-K outliers). Avoids the
+"mush at the origin" failure mode of pure alpha-blended scatter.
+
+Rendering knobs (exposed in the panel header):
+- Hex bin radius: default 8 px, adjustable 4–16 px.
+- Density colour ramp: default viridis-grey; pill toggle to magma
+  if the user prefers high-contrast.
+- Cross-K dot size: default 3 px, adjustable.
+
+Implementation:
+- D3 `d3-hexbin` for the background (already in the project per
+  page-3 manhattan rendering — confirm at build time).
+- Plain SVG circles for the cross-K overlay; ~1-3k points after
+  filtering to cross-K only, well within SVG rendering budget.
+
+---
+
+**Status summary:** 4 of 5 §9 questions resolved this session; only
+the upstream estimator choice (§9.1) remains, and that's pipeline-
+side, not atlas-architecture. The page can be scaffolded now and
+will render correctly whichever estimator the pipeline emits.
 
 ---
 

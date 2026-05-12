@@ -1,0 +1,128 @@
+<div id="page11" class="page active">
+  <div class="page-content">
+    <div class="page-title">Group divergence — pairwise F<sub>ST</sub> / D<sub>XY</sub> / d<sub>A</sub></div>
+    <div class="page-subtitle">
+      Node-link plot: nodes = K=8 ancestry groups (or per-farm / sex / karyotype), edge width ∝ pairwise divergence. Circular layout by default — reproducible, no spatial information leak. Force-directed layout available as a toggle. Edge CIs revealed on hover.
+    </div>
+
+    <div class="stat-strip" id="dnTopStrip"></div>
+
+    <div class="card" id="dnMissingCard" style="display:none;">
+      <div class="card-head">
+        <div class="card-title">Divergence-network payload — data pending</div>
+        <div class="card-tag pending">⏳ awaiting realSFS + bootstrap pipeline</div>
+      </div>
+      <p style="color: var(--ink-dim);">
+        This page renders once
+        <code>atlases/diversity/data/divergence_network.json</code> is
+        populated. Substrate: per-group ANGSD SAFs + realSFS-derived joint
+        SFS pairs in <code>catfish-diversity-analysis</code>, with
+        block-jackknife or block-bootstrap CIs.
+      </p>
+      <p style="color: var(--ink-dim); margin-top: 6px;">
+        F<sub>ST</sub> estimator choice (Weir &amp; Cockerham vs Hudson vs
+        Reynolds) is pipeline-side per
+        <code>_handoff_docs/SPEC_2026-05-12_divergence_network.md</code> §8.1.
+        The atlas reads whatever number ships.
+      </p>
+    </div>
+
+    <div class="card" id="dnNetworkCard">
+      <div class="card-head">
+        <div class="card-title">Network plot</div>
+        <div class="card-tag" id="dnNetworkTag">— groups</div>
+      </div>
+      <div class="toolbar" style="margin-bottom: 8px;">
+        <span style="color: var(--ink-dim); font-size: 10.5px;">grouping:</span>
+        <span class="pill on" data-dn-grouping="K=8">K=8</span>
+        <span class="pill" data-dn-grouping="farm">per-farm</span>
+        <span class="pill" data-dn-grouping="sex">sex</span>
+        <span class="pill" data-dn-grouping="karyotype">karyotype</span>
+
+        <span style="color: var(--ink-dim); font-size: 10.5px; margin-left: 14px;">edge stat:</span>
+        <span class="pill on" data-dn-stat="fst">F_ST</span>
+        <span class="pill" data-dn-stat="dxy">D_XY</span>
+        <span class="pill" data-dn-stat="dA">d_A</span>
+
+        <span style="color: var(--ink-dim); font-size: 10.5px; margin-left: 14px;">layout:</span>
+        <span class="pill on" data-dn-layout="circular">circular</span>
+        <span class="pill" data-dn-layout="force">force-directed</span>
+
+        <details id="dnEdgeFilter" style="margin-left: auto; position: relative;">
+          <summary class="pill" style="cursor: pointer;">edge filter ⌄</summary>
+          <div style="position:absolute; right:0; top: 26px; background: var(--panel); border: 1px solid var(--rule); border-radius: 3px; padding: 10px; min-width: 220px; z-index: 10;">
+            <label style="display:flex; gap:6px; align-items:center; font-size: 11px; margin-bottom: 6px;">
+              <input type="radio" name="dn-edge" value="all" id="dnEdgeAll" /> Show all edges
+            </label>
+            <label style="display:flex; gap:6px; align-items:center; font-size: 11px; margin-bottom: 6px;">
+              <input type="radio" name="dn-edge" value="topN" id="dnEdgeTopN" checked />
+              Top N by |F_ST|: <input type="number" min="1" max="200" value="8" id="dnEdgeN" style="width:50px;"/>
+            </label>
+            <label style="display:flex; gap:6px; align-items:center; font-size: 11px;">
+              <input type="radio" name="dn-edge" value="sig" id="dnEdgeSig" />
+              Significant only (CI excludes 0)
+            </label>
+          </div>
+        </details>
+      </div>
+      <div id="plotDnNetwork" style="min-height: 480px;"></div>
+    </div>
+
+    <div class="card" id="dnEdgeTableCard">
+      <div class="card-head">
+        <div class="card-title">Edges — sortable</div>
+        <div class="card-tag" id="dnEdgeTableTag">0 edges</div>
+      </div>
+      <div style="max-height: 320px; overflow-y: auto; border: 1px solid var(--rule); border-radius: 3px;">
+        <table class="dt" id="dnEdgeTable">
+          <thead>
+            <tr>
+              <th data-sort="pair">pair</th>
+              <th data-sort="fst">F_ST</th>
+              <th data-sort="dxy">D_XY</th>
+              <th data-sort="dA">d_A</th>
+              <th data-sort="n_i">n_i</th>
+              <th data-sort="n_j">n_j</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">Methods note</div>
+        <div class="card-tag">defs</div>
+      </div>
+      <p style="font-size: 11px;">
+        <b>π</b> (node label) — within-group nucleotide diversity from the
+        per-group folded SFS.
+      </p>
+      <p style="font-size: 11px;">
+        <b>F<sub>ST</sub></b> — between-group differentiation. Estimator
+        recorded in the payload (Weir &amp; Cockerham, Hudson, or Reynolds —
+        pipeline-side choice).
+      </p>
+      <p style="font-size: 11px;">
+        <b>D<sub>XY</sub></b> — absolute divergence between groups
+        (per-site probability of nucleotide difference).
+      </p>
+      <p style="font-size: 11px;">
+        <b>d<sub>A</sub></b> — net divergence = D<sub>XY</sub> − (π_i + π_j) / 2.
+        Removes the within-group diversity contribution from D<sub>XY</sub>.
+      </p>
+      <p style="font-size: 11px;">
+        <b>Edge filter</b> — caret menu in the panel header: <i>Show all</i> /
+        <i>Top N</i> (default N = 8, configurable) / <i>Significant only</i>
+        (bootstrap CI excludes 0).
+      </p>
+      <p style="font-size: 11px;">
+        <b>Layout</b> — default <i>circular</i>: clockwise from 12 o'clock,
+        alphabetical / group-order. Toggle to <i>force-directed</i> uses a
+        fixed RNG seed so the layout is reproducible across reloads; edges
+        weighted by 1 − F<sub>ST</sub> so high-divergence pairs repel.
+      </p>
+    </div>
+  </div>
+</div>

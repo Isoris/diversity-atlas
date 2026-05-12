@@ -15,8 +15,13 @@ import { plotHeatmap } from '../../shared/plots.js';
 import {
   buildSVG, svgClose, linScale, makeWarmScale
 } from '../../shared/svg.js';
+import { mountStratificationPills, frohQuartiles } from '../../shared/stratification.js';
+import { kColor, blueRamp } from '../../shared/palette.js';
 
 let D = null;
+let RGO = null;
+let CLUSTER_COLORS = null;
+const rgbState = { stratMode: 'K=8' };
 
 function rohTopStrip() {
   const totals = {};
@@ -401,10 +406,202 @@ function s8cWire() {
   });
 }
 
+// =============================================================================
+// ROH × gene-model views — Plot A (cumulative) + Plot B (biotype heatmap)
+// =============================================================================
+// Scaffolded with no-data fallback per
+//   _handoff_docs/SPEC_2026-05-12_roh_gene_burden.md
+// Activates only when ROH_GENE_OVERLAP payload is non-empty; otherwise both
+// cards render "data pending" text and the rest of page 5 is unaffected.
+// =============================================================================
+
+function hasRohGeneOverlap() {
+  return RGO && (
+    (Array.isArray(RGO.peaks) && RGO.peaks.length > 0) ||
+    (RGO.per_group_cumulative && Array.isArray(RGO.per_group_cumulative['K=8'])
+       && RGO.per_group_cumulative['K=8'].length > 0)
+  );
+}
+
+function familyAvailableForRgb() {
+  return RGO && Array.isArray(RGO.per_family_cumulative)
+      && RGO.per_family_cumulative.length > 0;
+}
+
+function plotRohGeneCumulative() {
+  const host = document.getElementById('plotRohGeneCumulative');
+  const tag = document.getElementById('rohGeneBurdenTag');
+  if (!host) return;
+  if (!hasRohGeneOverlap()) {
+    host.innerHTML = '<div style="color:var(--ink-dim); padding:24px; text-align:center; font-style:italic; font-size:11px;">' +
+      'ROH × gene-model intersection not yet available. Constraint proxy is still pending in genome-atlas (BUSCO / OrthoFinder / dN/dS / ohnolog / GERP).</div>';
+    if (tag) tag.textContent = '⏳ awaiting ROH × gene-model overlap';
+    return;
+  }
+
+  let series = [];
+  if (rgbState.stratMode === 'K=8') {
+    series = (RGO.per_group_cumulative['K=8'] || []).map(s => ({
+      label: s.group, color: kColor(s.group, CLUSTER_COLORS), xs: s.x_blocks, ys: s.y_cum,
+    }));
+  } else if (rgbState.stratMode === 'family') {
+    series = (RGO.per_family_cumulative || []).map(s => ({
+      label: s.family_id, color: '#8aa6c7', xs: s.x_blocks, ys: s.y_cum,
+    }));
+  } else if (rgbState.stratMode === 'froh_q') {
+    series = (RGO.per_quartile_cumulative || []).map(s => ({
+      label: s.quartile, color: '#c46b6b', xs: s.x_blocks, ys: s.y_cum,
+    }));
+  } else if (rgbState.stratMode === 'sample') {
+    series = [];   // drill-down only, populated by table-row click
+  }
+
+  if (series.length === 0 || series.every(s => !Array.isArray(s.xs) || s.xs.length === 0)) {
+    host.innerHTML = '<div style="color:var(--ink-dim); padding:24px; text-align:center; font-style:italic; font-size:11px;">' +
+      `No payload for stratification "${rgbState.stratMode}".</div>`;
+    if (tag) tag.textContent = `mode: ${rgbState.stratMode}`;
+    return;
+  }
+  if (tag) tag.textContent = `mode: ${rgbState.stratMode}`;
+
+  const W = 880, H = 320;
+  const padL = 60, padR = 140, padT = 12, padB = 36;
+  const allX = series.flatMap(s => s.xs || []);
+  const allY = series.flatMap(s => s.ys || []);
+  const xMax = Math.max(...allX, 1);
+  const yMax = Math.max(...allY, 1);
+  const xS = linScale(0, xMax, padL, W - padR);
+  const yS = linScale(yMax, 0, padT, H - padB);
+  const arr = buildSVG(W, H);
+  // axes
+  const yt = niceTicksLocal(0, yMax, 5);
+  yt.forEach(v => {
+    const y = yS(v);
+    arr.push(`<line class="grid-line" x1="${padL}" y1="${y}" x2="${W-padR}" y2="${y}"/>`);
+    arr.push(`<text class="axis-text" x="${padL-4}" y="${y+3}" text-anchor="end">${v}</text>`);
+  });
+  const xt = niceTicksLocal(0, xMax, 6);
+  xt.forEach(v => {
+    const x = xS(v);
+    arr.push(`<line class="grid-line" x1="${x}" y1="${padT}" x2="${x}" y2="${H-padB}"/>`);
+    arr.push(`<text class="axis-text" x="${x}" y="${H-padB+12}" text-anchor="middle">${v}</text>`);
+  });
+  series.forEach(s => {
+    if (!Array.isArray(s.xs) || s.xs.length === 0) return;
+    const pts = s.xs.map((x, i) => `${xS(x)},${yS(s.ys[i] || 0)}`).join(' ');
+    arr.push(`<polyline points="${pts}" fill="none" stroke="${s.color}" stroke-width="2"/>`);
+  });
+  // legend
+  series.forEach((s, i) => {
+    const y = padT + i * 16;
+    arr.push(`<rect x="${W-padR+8}" y="${y}" width="12" height="12" fill="${s.color}"/>`);
+    arr.push(`<text class="axis-text" x="${W-padR+24}" y="${y+10}" text-anchor="start">${s.label}</text>`);
+  });
+  arr.push(`<text class="axis-text" x="${(padL+W-padR)/2}" y="${H-4}" text-anchor="middle">ROH blocks added (ranked)</text>`);
+  host.innerHTML = svgClose(arr);
+}
+
+function niceTicksLocal(lo, hi, n) {
+  const range = hi - lo;
+  if (range <= 0) return [lo];
+  const step = Math.pow(10, Math.floor(Math.log10(range / n)));
+  const err = range / (n * step);
+  const mult = err >= 7.5 ? 10 : err >= 3.5 ? 5 : err >= 1.5 ? 2 : 1;
+  const s = step * mult;
+  const t0 = Math.ceil(lo / s) * s;
+  const out = [];
+  for (let v = t0; v <= hi + s * 0.0001; v += s) out.push(Number(v.toFixed(12)));
+  return out;
+}
+
+function plotRohBiotype() {
+  const host = document.getElementById('plotRohBiotype');
+  const tag = document.getElementById('rohBiotypeTag');
+  if (!host) return;
+  const peaks = (RGO && Array.isArray(RGO.peaks)) ? RGO.peaks : [];
+  if (peaks.length === 0) {
+    host.innerHTML = '<div style="color:var(--ink-dim); padding:24px; text-align:center; font-style:italic; font-size:11px;">' +
+      'No named ROH peak / biotype intersection data yet.</div>';
+    if (tag) tag.textContent = '⏳ awaiting ROH × gene-model overlap';
+    return;
+  }
+  // 9 canonical biotypes per reference figure
+  const biotypeOrder = [
+    'Protein_coding', 'Pseudogene', 'lncRNA', 'miRNA',
+    'Transcribed_pseudogene', 'snoRNA', 'tRNA', 'snRNA', 'Antisense_RNA'
+  ];
+  // Filter to biotypes that appear in at least one peak
+  const present = biotypeOrder.filter(b =>
+    peaks.some(p => p.biotype_counts && p.biotype_counts[b] > 0));
+  if (present.length === 0) {
+    host.innerHTML = '<div style="color:var(--ink-dim); padding:18px; text-align:center; font-style:italic; font-size:11px;">' +
+      'No biotype counts populated.</div>';
+    return;
+  }
+  const maxCount = Math.max(
+    1,
+    ...peaks.flatMap(p => present.map(b => p.biotype_counts && p.biotype_counts[b] || 0))
+  );
+  const cellW = 110, cellH = 22;
+  const W = 240 + peaks.length * cellW;
+  const H = 36 + present.length * cellH + 24;
+  const labelW = 200;
+  const arr = buildSVG(W, H);
+
+  // Colour legend
+  arr.push(`<text class="axis-text" x="14" y="14" text-anchor="start" style="font-weight:600;">Gene count</text>`);
+  for (let i = 0; i < 100; i++) {
+    arr.push(`<rect x="${110 + i}" y="6" width="1.1" height="10" fill="${blueRamp(i / 99)}"/>`);
+  }
+  arr.push(`<text class="axis-text" x="108" y="22" text-anchor="end">1</text>`);
+  arr.push(`<text class="axis-text" x="212" y="22" text-anchor="start">${maxCount}</text>`);
+
+  // Column headers
+  peaks.forEach((p, j) => {
+    const x = labelW + j * cellW;
+    arr.push(`<text class="axis-text" x="${x + cellW/2}" y="34" text-anchor="middle" style="font-weight:600;">${p.name || ('peak ' + (j+1))}</text>`);
+  });
+
+  // Rows
+  present.forEach((b, i) => {
+    const y = 36 + i * cellH;
+    arr.push(`<text class="axis-text" x="${labelW - 8}" y="${y + cellH - 6}" text-anchor="end">${b}</text>`);
+    peaks.forEach((p, j) => {
+      const x = labelW + j * cellW;
+      const v = (p.biotype_counts && p.biotype_counts[b]) || 0;
+      const t = v > 0 ? Math.max(0.05, v / maxCount) : 0;
+      const fill = v > 0 ? blueRamp(t) : '#fff';
+      arr.push(`<rect x="${x}" y="${y}" width="${cellW - 1}" height="${cellH - 2}" fill="${fill}" stroke="#ddd" stroke-width="0.5"/>`);
+      if (v > 0) {
+        const ink = t > 0.55 ? '#fff' : '#222';
+        arr.push(`<text x="${x + cellW/2}" y="${y + cellH - 6}" text-anchor="middle" style="font-size:10px; fill:${ink};">${v}</text>`);
+      }
+    });
+  });
+  host.innerHTML = svgClose(arr);
+  if (tag) tag.textContent = `${present.length} biotypes × ${peaks.length} peaks`;
+}
+
+function rgbWire() {
+  const stratHost = document.getElementById('rgbStratPills');
+  if (stratHost) {
+    mountStratificationPills(stratHost, {
+      initial: rgbState.stratMode,
+      familyAvailable: familyAvailableForRgb(),
+      onChange: m => {
+        rgbState.stratMode = m;
+        plotRohGeneCumulative();
+      },
+    });
+  }
+}
+
 export async function mount(root, atlasState, registry) {
   ensureTip();
   const ctx = await ensureData();
   D = ctx.D;
+  CLUSTER_COLORS = ctx.CLUSTER_COLORS;
+  RGO = ctx.ROH_GENE_OVERLAP;
   rohTopStrip();
   binSchemeRender();
   rohWire();
@@ -414,6 +611,9 @@ export async function mount(root, atlasState, registry) {
   s12Render();
   s8cWire();
   s8cRender();
+  rgbWire();
+  plotRohGeneCumulative();
+  plotRohBiotype();
 }
 
 export async function unmount(root) {}

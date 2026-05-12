@@ -1,0 +1,41 @@
+{
+  "_doc": "Functional burden / selection efficacy payload for page10. Round-1 ships an empty stub — page10 detects the empty payload and renders the 'data pending' fallback. Populate from the upstream pipeline that runs bcftools csq + snpEff + VESM + custom splice module (see SPEC_2026-05-12_functional_burden.md §4 for the full schema and §6.5 for the annotator stack).",
+  "version": "v0-stub",
+  "generated_at": null,
+  "pipeline_steps": [],
+  "estimator": {
+    "piN_piS_method": null,
+    "pi0_pi4_method": null,
+    "ci_method": "block-jackknife across chromosomes",
+    "block_size_bp": 5000000,
+    "annotator_stack": ["bcftools csq", "snpEff", "VESM", "custom splice module (TBD)"]
+  },
+  "cohort_summary": {
+    "n_samples":     null,
+    "pi":            null,
+    "piN_piS":       null,
+    "piN_piS_ci":    [null, null],
+    "pi0_pi4":       null,
+    "pi0_pi4_ci":    [null, null],
+    "vesm_burden":   null,
+    "lof_count":     null,
+    "splice_count":  null
+  },
+  "variant_inventory":  [],
+  "snpeff_totals":      [],
+  "gerp_inventory":     [],
+  "per_sample":         [],
+  "per_group": {
+    "K=8":          [],
+    "pairwise_ks":  {}
+  },
+  "alternative_stratifications": {
+    "family":      [],
+    "F_ROH_quartile": [],
+    "karyotype":   {}
+  },
+  "top_burden_genes_by_group": {},
+  "transcripts":        {},
+  "splice_events":      [],
+  "msa_links":          {}
+}
