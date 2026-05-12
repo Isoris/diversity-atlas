@@ -438,118 +438,131 @@ sibling-atlas roadmap, not here.
 
 ---
 
-## 11. DFE / nearly-neutral mini-panel — log–log πN/πS vs πS
+## 11. πN/πS reporting in nearly-neutral context — single value, no log–log fit
 
-Small dedicated panel on the same page (not a separate page), testing
-whether the cohort's group-level data is consistent with the
-nearly-neutral prediction of a linear relationship between
-**log(πN/πS)** and **log(πS)**.
+**Rationale (user direction, 2026-05-12):** a log–log πN/πS-vs-πS
+slope test requires **many species** (Romiguier et al. 2014 used
+~76 animal species over ~10⁵-fold Ne range). With one species (this
+catfish cohort) and ≤8 intraspecific groups spanning a tiny Ne range,
+the slope is not estimable in any useful sense. **Therefore, no
+scatter plot, no slope fit.** Report πN/πS as a value (cohort-wide
++ per-group mini-table) and let the literature anchor provide the
+nearly-neutral context.
 
-### 11.1 Theory (the claim being tested)
+### 11.1 Theory (why πN/πS is meaningful at all)
 
 Under the nearly-neutral theory (Kimura 1979) with a gamma-distributed
 DFE of shape β, Welch, Eyre-Walker & Waxman (2008) show that the
 expected πN/πS is approximately proportional to Ne<sup>−β</sup>.
-Synonymous diversity πS is the standard proxy for Ne (πS ≈ 4·Ne·μ
-at neutrally evolving sites), so the two together predict:
+Higher-Ne species purge slightly deleterious variants more efficiently,
+so πN/πS falls. Romiguier et al. (2014) confirmed this empirically
+across ~76 animal species: log(πN/πS) decreases linearly with
+log(πS), slope ≈ −β (negative; the shape parameter of the DFE).
 
-```
-log(πN/πS)  ≈  α  −  β · log(πS)
-```
+This is **the reason πN/πS is informative** in the first place — it
+locates a population on the efficacy-of-selection axis. But the slope
+itself can only be measured at the comparative-genomic scale, which
+is not what we have here.
 
-— a log–log linear relationship with **slope = −β**, the (negated)
-shape parameter of the DFE. Romiguier et al. (2014) tested this
-across ~76 animal species and recovered the predicted negative slope.
+### 11.2 What the page shows instead
 
-### 11.2 What the panel shows
+**(a) One headline value.** Cohort-wide πN/πS reported in the §3 stat
+strip (already specced), with block-jackknife 95 % CI. One number.
 
-A single scatter plot:
+**(b) Per-group mini-table.** A small 8-row table beneath the
+cohort-wide value, no plot:
 
-```
-       y = log10(πN/πS)
-       x = log10(πS)
-       one point per group (default: K=8 ancestry groups → 8 points)
-       fitted OLS line + 95% CI band
-       reported slope b, intercept, R², bootstrap CI on b
-       reference annotation:
-         "Romiguier et al. 2014 inter-species slope: −0.36 ± 0.04
-          (animals, n ≈ 76 species)"
-```
+| Group | n samples | πS | πN | πN/πS | 95 % CI | rank |
+|---|---|---|---|---|---|---|
+| G1 | … | … | … | … | … | 1 |
+| G2 | … | … | … | … | … | 2 |
+| …  | … | … | … | … | … | … |
+| G8 | … | … | … | … | … | 8 |
 
-Adjacent to the plot, three text lines:
-1. Fitted slope b (≈ −β) with bootstrap 95 % CI.
-2. Inferred β with caveat.
-3. One-line interpretation chosen by sign of b: positive / near-zero /
-   negative-as-predicted.
+Sorted by πN/πS descending. Coloured cells: top πN/πS in red
+(weakest purifying selection), bottom in blue (strongest).
+This is a *descriptive* table — no fit, no test of the log–log
+prediction.
 
-Stratification pill toggles re-aim the panel: per-family (if family
-labels exist) → one point per family; per-F_ROH-quartile → 4 points.
+**(c) Literature anchor card** (static text, no plot):
 
-### 11.3 Honest caveat (must be on the panel)
+> **Where does this cohort sit?**
+> Romiguier et al. (2014) reported animal πN/πS spanning roughly
+> 0.05 (large-Ne marine invertebrates) to 0.30 (small-Ne vertebrates),
+> median ≈ 0.17. The log–log slope of πN/πS on πS across those
+> ~76 animals was negative (Welch et al. 2008 / Kimura 1979 prediction
+> confirmed). Teleosts in that survey clustered around πN/πS ≈ 0.10–0.20.
+>
+> **This cohort:** πN/πS = `<value>` (95 % CI `<lo>` – `<hi>`).
+> Interpretation: weaker / typical / stronger purifying selection
+> relative to the animal median.
 
-The Romiguier-style test is **interspecific** — ~76 species spread
-over ~10⁵-fold Ne range, which gives the regression real leverage.
-This panel is **intraspecific** — 8 K-clusters within a single
-hatchery cohort spanning a tiny Ne range. Two consequences the
-panel must display:
+Three pre-written interpretations depending on whether the cohort
+value sits above, near, or below the animal median.
 
-- **Wide CIs.** With n = 8 points and a narrow x-range, the slope
-  CI will likely overlap zero. The panel should not over-claim.
-- **Not a falsification test.** A non-significant slope here does
-  **not** refute nearly-neutral theory; it just means this cohort
-  doesn't span enough Ne to detect the relationship. The panel is
-  a *sanity check + hypothesis-generation view*, not a powered test.
+**(d) Caveat sentence (must be on the page).**
 
-The panel subtitle should literally say *"intraspecific test —
-slope CI wide, see Romiguier 2014 for the powered interspecific
-version of this analysis."*
+> A formal test of the Kimura/Welch/Romiguier log–log relationship
+> requires comparative data across many species and is not performed
+> here — this cohort is one species. The values above are reported
+> for context only.
 
-### 11.4 Counter-evidence to acknowledge
+### 11.3 Why not the scatter
 
-The user's reference text correctly notes that this relationship is
-not guaranteed to hold universally:
+Spelled out so a build-session reviewer doesn't re-add it:
+
+- **Single species, low Ne dispersion.** Group-level πS values within
+  one hatchery cohort span <2× — far too narrow to fit a slope that
+  literature work measures across ~10⁵-fold Ne range.
+- **n = 8 points.** Even if the x-range were adequate, a slope CI
+  from 8 points would be near-uninformative.
+- **The visual implies a test that isn't being performed.** A scatter
+  + fitted line invites the reader to read off β; we cannot honestly
+  provide a β from this design. Better to omit the plot than to
+  caveat it after the fact.
+
+If a multi-species catfish/teleost cohort ever becomes available,
+the scatter belongs in a comparative-genomics atlas, not here.
+
+### 11.4 Counter-evidence noted but out-of-scope here
+
+The nearly-neutral / gamma-DFE framework is not universal:
 
 - **Shifts in selective pressure across lineages.** Elyashiv et al.
   (2010) showed gene-specific selection shifts between two closely
-  related yeast species, so the DFE itself can vary across taxa.
+  related yeast species — the DFE itself can vary across taxa.
 - **FGM predicts DFE-Ne coupling depends on organism characteristics.**
-  Martin & Lenormand (2006), Lourenço et al. (2011), and Tenaillon
-  (2014) show that under Fisher's Geometric Model the DFE depends on
-  organism "complexity", pleiotropy, and Ne itself — so a single
-  global slope is not a theorem, it's an approximation.
-- **Plants vs animals.** Whether plants share the πN/πS–πS slope of
-  animals is not established (open question, called out by the user's
-  reference paragraph).
+  Martin & Lenormand (2006), Lourenço et al. (2011), Tenaillon
+  (2014): under Fisher's Geometric Model the DFE depends on organism
+  "complexity", pleiotropy, and Ne, so a single global slope is an
+  approximation, not a theorem.
+- **Plants vs animals.** Whether plants share the animal slope is
+  still open.
 
-For a hatchery catfish cohort none of this is directly addressable
-from one dataset, but the panel's interpretation text should not
-pretend otherwise.
+None of this is testable from one cohort. Mentioned here so the
+literature-anchor card doesn't overstate the universality of the
+Romiguier reference value.
 
 ### 11.5 Pipeline product additions
 
-No new pipeline product. The mini-panel reads directly from
-`per_group["K=8"]` (and `alternative_stratifications.family` /
-`F_ROH_quartile`) in the same `functional_burden.json` payload
-defined in §4. Fields needed per group (already in the §4 schema):
-`pi_S`, `piN_piS`, and their CIs.
+None. The cohort-wide πN/πS and per-group πN/πS are already in §4's
+payload (`per_group["K=8"][i].piN_piS` + CIs). No new fields needed.
 
-For the bootstrap slope CI: use 1000 group-level resamples with
-replacement. Implementation can live in `page<N>.js` (small) or in
-`shared/stats.js` if other pages want a regression helper later.
+### 11.6 Page layout (where the mini-table sits)
 
-### 11.6 Page layout (where the panel sits)
-
-Bottom-right of the page, beside the §8 interpretation card. ~40 %
-column width. Roughly:
+Bottom-right, beside the §8 interpretation card. ~40 % column width.
+Three stacked blocks: headline value (large, bold), 8-row sorted
+table, literature-anchor card with one-sentence verdict.
 
 ```
 ┌────────────────────────────────────────────────────────────────────┐
 │ (stat strip + group boxplots + per-sample table + ROH stripe)      │
 │ ... rest of page above ...                                         │
 ├────────────────────────────────────────────────────────────────────┤
-│ Interpretation card (§8)        │ DFE log–log mini-panel (§13)     │
-│ — three-case text from §1 —     │ — scatter, fit, slope CI —       │
-│                                 │ — caveat subtitle —              │
+│ Interpretation card (§8)        │ πN/πS in context (§11)           │
+│ — three-case text from §1 —     │   cohort value (bold)             │
+│                                 │   8-row sorted group table        │
+│                                 │   "Romiguier 2014 median 0.17" │
 └────────────────────────────────────────────────────────────────────┘
 ```
 
