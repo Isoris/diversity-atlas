@@ -6,15 +6,26 @@ Per-sample diversity lens for the 226-sample pure *C. gariepinus* hatchery cohor
 
 ```
 atlases/diversity/               — atlas package (paired with atlas-core)
-  manifest.json                  — atlas declaration: 8 pages, green accent
+  manifest.json                  — atlas declaration: 11 pages, green accent
   pages/                         — page1 samples · page2 chromosomes · page3 hotspots ·
                                    page4 ancestry · page5 ROH · page6 pruning & QC ·
-                                   page7 about · page8 roadmap
+                                   page7 about · page8 roadmap ·
+                                   page9 texture (DDI / χ_min) ·
+                                   page10 functional burden (VESM / πN/πS / LOF / splice / MSA) ·
+                                   page11 group divergence (FST / DXY / dA network)
   registries/data/               — pages / layers / slots / files / operations registries
+  shared/                        — data_loader · formatters · plots · svg · tables ·
+                                   tooltip · palette · stratification
   css/diversity.css              — atlas-wide stylesheet (green accent)
+  data/                          — embedded_tables.json + four optional payloads:
+                                   texture_metrics.json (page9),
+                                   functional_burden.json (page10),
+                                   roh_gene_overlap.json (page5 extension),
+                                   divergence_network.json (page11)
 
 Diversity_atlas.html             — legacy 2.5 MB single-file (kept as carve source-of-truth)
 KICKOFF_diversity_atlas.md       — round-0 kickoff doc (page audit, open questions)
+_handoff_docs/                   — round-N handoffs + spec docs for unbuilt pipeline products
 0_READ_ME_FIRST.md               — overview of the four-atlas migration
 ```
 

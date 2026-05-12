@@ -105,9 +105,19 @@
 
     <div class="card">
       <div class="card-head">
-        <div class="card-title">In-atlas roadmap — needs new compute (this round's image requests)</div>
-        <div class="card-tag planned">in-atlas, data pending</div>
+        <div class="card-title">In-atlas roadmap — atlas-side scaffolded, awaits upstream data</div>
+        <div class="card-tag shipped">✓ pages scaffolded (round 3) · data pending</div>
       </div>
+      <p style="color: var(--ink-dim); font-size: 11px;">
+        <b>Round 3 (2026-05-12) landed:</b> page 10 (functional burden — new
+        <code>functional/</code> section) and page 11 (group divergence —
+        <code>stratified/</code> section), plus a ROH × gene-model extension
+        on page 5. All three render no-data fallbacks until the upstream
+        pipelines populate <code>functional_burden.json</code>,
+        <code>roh_gene_overlap.json</code>, and <code>divergence_network.json</code>.
+        See <code>_handoff_docs/SPEC_2026-05-12_*</code> for the resolved design
+        decisions per page and the remaining pipeline-side open questions.
+      </p>
       <p>
         New views requested via reference figures on 2026-05-12. Both stay
         inside the Diversity Atlas; both depend on new pipeline products
