@@ -18,8 +18,11 @@
 // in-flight promise. Subsequent calls return the cached object.
 // =============================================================================
 
-const DATA_URL          = 'atlases/diversity/data/embedded_tables.json';
-const TEXTURE_DATA_URL  = 'atlases/diversity/data/texture_metrics.json';
+const DATA_URL              = 'atlases/diversity/data/embedded_tables.json';
+const TEXTURE_DATA_URL      = 'atlases/diversity/data/texture_metrics.json';
+const FUNCTIONAL_BURDEN_URL = 'atlases/diversity/data/functional_burden.json';
+const ROH_GENE_OVERLAP_URL  = 'atlases/diversity/data/roh_gene_overlap.json';
+const DIVERGENCE_NETWORK_URL = 'atlases/diversity/data/divergence_network.json';
 
 // Map raw "dt_*" ids to the short alias the legacy code used.
 const ALIAS = {
@@ -71,9 +74,9 @@ let _inflight = null;
 // rollup on page4). Absent or empty file → WIN_METRICS resolves to null
 // and consumers fall back to a "data pending" render. See the schema
 // block in pages/per_sample/page9.html for the canonical shape.
-async function fetchTextureMetrics() {
+async function fetchOptional(url) {
   try {
-    const res = await fetch(TEXTURE_DATA_URL);
+    const res = await fetch(url);
     if (!res.ok) return null;
     return await res.json();
   } catch (_e) {
@@ -81,11 +84,22 @@ async function fetchTextureMetrics() {
   }
 }
 
+const fetchTextureMetrics     = () => fetchOptional(TEXTURE_DATA_URL);
+const fetchFunctionalBurden   = () => fetchOptional(FUNCTIONAL_BURDEN_URL);
+const fetchRohGeneOverlap     = () => fetchOptional(ROH_GENE_OVERLAP_URL);
+const fetchDivergenceNetwork  = () => fetchOptional(DIVERGENCE_NETWORK_URL);
+
 export async function ensureData() {
   if (_cache) return _cache;
   if (_inflight) return _inflight;
   _inflight = (async () => {
-    const [res, wm] = await Promise.all([fetch(DATA_URL), fetchTextureMetrics()]);
+    const [res, wm, fb, rgo, dn] = await Promise.all([
+      fetch(DATA_URL),
+      fetchTextureMetrics(),
+      fetchFunctionalBurden(),
+      fetchRohGeneOverlap(),
+      fetchDivergenceNetwork(),
+    ]);
     if (!res.ok) throw new Error(`embedded_tables.json fetch failed: ${res.status}`);
     const raw = await res.json();
     const D = {};
@@ -96,7 +110,14 @@ export async function ensureData() {
     if (Array.isArray(D.S9)) {
       D.S9.forEach(c => { CLUSTER_COLORS[c.k] = c.color; });
     }
-    _cache = { D, CLUSTER_COLORS, WIN_METRICS: wm };
+    _cache = {
+      D,
+      CLUSTER_COLORS,
+      WIN_METRICS:        wm,
+      FUNCTIONAL_BURDEN:  fb,
+      ROH_GENE_OVERLAP:   rgo,
+      DIVERGENCE_NETWORK: dn,
+    };
     return _cache;
   })();
   return _inflight;

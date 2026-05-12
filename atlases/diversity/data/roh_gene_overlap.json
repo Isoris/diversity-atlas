@@ -1,0 +1,15 @@
+{
+  "_doc": "ROH × gene-model intersection product for page5 extension (Plot A cumulative gene-burden stack + Plot B biotype × peak heatmap-table). Round-1 ships an empty stub — page5 detects the empty payload and renders the standard ROH composition view without the burden cards. Populate from the upstream pipeline (catfish-diversity-analysis + genome-atlas; see SPEC_2026-05-12_roh_gene_burden.md §4 for the schema and §6 for the unresolved data-side decisions — constraint proxy in particular).",
+  "version": "v0-stub",
+  "generated_at": null,
+  "constraint_proxy": null,
+  "gene_model_source": null,
+  "blocks": [],
+  "peaks": [],
+  "per_group_cumulative": {
+    "K=8": []
+  },
+  "per_family_cumulative": [],
+  "per_sample_cumulative": {},
+  "per_quartile_cumulative": []
+}

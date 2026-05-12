@@ -64,6 +64,20 @@
       "requires_layers": [],
       "requires_slots":  [],
       "preloads":        []
+    },
+    "page10": {
+      "_label": "burden — functional burden / selection efficacy (5 layers + variant inventory + transcript view + MSA panel)",
+      "_doc": "Reads D.S1, D.S9, and the optional ctx.FUNCTIONAL_BURDEN payload (functional_burden.json). Stratified by K=8 / family / sample / F_ROH-quartile via shared/stratification.js. Five layers: VESM deleterious burden, πN/πS, π0/π4, LOF count, ROH-overlap fraction. Variant inventory follows the black-grouse Nature 2024 Fig 2c snpEff impact-class style. GERP panel is off by default (no upstream track yet). Renders 'data pending' card when functional_burden.json is empty.",
+      "requires_layers": [],
+      "requires_slots":  [],
+      "preloads":        []
+    },
+    "page11": {
+      "_label": "divergence — pairwise group-divergence network (FST / DXY / dA)",
+      "_doc": "Reads D.S1, D.S9, and the optional ctx.DIVERGENCE_NETWORK payload (divergence_network.json). Node-link plot with circular default layout (force-directed toggle); edges = pairwise FST (default) / DXY / dA between K=8 groups. Customisable edge filter (Show all / Top-N / Significant only) via a caret menu in the panel header. Renders 'data pending' card when divergence_network.json is empty.",
+      "requires_layers": [],
+      "requires_slots":  [],
+      "preloads":        []
     }
   }
 }

@@ -1,8 +1,8 @@
 {
   "atlas_id": "diversity",
   "atlas_name": "Diversity Atlas",
-  "atlas_version": "2026-05-12-round2-texture",
-  "atlas_description": "Per-sample diversity / ROH / θπ landscape for the 226-sample pure C. gariepinus hatchery cohort. Decomposed from Diversity_atlas.html v2.4 (37 embedded tables, 8 page-level tabs). Round 2 adds page9 'texture' (DDI + χ_min) for per-sample within-genome heterogeneity, gated on an optional texture_metrics.json that the upstream pipeline emits.",
+  "atlas_version": "2026-05-12-round3-burden",
+  "atlas_description": "Per-sample diversity / ROH / θπ landscape for the 226-sample pure C. gariepinus hatchery cohort. Decomposed from Diversity_atlas.html v2.4 (37 embedded tables, 8 page-level tabs). Round 2 added page9 'texture' (DDI + χ_min). Round 3 adds page10 'functional burden / selection efficacy' (new functional/ section: VESM + πN/πS + π0/π4 + LOF + ROH-overlap, plus variant inventory, transcript view, MSA panel), page11 'group divergence' (stratified/ section: pairwise FST/DXY/dA network with circular layout and hover CIs), and an ROH × gene-model extension to page5 (cumulative burden stack + biotype × peak heatmap). All three new payloads (functional_burden.json, roh_gene_overlap.json, divergence_network.json) are optional and ship as empty stubs — pages render no-data fallbacks until the upstream pipelines populate them.",
   "pages": [
     {
       "id": "page1",
@@ -75,6 +75,22 @@
       "fragment": "atlases/diversity/pages/per_sample/page9.html",
       "module": "atlases/diversity/pages/per_sample/page9.js",
       "tooltip": "Per-sample texture — DDI (within-genome dispersion of H_w) and χ_min (cohort-relative diversity floor). Companion to the F_ROH|H framework on page 5. Appended at end to preserve existing page numbering per the migration-discipline rule."
+    },
+    {
+      "id": "page10",
+      "label": "burden",
+      "stage": "functional",
+      "fragment": "atlases/diversity/pages/functional/page10.html",
+      "module": "atlases/diversity/pages/functional/page10.js",
+      "tooltip": "Functional burden / selection efficacy — five co-located layers: VESM deleterious burden, πN/πS, π0/π4, LOF count, ROH-overlap fraction. Variant inventory by snpEff impact class, GERP panel (off by default), transcript view, MSA panel. Stratified by K=8 / family / per-sample / F_ROH-quartile via a shared pill toggle (also used by page 5)."
+    },
+    {
+      "id": "page11",
+      "label": "divergence",
+      "stage": "stratified",
+      "fragment": "atlases/diversity/pages/stratified/page11.html",
+      "module": "atlases/diversity/pages/stratified/page11.js",
+      "tooltip": "Group-divergence network — node-link plot, nodes = K=8 ancestry groups (or per-farm / sex / karyotype), edges = pairwise FST / DXY / dA, edge thickness ∝ divergence. Circular layout default, force-directed toggle. Customisable edge filter (caret menu)."
     }
   ],
   "registries": {
@@ -85,12 +101,14 @@
     "slots":      "atlases/diversity/registries/data/slots.registry.json"
   },
   "shared_modules": {
-    "data_loader": "atlases/diversity/shared/data_loader.js",
-    "formatters":  "atlases/diversity/shared/formatters.js",
-    "tooltip":     "atlases/diversity/shared/tooltip.js",
-    "svg":         "atlases/diversity/shared/svg.js",
-    "plots":       "atlases/diversity/shared/plots.js",
-    "tables":      "atlases/diversity/shared/tables.js"
+    "data_loader":    "atlases/diversity/shared/data_loader.js",
+    "formatters":     "atlases/diversity/shared/formatters.js",
+    "tooltip":        "atlases/diversity/shared/tooltip.js",
+    "svg":            "atlases/diversity/shared/svg.js",
+    "plots":          "atlases/diversity/shared/plots.js",
+    "tables":         "atlases/diversity/shared/tables.js",
+    "palette":        "atlases/diversity/shared/palette.js",
+    "stratification": "atlases/diversity/shared/stratification.js"
   },
   "engines_dir":  "atlases/diversity/engines/",
   "analysis_dir": "atlases/diversity/analysis/",
@@ -105,7 +123,8 @@
     { "id": "per_sample",     "label": "per-sample",     "order": 1 },
     { "id": "per_chromosome", "label": "per-chromosome", "order": 2 },
     { "id": "stratified",     "label": "stratified",     "order": 3 },
-    { "id": "qc",             "label": "QC",             "order": 4 },
-    { "id": "meta",           "label": "about",          "order": 5 }
+    { "id": "functional",     "label": "functional",     "order": 4 },
+    { "id": "qc",             "label": "QC",             "order": 5 },
+    { "id": "meta",           "label": "about",          "order": 6 }
   ]
 }

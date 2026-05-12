@@ -20,6 +20,36 @@
       "workflow":          "diversity",
       "optional":          true,
       "_doc":              "Per-sample texture metrics consumed by page9. Round-2 ships an empty stub; the full payload is emitted by catfish-diversity-analysis phase_2_discovery/04_window_H_and_DDI.sh and contains: params{}, cohort_summary{}, per_sample[] (sample, h_gw, ddi, chi_min, chi_min_chr, chi_min_pos, median_H_w, mad_H_w), windows{ chroms[], cohort_median_H_w[], cohort_q25_H_w[], cohort_q75_H_w[] }, per_sample_H_w{ sample_id: [H_w per window] }. Estimated full size ~25 MB at 50 kb windows × 226 samples; consider parquet/binary if it grows beyond browser-comfort range. Loaded by shared/data_loader.js in parallel with embedded_tables; a missing file resolves to null and page9 renders the 'data pending' card."
+    },
+    "functional_burden": {
+      "path_template":     "atlases/diversity/data/functional_burden.json",
+      "scope":             "cohort",
+      "tier":              "warm",
+      "preload_on":        "atlas_register",
+      "estimated_size_mb": 2,
+      "workflow":          "diversity",
+      "optional":          true,
+      "_doc":              "Functional burden / selection efficacy payload consumed by page10. Round-3 ships an empty stub; full payload is emitted by the upstream pipeline running bcftools csq + snpEff + VESM + custom splice module. Schema in SPEC_2026-05-12_functional_burden.md §4: variant_inventory[] (snpEff impact × mutation type), snpeff_totals[], gerp_inventory[] (off by default), per_sample[] (πN, πS, πN/πS, π0/π4, vesm_burden, lof_count, splice_count, ROH_overlap_fraction), per_group['K=8'][], pairwise_ks (K–S P-value matrices per layer), top_burden_genes_by_group, transcripts{}, splice_events[], msa_links (variant_id → SVG path). MSA SVGs live in atlases/diversity/data/msa/<variant_id>.svg, pre-rendered by pyMSAviz upstream. Loaded by shared/data_loader.js; absent → page10 'data pending' card."
+    },
+    "roh_gene_overlap": {
+      "path_template":     "atlases/diversity/data/roh_gene_overlap.json",
+      "scope":             "cohort",
+      "tier":              "warm",
+      "preload_on":        "atlas_register",
+      "estimated_size_mb": 5,
+      "workflow":          "diversity",
+      "optional":          true,
+      "_doc":              "ROH × gene-model intersection product consumed by the page5 extension (Plot A cumulative gene-burden stack + Plot B biotype × peak heatmap-table). Round-3 ships an empty stub. Schema in SPEC_2026-05-12_roh_gene_burden.md §4 + §5: blocks[] (per-block { gene_ids[], biotype, constraint_score }), peaks[] (named ROH peaks with biotype_counts), per_group_cumulative['K=8'][] (cumulative high-constraint-gene count vs ROH-block rank, per group). Constraint proxy still data-blocked (§6.2 — pLI analog for catfish; possibly GERP ≥ 4 from teleost alignment if that track ever lands). Loaded by shared/data_loader.js; absent → page5 renders the standard ROH composition view without the new burden cards."
+    },
+    "divergence_network": {
+      "path_template":     "atlases/diversity/data/divergence_network.json",
+      "scope":             "cohort",
+      "tier":              "warm",
+      "preload_on":        "atlas_register",
+      "estimated_size_mb": 0.5,
+      "workflow":          "diversity",
+      "optional":          true,
+      "_doc":              "Pairwise group-divergence network payload consumed by page11. Round-3 ships an empty stub. Schema in SPEC_2026-05-12_divergence_network.md §4: nodes[] (K=8 group label, n_samples, pi, pi_ci), edges[] (group_i, group_j, fst, fst_ci, dxy, dxy_ci, dA, n_bootstrap), alternative_groupings{} (farm, sex, karyotype:<inv_id>). Estimator (Weir & Cockerham vs Hudson vs Reynolds) is pipeline-side (§9.1); atlas reads whatever number ships. Loaded by shared/data_loader.js; absent → page11 'data pending' card."
     }
   }
 }

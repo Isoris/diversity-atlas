@@ -1,0 +1,11 @@
+{
+  "_doc": "Group-divergence network payload for page11. Round-1 ships an empty stub — page11 detects the empty payload and renders the 'data pending' fallback. Populate from the upstream realSFS + bootstrap pipeline in catfish-diversity-analysis (see SPEC_2026-05-12_divergence_network.md §4 for the schema and §6 for the open F_ST estimator choice).",
+  "version": "v0-stub",
+  "generated_at": null,
+  "fst_estimator": null,
+  "n_bootstrap":   null,
+  "grouping": "K=8",
+  "nodes": [],
+  "edges": [],
+  "alternative_groupings": {}
+}

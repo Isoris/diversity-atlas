@@ -1,0 +1,307 @@
+<div id="page10" class="page active">
+  <div class="page-content">
+    <div class="page-title">Functional burden &amp; selection efficacy</div>
+    <div class="page-subtitle">
+      Five co-located layers — <b>VESM</b> deleterious burden · <b>π<sub>N</sub>/π<sub>S</sub></b> · <b>π<sub>0-fold</sub>/π<sub>4-fold</sub></b> · <b>LOF</b> count · <b>ROH-overlap</b> fraction — per sample / family / K=8 group / F<sub>ROH</sub> quartile. Layer disagreement is diagnostic (high π<sub>N</sub>/π<sub>S</sub> with normal VESM → broad coding variation but few strong-effect variants; high VESM with normal π<sub>N</sub>/π<sub>S</sub> → a few strong-effect variants rather than broad burden).
+    </div>
+
+    <div class="stat-strip" id="fbTopStrip"></div>
+
+    <div class="card" id="fbMissingCard" style="display:none;">
+      <div class="card-head">
+        <div class="card-title">Functional-burden payload — data pending</div>
+        <div class="card-tag pending">⏳ awaiting upstream pipeline</div>
+      </div>
+      <p style="color: var(--ink-dim);">
+        This page renders once <code>atlases/diversity/data/functional_burden.json</code>
+        is populated. The substrate is a four-tool annotator stack run in
+        <code>catfish-diversity-analysis</code>:
+      </p>
+      <ul style="color: var(--ink-dim);">
+        <li><b>bcftools csq</b> — haplotype-aware syn/missense classification (the π<sub>N</sub> vs π<sub>S</sub> partition).</li>
+        <li><b>snpEff</b> — HIGH-impact LOF tags and the impact-class variant inventory.</li>
+        <li><b>VESM</b> — per-missense deleterious score and missense annotator.</li>
+        <li>Custom splice module — transcript-level splice-site gain/loss caller.</li>
+      </ul>
+      <p style="color: var(--ink-dim); margin-top: 8px;">
+        Canonical payload schema lives in
+        <code>_handoff_docs/SPEC_2026-05-12_functional_burden.md</code> §4.
+        π<sub>N</sub>/π<sub>S</sub> point-estimator choice is owned by the
+        unified ancestry repo (§6.2 — atlas reads whatever the pipeline emits).
+      </p>
+    </div>
+
+    <div class="card" id="fbInventoryCard">
+      <div class="card-head">
+        <div class="card-title">Variant inventory — snpEff impact class × mutation type</div>
+        <div class="card-tag" id="fbInventoryTag">cohort-wide</div>
+      </div>
+      <div class="plot-card-sub" style="margin-bottom: 8px;">
+        Horizontal bar chart, 19 mutation-type rows × log<sub>10</sub>(N SNPs),
+        coloured by snpEff impact:
+        <span class="k-swatch" style="background:#3F4D6A;"></span><b>High</b> ·
+        <span class="k-swatch" style="background:#8FA8C8;"></span>Moderate ·
+        <span class="k-swatch" style="background:#8F5577;"></span>Low ·
+        <span class="k-swatch" style="background:#E6C26B;"></span>Modifier.
+        Reference: Wang et al. <i>Nature</i> 2024 Fig 2c (black grouse).
+      </div>
+      <div style="display: grid; grid-template-columns: 3fr 1fr; gap: 12px;">
+        <div id="plotFbInventory"></div>
+        <div>
+          <div class="plot-card-sub" style="margin-bottom: 6px;">snpEff totals</div>
+          <div id="plotFbSnpeffTotals"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" id="fbGerpCard">
+      <div class="card-head">
+        <div class="card-title">GERP constraint-score inventory</div>
+        <div class="card-tag" id="fbGerpTag">⏳ off by default — no teleost GERP track yet</div>
+      </div>
+      <div class="plot-card-sub" style="margin-bottom: 8px;">
+        Six GERP-score bins (≥4 highlighted in salmon — high-constraint where
+        deleterious variants are expected to enrich). Requires a per-site
+        GERP++ track from a multi-species teleost alignment, computed
+        upstream in <code>genome-atlas</code>. Toggle on once the
+        <code>gerp_inventory</code> field is populated in
+        <code>functional_burden.json</code>.
+      </div>
+      <div class="toolbar" style="margin-bottom: 8px;">
+        <span class="pill" id="fbGerpToggle" data-gerp-on="false">enable GERP panel</span>
+        <span class="count" id="fbGerpStatus">data pending</span>
+      </div>
+      <div id="plotFbGerp" style="display:none;"></div>
+    </div>
+
+    <div class="card" id="fbStratCard">
+      <div class="card-head">
+        <div class="card-title">Stratified burden — group boxplots</div>
+        <div class="card-tag" id="fbStratTag">mode: K=8</div>
+      </div>
+      <div class="plot-card-sub" style="margin-bottom: 8px;">
+        Click a pill to switch stratification axis. <code>per-family</code>
+        is greyed out if no <code>family_id</code> metadata is loaded.
+        <code>per-sample</code> overlays a single sample's values on the K=8
+        background; pick a sample from the per-sample table below to
+        activate the drill-down.
+      </div>
+      <div id="fbStratPills" class="toolbar"></div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 12px;">
+        <div class="plot-card">
+          <div class="plot-card-title">π<sub>N</sub>/π<sub>S</sub> per group</div>
+          <div class="plot-card-sub">Boxes + strip. Low π<sub>N</sub>/π<sub>S</sub> = stronger purifying selection.</div>
+          <div id="plotFbPinPis"></div>
+        </div>
+        <div class="plot-card">
+          <div class="plot-card-title">π<sub>0-fold</sub>/π<sub>4-fold</sub> per group</div>
+          <div class="plot-card-sub">Codon-position analog of π<sub>N</sub>/π<sub>S</sub>; independent of transcript model quality.</div>
+          <div id="plotFbPi0Pi4"></div>
+        </div>
+        <div class="plot-card">
+          <div class="plot-card-title">VESM burden per group</div>
+          <div class="plot-card-sub">Sum of VESM scores for missense alleles carried, per sample.</div>
+          <div id="plotFbVesm"></div>
+        </div>
+        <div class="plot-card">
+          <div class="plot-card-title">LOF count per group</div>
+          <div class="plot-card-sub">High-confidence: snpEff <code>HIGH</code> ∩ csq LOF consequence.</div>
+          <div id="plotFbLof"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" id="fbTableCard">
+      <div class="card-head">
+        <div class="card-title">Per-sample burden table</div>
+        <div class="card-tag" id="fbTableTag">0 / 226 rows</div>
+      </div>
+      <div class="toolbar">
+        <input id="fbSearch" type="search" placeholder="filter by sample id…" style="width:180px;" />
+        <select id="fbClusterFilter">
+          <option value="">all K=8 clusters</option>
+        </select>
+        <span class="pill on" data-fb-table-mode="all">all 226</span>
+        <span class="pill" data-fb-table-mode="outliers">outliers only</span>
+        <span class="count" id="fbCount"></span>
+      </div>
+      <div style="max-height: 400px; overflow-y: auto; border: 1px solid var(--rule); border-radius: 3px;">
+        <table class="dt" id="fbTable">
+          <thead>
+            <tr>
+              <th data-sort="sample">sample</th>
+              <th data-sort="k8">K8</th>
+              <th data-sort="f_roh">F_ROH</th>
+              <th data-sort="pi">π</th>
+              <th data-sort="piN">π<sub>N</sub></th>
+              <th data-sort="piS">π<sub>S</sub></th>
+              <th data-sort="piN_piS">π<sub>N</sub>/π<sub>S</sub></th>
+              <th data-sort="pi0_pi4">π<sub>0</sub>/π<sub>4</sub></th>
+              <th data-sort="vesm_burden">VESM</th>
+              <th data-sort="lof_count">LOF</th>
+              <th data-sort="splice_count">splice</th>
+              <th data-sort="vesm_in_roh_frac">in ROH</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card" id="fbRohStripeCard">
+      <div class="card-head">
+        <div class="card-title">ROH-overlap fraction by group</div>
+        <div class="card-tag" id="fbRohStripeTag">stacked bar</div>
+      </div>
+      <div class="plot-card-sub" style="margin-bottom: 8px;">
+        For each group, the fraction of carried VESM/LOF variants that fall
+        inside an ROH call. High fraction → burden is realised as homozygous
+        (inbreeding-driven). Low fraction → burden is latent.
+      </div>
+      <div id="plotFbRohStripe"></div>
+    </div>
+
+    <div class="card" id="fbTranscriptCard">
+      <div class="card-head">
+        <div class="card-title">Transcript view — variant lollipops on selected gene</div>
+        <div class="card-tag" id="fbTranscriptTag">⏳ awaiting transcripts payload</div>
+      </div>
+      <div class="plot-card-sub" style="margin-bottom: 8px;">
+        Click a lollipop to load the MSA panel below for that variant.
+        Marker fill = snpEff impact; marker outline = VESM tier (dark red
+        &gt; 0.8, orange 0.5–0.8). ▲ / ▼ marks indicate splice gain / loss
+        from the custom splice module.
+      </div>
+      <div class="toolbar">
+        <select id="fbGenePicker">
+          <option value="">— select gene —</option>
+        </select>
+        <input id="fbGeneSearch" type="search" placeholder="gene symbol / ENS ID…" style="width:180px;" />
+        <span class="pill" id="fbTopCohortToggle" data-on="false">top-10 cohort-wide</span>
+      </div>
+      <div id="plotFbTranscript" style="margin-top: 10px;"></div>
+    </div>
+
+    <div class="card" id="fbMsaCard">
+      <div class="card-head">
+        <div class="card-title">MSA — teleost-ortholog alignment around variant</div>
+        <div class="card-tag" id="fbMsaTag">click a lollipop above</div>
+      </div>
+      <div class="plot-card-sub" style="margin-bottom: 8px;">
+        Pre-rendered SVG from <a href="https://github.com/moshi4/pyMSAviz" target="_blank" rel="noopener">pyMSAviz</a>:
+        catfish + 6–10 teleost orthologs (<i>Ictalurus punctatus</i>, <i>Danio rerio</i>,
+        <i>Oryzias latipes</i>, <i>Oreochromis niloticus</i>, <i>Salmo salar</i>,
+        <i>Gasterosteus aculeatus</i>), ±30 aa window, consensus track, variant
+        position marked. SVGs live in <code>atlases/diversity/data/msa/</code>.
+      </div>
+      <div id="fbMsaHost" style="min-height: 60px; border: 1px dashed var(--rule); padding: 12px; text-align: center; color: var(--ink-dim);">
+        no variant selected
+      </div>
+    </div>
+
+    <div style="display: grid; grid-template-columns: 1.2fr 1fr; gap: 12px;">
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title">Interpretation — how to read the five layers</div>
+          <div class="card-tag">reading guide</div>
+        </div>
+        <p style="color: var(--ink-dim); font-size: 11px;">
+          <b>High π<sub>N</sub>/π<sub>S</sub> + high VESM:</b> broad
+          protein-changing diversity backed by predicted-damaging variants
+          — strongest functional burden. Inversion-overlay case: an INV/INV
+          karyotype hitting both is consistent with the arrangement
+          sheltering deleterious variants from selection.
+        </p>
+        <p style="color: var(--ink-dim); font-size: 11px;">
+          <b>High π<sub>N</sub>/π<sub>S</sub>, normal VESM:</b> more coding
+          variation, but not clearly damaging — selection efficacy is low
+          but the average variant isn't predicted to be strongly damaging.
+        </p>
+        <p style="color: var(--ink-dim); font-size: 11px;">
+          <b>Normal π<sub>N</sub>/π<sub>S</sub>, high VESM:</b> a few
+          strong-effect variants rather than broad coding burden. Drill
+          into the per-sample row to see which variants drive the score.
+        </p>
+        <p style="color: var(--ink-dim); font-size: 11px;">
+          <b>High ROH-overlap fraction:</b> burden is realised as homozygous.
+          Pair with page 5's ROH composition to see whether the
+          autozygosity is recent (long blocks) or ancient (short blocks).
+        </p>
+      </div>
+
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title">π<sub>N</sub>/π<sub>S</sub> in context</div>
+          <div class="card-tag">single-species report</div>
+        </div>
+        <div style="font-size: 22px; font-weight: 600; margin: 4px 0 6px 0;" id="fbPinPisHeadline">—</div>
+        <div style="color: var(--ink-dim); font-size: 11px; margin-bottom: 8px;" id="fbPinPisSubline">
+          cohort-wide value — 95 % CI from block-jackknife
+        </div>
+        <table class="dt" id="fbPinPisTable" style="font-size: 10.5px; width:100%;">
+          <thead>
+            <tr><th>Group</th><th>n</th><th>π<sub>S</sub></th><th>π<sub>N</sub>/π<sub>S</sub></th></tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+        <p style="color: var(--ink-dim); font-size: 10.5px; margin-top: 8px;">
+          <b>Where does this cohort sit?</b> Romiguier et al. (<i>Nature</i> 2014) reported
+          animal π<sub>N</sub>/π<sub>S</sub> spanning ~0.05–0.30 across ~76 species
+          (median ≈ 0.17; teleosts ~0.10–0.20). A formal test of the
+          Kimura/Welch/Romiguier log–log relationship requires comparative data
+          across many species and is <b>not</b> performed here — this cohort is
+          one species. The values above are reported for context only.
+        </p>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
+        <div class="card-title">Methods note — annotator stack &amp; definitions</div>
+        <div class="card-tag">defs</div>
+      </div>
+      <p style="font-size: 11px;">
+        <b>π<sub>N</sub>, π<sub>S</sub></b> — nonsynonymous and synonymous
+        nucleotide diversity. Partition from <b>bcftools csq</b>
+        (haplotype-aware, correct across MNPs and adjacent variants).
+      </p>
+      <p style="font-size: 11px;">
+        <b>π<sub>0-fold</sub>, π<sub>4-fold</sub></b> — diversity at codon
+        positions where all (0-fold) or none (4-fold) of the three possible
+        substitutions are synonymous. Independent of transcript-model
+        quality; partition source recorded in the payload.
+      </p>
+      <p style="font-size: 11px;">
+        <b>VESM burden</b> — sum of VESM (Variant Effect Selection Model)
+        deleteriousness scores for missense alleles carried by the sample,
+        weighted by allele count. VESM acts as both the missense annotator
+        and the per-variant deleteriousness score.
+      </p>
+      <p style="font-size: 11px;">
+        <b>LOF count (strict)</b> — snpEff <code>IMPACT=HIGH</code> ∩ csq
+        consequence in {<code>stop_gained</code>, <code>start_lost</code>,
+        <code>splice_acceptor</code>, <code>splice_donor</code>,
+        <code>frameshift</code>}. Loose LOF (toggle, future) also includes
+        csq <code>splice_region</code> / <code>stop_lost</code> and custom
+        splice-module high-disruption events.
+      </p>
+      <p style="font-size: 11px;">
+        <b>Splice events</b> — gain / loss / shift at splice sites called by
+        the custom splice module (tool identity confirmed at build time;
+        candidates SpliceAI / Pangolin / fully custom rule-based).
+      </p>
+      <p style="font-size: 11px;">
+        <b>ROH-overlap fraction</b> — per sample, the fraction of carried
+        VESM/LOF variants whose position falls inside an ROH call from
+        <code>D.S5</code>. High fraction → burden is realised as homozygous.
+      </p>
+      <p style="font-size: 11px;">
+        <b>Confidence tier</b> (per variant) — <i>high</i> if csq + snpEff
+        (+ VESM if missense) all agree; <i>medium</i> if two of three;
+        <i>low</i> if only one tool flags. Transcript view (above) shows
+        <i>high</i> by default; toggle to show all.
+      </p>
+    </div>
+  </div>
+</div>

@@ -160,5 +160,36 @@
         </table>
       </div>
     </div>
+
+    <div class="card" id="rohGeneBurdenCard">
+      <div class="card-head">
+        <div class="card-title">ROH × gene-model — cumulative high-constraint gene count vs ROH blocks (Plot A)</div>
+        <div class="card-tag" id="rohGeneBurdenTag">⏳ awaiting ROH × gene-model overlap</div>
+      </div>
+      <div class="plot-card-sub" style="margin-bottom: 8px;">
+        Cumulative number of high-constraint genes captured as ROH blocks
+        are added in rank order (default: longest first), stacked by K=8
+        ancestry. Constraint proxy is still pending in <code>genome-atlas</code>
+        — see <code>_handoff_docs/SPEC_2026-05-12_roh_gene_burden.md</code> §6.2
+        (BUSCO single-copy / OrthoFinder / dN/dS / ohnolog / GERP ≥ 4
+        once teleost track lands).
+      </div>
+      <div id="rgbStratPills" class="toolbar" style="margin-bottom: 8px;"></div>
+      <div id="plotRohGeneCumulative" style="min-height: 240px;"></div>
+    </div>
+
+    <div class="card" id="rohBiotypeCard">
+      <div class="card-head">
+        <div class="card-title">Biotype counts in named ROH peaks (Plot B)</div>
+        <div class="card-tag" id="rohBiotypeTag">⏳ awaiting ROH × gene-model overlap</div>
+      </div>
+      <div class="plot-card-sub" style="margin-bottom: 8px;">
+        Gene counts indexed by biotype (rows) × named ROH peak regions
+        (columns). Coloured on a single-hue blue ramp. Default reference
+        layout (2026-05-12 user image): <code>ROH Chr 6 52.9 Mb</code> +
+        <code>ROH Chr 12 37.6 Mb</code>, 9 canonical biotypes.
+      </div>
+      <div id="plotRohBiotype" style="min-height: 180px;"></div>
+    </div>
   </div>
 </div>
