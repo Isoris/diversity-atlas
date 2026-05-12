@@ -68,6 +68,43 @@
 
     <div class="card">
       <div class="card-head">
+        <div class="card-title">Cross-atlas requests — to Population Atlas</div>
+        <div class="card-tag planned">→ population-atlas</div>
+      </div>
+      <p>
+        Items that originated as Diversity Atlas requests but belong in the
+        Population Atlas per the cross-atlas boundary
+        (per-sample diversity here, pairwise / cohort-structure there).
+      </p>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 10px;">
+        <div class="panel-slot">
+          <div class="panel-slot-title">Pairwise θπ in het-inversion vs collinear segments</div>
+          <div class="panel-slot-desc">
+            Scatter of mean pairwise θπ between sample pairs, computed
+            separately in <i>heterozygous-inversion</i> segments (y-axis)
+            and <i>collinear background</i> (x-axis). Each dot = one
+            sample pair; highlight cross-K-cluster pairs (e.g. K1×K7).
+            Dashed identity = expectation under no inversion-specific
+            divergence. Pairs above the identity line carry inversion-
+            specific haplotype divergence — direct mechanistic
+            counterpart to Fig. S22 of the Massilani et al. archaic-
+            introgression paper (D<sub>XY</sub> in Neanderthal vs Denisova
+            segments).
+          </div>
+          <div class="panel-slot-mockup">░░░ pairwise θπ scatter mockup ░░░</div>
+          <div class="panel-slot-foot">
+            needs: (a) pairwise θπ pipeline (currently absent — analogous
+            to ngsRelate but per-segment-class); (b) heterozygous-inversion
+            BEDs from <code>inversion-atlas</code> (already present);
+            (c) lives in <code>population-atlas</code> per the boundary.
+            Spec: <code>_handoff_docs/SPEC_2026-05-12_pairwise_segclass.md</code>.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
         <div class="card-title">Open questions for the next session</div>
         <div class="card-tag">decision points</div>
       </div>
