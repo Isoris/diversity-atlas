@@ -4,6 +4,25 @@
 **Target atlas:** diversity-atlas (in-atlas — stays on page 5)
 **Target page:** `atlases/diversity/pages/per_sample/page5.{html,js}` — *ROH composition*
 **Status:** spec only. No pipeline run. No new page code.
+
+> ## ⚠ UNFINISHED — decisions deferred
+>
+> User explicitly deferred two design questions on 2026-05-12 ("I don't
+> know — write to specs as unfinished"). They are listed once below
+> and fully expanded in §6. Do not start the build session without
+> resolving both:
+>
+> 1. **Constraint proxy ("pLI > 0.9" analog).** Catfish has no pLI.
+>    Options on the table: single-copy BUSCO orthologs / OrthoFinder
+>    strict / all protein-coding (no filter) / dN/dS < 0.1 / hybrid
+>    (all four as switchable layers) / ohnolog status / low-dN/dS
+>    teleost-conserved set. See §6.2.
+> 2. **Stratification axis.** Options on the table: K=8 only /
+>    K=8 + per-family toggle / K=8 + per-sample drill-down / K=8 +
+>    F_ROH-quartile toggle / all three modes. See §6.3.
+>
+> Both questions block the pipeline product schema (constraint-proxy
+> column) and the page-side toggle set. Resolve before any code lands.
 **Reference figures (provided by user, 2026-05-12):**
 
 - **Plot A** — "Cumulative gene count (pLI > 0.9) vs ROH blocks", stacked-area
@@ -251,14 +270,15 @@ curve?
   centromeres, large inversions). Visually closest to a per-chromosome
   ROH coverage plot.
 
-### 6.2 Constraint proxy ("pLI > 0.9" analog)
+### 6.2 Constraint proxy ("pLI > 0.9" analog) — **UNFINISHED**
 
-Catfish has no native pLI.
+Catfish has no native pLI. **No proxy chosen as of 2026-05-12.** Build
+session must pick one of the following (or a hybrid).
 
 - **(A) Single-copy BUSCO orthologs (actinopterygii_odb10)** — ~3,640
   genes by construction conserved across teleosts. Best off-the-shelf
   proxy; needs only the BUSCO output table (likely already in
-  genome-atlas) and a join to gene IDs. Recommended starting point.
+  genome-atlas) and a join to gene IDs. Lowest upstream lift.
 - **(B) OrthoFinder strict single-copy across ≥5 catfish-clade species** —
   more conservative than BUSCO. Requires running OrthoFinder against
   a panel of catfish-clade genomes if not already done. Tighter
@@ -271,13 +291,22 @@ Catfish has no native pLI.
   biologically defensible analog of pLI but requires a
   comparative-genomics pipeline (codeml/PAML across ≥3 catfish-clade
   species, or pre-computed teleost dN/dS tables if available).
-  Probably the heaviest of the four.
-- **(E) Hybrid — show all of the above as switchable layers** — single
-  pill-toggle on the page lets the reader compare proxies side by side.
-  Needs all of (A)–(D) emitted by the pipeline. Most flexible, most
-  data-heavy.
+- **(E) Ohnolog status (post-WGD retained pairs)** — teleost-specific
+  dosage-sensitivity axis. Ohnologs from the catfish WGD are by nature
+  dosage-balanced. Needs an ohnolog table from genome-atlas.
+- **(F) Low-dN/dS teleost-conserved set** — variant of (D) using
+  pre-computed cross-teleost dN/dS tables instead of running PAML in
+  the project. Cheaper than (D) if a usable table exists upstream.
+- **(G) Hybrid — emit all available proxies as switchable layers** —
+  single pill-toggle on the page lets the reader compare proxies side
+  by side. Needs every chosen proxy emitted by the pipeline. Most
+  flexible, most data-heavy. Recommended hybrid set if going wide:
+  (A) + (C) + (E).
 
-### 6.3 Stratification — group vs family vs sample
+### 6.3 Stratification — group vs family vs sample — **UNFINISHED**
+
+**No stratification mode chosen as of 2026-05-12.** Build session
+must pick one (or several with a pill-toggle).
 
 - **(A) K=8 group only** — matches user direction "by group for sure".
   Single stratification dimension. 8 colour bands.
@@ -291,7 +320,11 @@ Catfish has no native pLI.
   for the mosaic-rich page-9 DDI samples — answers "where does *this*
   sample's ROH burden land relative to its group's cumulative
   trajectory?"
-- **(D) All three modes selectable** — pill-toggle with three states.
+- **(D) K=8 group + F_ROH-quartile toggle** — switch the stratification
+  to F_ROH quartile bins (Q1–Q4 by genome-wide F_ROH). Reveals how
+  the gene-burden curve shifts with overall autozygosity rather than
+  ancestry. Pre-req: F_ROH per sample (have).
+- **(E) All modes selectable** — pill-toggle with multiple states.
   Most flexible, biggest UI surface.
 
 ---
