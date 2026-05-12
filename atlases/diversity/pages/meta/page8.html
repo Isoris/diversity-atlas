@@ -105,6 +105,60 @@
 
     <div class="card">
       <div class="card-head">
+        <div class="card-title">In-atlas roadmap — needs new compute (this round's image requests)</div>
+        <div class="card-tag planned">in-atlas, data pending</div>
+      </div>
+      <p>
+        New views requested via reference figures on 2026-05-12. Both stay
+        inside the Diversity Atlas; both depend on new pipeline products
+        and at least one cross-atlas data layer.
+      </p>
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 10px;">
+        <div class="panel-slot">
+          <div class="panel-slot-title">ROH × gene-model views (page 5 extension)</div>
+          <div class="panel-slot-desc">
+            Two complementary plots driven by one ROH × gene-model
+            intersection product: (A) cumulative high-constraint gene
+            count vs ROH blocks, stacked by K=8 group (per-family /
+            per-sample modes optional); (B) gene-biotype counts in named
+            ROH peak regions as a small heatmap. Catfish has no pLI →
+            constraint-proxy choice (BUSCO single-copy / OrthoFinder /
+            all protein-coding / dN/dS) deferred to build time. All
+            options recorded.
+          </div>
+          <div class="panel-slot-mockup">░░░ cumulative gene-burden stack + peak-biotype heatmap mockup ░░░</div>
+          <div class="panel-slot-foot">
+            needs: (a) ROH × gene-model intersection pipeline (new);
+            (b) gene-model BED + biotypes from <code>genome-atlas</code>;
+            (c) constraint-proxy TSV (proxy TBD).
+            Spec: <code>_handoff_docs/SPEC_2026-05-12_roh_gene_burden.md</code>.
+          </div>
+        </div>
+        <div class="panel-slot">
+          <div class="panel-slot-title">Pairwise group-divergence network (new stratified page)</div>
+          <div class="panel-slot-desc">
+            Node-link plot: nodes = K=8 ancestry groups (or farm /
+            karyotype-class), node label = within-group π, edges =
+            F<sub>ST</sub> / D<sub>XY</sub> / d<sub>A</sub> between
+            group pairs, edge thickness ∝ divergence. Restates the
+            structure picture as four diversity statistics in one
+            view. Companion stratified page beside <code>page4</code>
+            (K=8 cluster boxes). Inversion-atlas overlay version
+            (nodes = STD/HET/INV karyotypes) noted but out of scope.
+          </div>
+          <div class="panel-slot-mockup">░░░ G1–G8 nodes with edge weights mockup ░░░</div>
+          <div class="panel-slot-foot">
+            needs: (a) group-level π + pairwise F<sub>ST</sub>/D<sub>XY</sub>
+            pipeline (new — realSFS + bootstrap CIs);
+            (b) K=8 labels (have via D.S1.k8).
+            Spec: <code>_handoff_docs/SPEC_2026-05-12_divergence_network.md</code>.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-head">
         <div class="card-title">Open questions for the next session</div>
         <div class="card-tag">decision points</div>
       </div>
