@@ -438,7 +438,227 @@ sibling-atlas roadmap, not here.
 
 ---
 
-## 11. Open questions for the next session
+## 11. DFE / nearly-neutral mini-panel — log–log πN/πS vs πS
+
+Small dedicated panel on the same page (not a separate page), testing
+whether the cohort's group-level data is consistent with the
+nearly-neutral prediction of a linear relationship between
+**log(πN/πS)** and **log(πS)**.
+
+### 11.1 Theory (the claim being tested)
+
+Under the nearly-neutral theory (Kimura 1979) with a gamma-distributed
+DFE of shape β, Welch, Eyre-Walker & Waxman (2008) show that the
+expected πN/πS is approximately proportional to Ne<sup>−β</sup>.
+Synonymous diversity πS is the standard proxy for Ne (πS ≈ 4·Ne·μ
+at neutrally evolving sites), so the two together predict:
+
+```
+log(πN/πS)  ≈  α  −  β · log(πS)
+```
+
+— a log–log linear relationship with **slope = −β**, the (negated)
+shape parameter of the DFE. Romiguier et al. (2014) tested this
+across ~76 animal species and recovered the predicted negative slope.
+
+### 11.2 What the panel shows
+
+A single scatter plot:
+
+```
+       y = log10(πN/πS)
+       x = log10(πS)
+       one point per group (default: K=8 ancestry groups → 8 points)
+       fitted OLS line + 95% CI band
+       reported slope b, intercept, R², bootstrap CI on b
+       reference annotation:
+         "Romiguier et al. 2014 inter-species slope: −0.36 ± 0.04
+          (animals, n ≈ 76 species)"
+```
+
+Adjacent to the plot, three text lines:
+1. Fitted slope b (≈ −β) with bootstrap 95 % CI.
+2. Inferred β with caveat.
+3. One-line interpretation chosen by sign of b: positive / near-zero /
+   negative-as-predicted.
+
+Stratification pill toggles re-aim the panel: per-family (if family
+labels exist) → one point per family; per-F_ROH-quartile → 4 points.
+
+### 11.3 Honest caveat (must be on the panel)
+
+The Romiguier-style test is **interspecific** — ~76 species spread
+over ~10⁵-fold Ne range, which gives the regression real leverage.
+This panel is **intraspecific** — 8 K-clusters within a single
+hatchery cohort spanning a tiny Ne range. Two consequences the
+panel must display:
+
+- **Wide CIs.** With n = 8 points and a narrow x-range, the slope
+  CI will likely overlap zero. The panel should not over-claim.
+- **Not a falsification test.** A non-significant slope here does
+  **not** refute nearly-neutral theory; it just means this cohort
+  doesn't span enough Ne to detect the relationship. The panel is
+  a *sanity check + hypothesis-generation view*, not a powered test.
+
+The panel subtitle should literally say *"intraspecific test —
+slope CI wide, see Romiguier 2014 for the powered interspecific
+version of this analysis."*
+
+### 11.4 Counter-evidence to acknowledge
+
+The user's reference text correctly notes that this relationship is
+not guaranteed to hold universally:
+
+- **Shifts in selective pressure across lineages.** Elyashiv et al.
+  (2010) showed gene-specific selection shifts between two closely
+  related yeast species, so the DFE itself can vary across taxa.
+- **FGM predicts DFE-Ne coupling depends on organism characteristics.**
+  Martin & Lenormand (2006), Lourenço et al. (2011), and Tenaillon
+  (2014) show that under Fisher's Geometric Model the DFE depends on
+  organism "complexity", pleiotropy, and Ne itself — so a single
+  global slope is not a theorem, it's an approximation.
+- **Plants vs animals.** Whether plants share the πN/πS–πS slope of
+  animals is not established (open question, called out by the user's
+  reference paragraph).
+
+For a hatchery catfish cohort none of this is directly addressable
+from one dataset, but the panel's interpretation text should not
+pretend otherwise.
+
+### 11.5 Pipeline product additions
+
+No new pipeline product. The mini-panel reads directly from
+`per_group["K=8"]` (and `alternative_stratifications.family` /
+`F_ROH_quartile`) in the same `functional_burden.json` payload
+defined in §4. Fields needed per group (already in the §4 schema):
+`pi_S`, `piN_piS`, and their CIs.
+
+For the bootstrap slope CI: use 1000 group-level resamples with
+replacement. Implementation can live in `page<N>.js` (small) or in
+`shared/stats.js` if other pages want a regression helper later.
+
+### 11.6 Page layout (where the panel sits)
+
+Bottom-right of the page, beside the §8 interpretation card. ~40 %
+column width. Roughly:
+
+```
+┌────────────────────────────────────────────────────────────────────┐
+│ (stat strip + group boxplots + per-sample table + ROH stripe)      │
+│ ... rest of page above ...                                         │
+├────────────────────────────────────────────────────────────────────┤
+│ Interpretation card (§8)        │ DFE log–log mini-panel (§13)     │
+│ — three-case text from §1 —     │ — scatter, fit, slope CI —       │
+│                                 │ — caveat subtitle —              │
+└────────────────────────────────────────────────────────────────────┘
+```
+
+### 11.7 References (for the methods card)
+
+- Kimura, M. (1979). Model of effectively neutral mutations in
+  which selective constraint is incorporated. *PNAS* 76: 3440–3444.
+- Welch, J. J., Eyre-Walker, A., & Waxman, D. (2008). Divergence and
+  polymorphism under the nearly neutral theory of molecular evolution.
+  *Journal of Molecular Evolution* 67: 418–426.
+- Romiguier, J., et al. (2014). Comparative population genomics in
+  animals uncovers the determinants of genetic diversity.
+  *Nature* 515: 261–263. — empirical πN/πS–πS log–log slope across
+  ~76 animal species.
+- Elyashiv, E., et al. (2010). Shifts in the intensity of purifying
+  selection: an analysis of genome-wide polymorphism data from two
+  closely related yeast species. *Genome Research* 20: 1558–1573.
+- Martin, G., & Lenormand, T. (2006). A general multivariate
+  extension of Fisher's Geometric Model. *Evolution* 60: 893–907.
+- Lourenço, J., Galtier, N., & Glémin, S. (2011). Complexity,
+  pleiotropy, and the fitness effect of mutations. *Evolution*
+  65: 1559–1571.
+- Tenaillon, O. (2014). The utility of Fisher's Geometric Model in
+  evolutionary genetics. *Annual Review of Ecology, Evolution, and
+  Systematics* 45: 179–201.
+- Harrang, E., et al. (2013); Lohmueller, K. E. (2014); Do, R., et al.
+  (2015); Henn, B. M., et al. (2015) — πN/πS and π0/π4 as standard
+  measures of within-species selection efficacy (cited in §1).
+
+---
+
+## 12. Statistical comparisons between groups — Kolmogorov–Smirnov
+
+For every per-sample layer (πN/πS, π0/π4, VESM burden, LOF count,
+ROH-overlap fraction), the page also reports **pairwise two-sample
+Kolmogorov–Smirnov (K–S) test P values** between groups. The K–S
+statistic compares the full empirical CDF of two distributions, so
+it detects differences in shape (skew, tail) that a Kruskal–Wallis
+or median test would miss — which matters here because the burden
+distributions are heavy-tailed (a handful of high-burden samples
+drive the differences we want to surface).
+
+### 12.1 Where K–S goes on the page
+
+For each of the four group-level boxplot panels (§3, rows 2–3):
+add a small **pairwise K–S P-value matrix** beside the boxplot.
+For K=8 groups → 28 pairs, rendered as an 8×8 lower-triangular
+heatmap, BH-corrected, coloured by significance (white = ns,
+gradient to red for P < 0.05). Click a cell → highlights those
+two groups' samples on the strip overlay.
+
+This mirrors the pairwise S2 table on page 4 (`pairwiseTable`) but
+uses K–S in place of whatever pairwise test page 4 ships. Page 4
+already does Kruskal–Wallis omnibus + pairwise rank-based tests;
+the burden page adds K–S because the burden distributions are
+shape-different in ways median-based tests don't capture.
+
+### 12.2 Where K–S goes in the payload
+
+Add a `pairwise_ks` block per stratification mode in §4's payload:
+
+```json
+"per_group": {
+  "K=8": [ ... ],
+  "pairwise_ks": {
+    "piN_piS":     { "groups": ["G1", ...], "P_matrix": [[null, ...]], "P_BH": [[null, ...]] },
+    "pi0_pi4":     { ... },
+    "vesm_burden": { ... },
+    "lof_count":   { ... },
+    "roh_overlap": { ... }
+  }
+}
+```
+
+Each layer's `P_matrix` is the raw two-sided K–S P (`scipy.stats.ks_2samp`
+or equivalent), `P_BH` is Benjamini–Hochberg-adjusted across the 28
+pairs. The page reads `P_BH`; raw P is kept for tooltips.
+
+### 12.3 Inversion-atlas overlay use case (the strong test)
+
+In the per-candidate Inversion Atlas panel (§10), K–S is the natural
+test of *"does this inversion shelter functional burden?"* — compare
+the burden distribution of INV/INV-carriers to STD/STD-carriers per
+candidate (pairwise, two distributions, fits K–S exactly). The
+overlay panel's interpretation cell uses sign(median INV/INV − STD/STD)
++ K–S P value to populate the verdict.
+
+### 12.4 Caveats
+
+- **Sample-size sensitivity.** K–S is sensitive with ≥ ~20 samples
+  per group. K=8 groups range from ~10–60 samples in this cohort
+  (`D.S1.k8`) — usable but underpowered for the smallest groups.
+  The matrix tooltip should always show `n1, n2` alongside P.
+- **Ties.** Discrete layers (LOF count) have many ties; use the
+  exact-method K–S or the bootstrap variant rather than the asymptotic
+  approximation.
+- **Multiplicity.** 28 pairs × 5 layers = 140 P values. BH within each
+  layer; do **not** flag a single-layer single-pair significance
+  without context.
+
+### 12.5 Implementation note
+
+`scipy.stats.ks_2samp` is the standard. The page just reads the
+pre-computed matrix; the pipeline is responsible for the computation
+and the BH correction. No client-side K–S.
+
+---
+
+## 13. Open questions for the next session
 
 1. §6.1–§6.6 — six unfinished design decisions above.
 2. Should the per-sample drill-down (table click) open a panel
@@ -455,7 +675,7 @@ sibling-atlas roadmap, not here.
 
 ---
 
-## 12. Summary
+## 14. Summary
 
 | What | Where |
 |---|---|
