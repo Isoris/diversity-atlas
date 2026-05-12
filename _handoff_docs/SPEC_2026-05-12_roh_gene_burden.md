@@ -139,28 +139,40 @@ page.
 
 ### Encoding
 
-- **Rows:** gene biotype. The catfish gene-model biotype taxonomy
-  (NCBI/Ensembl-style for non-model teleost) is typically a subset of
-  the human GENCODE one. Expected rows:
-  - `protein_coding`
-  - `pseudogene`
-  - `lncRNA` (or `lncrna`)
-  - `miRNA`
-  - `snoRNA`
-  - `tRNA`
-  - `snRNA`
-  - `rRNA`
-  - `misc_RNA`
-  - `transcribed_pseudogene` *(may not exist in catfish annotation —
-     check the gene-model release notes)*
-  - `antisense_RNA` *(same caveat)*
+- **Rows:** gene biotype. **9-row canonical layout** (confirmed
+  against user-provided reference figure, 2026-05-12):
+  1. `Protein_coding`
+  2. `Pseudogene`
+  3. `lncRNA`
+  4. `miRNA`
+  5. `Transcribed_pseudogene`
+  6. `snoRNA`
+  7. `tRNA`
+  8. `snRNA`
+  9. `Antisense_RNA`
+
+  Reference figure shows for two example peaks: `ROH Chr 6 52.9 Mb` →
+  Protein_coding 258, Pseudogene 254, lncRNA 228, miRNA 17,
+  Transcribed_pseudogene 12, snoRNA 20, tRNA 3, snRNA 1,
+  Antisense_RNA 1; `ROH Chr 12 37.6 Mb` → 243, 195, 153, 12, 8, 8,
+  (blank), 1, (blank). Catfish gene-model release may have a
+  different subset (especially Transcribed_pseudogene and
+  Antisense_RNA — confirm via genome-atlas GTF before build); rows
+  with no genes anywhere in the selected peak set should be omitted.
+  Additional rows (`rRNA`, `misc_RNA`) included if present in the
+  annotation.
 - **Columns:** named ROH peak regions, picked from a curated set —
   e.g. the top-N consensus ROH peaks across the cohort, or hand-picked
   candidate regions discussed in narrative pages. Each column carries
-  a label like `ROH Chr 6 52.9 Mb` (chrom + start-rounded Mb).
+  a label like `ROH Chr 6 52.9 Mb` (chrom + start-rounded Mb). The
+  reference figure uses **2 columns**; this should be the default,
+  with a multi-select to add more.
 - **Cells:** gene count for (biotype, peak). Coloured on a single-hue
-  blue ramp from `min` (palest) to `max` (deepest). Empty cells: blank
-  (no gene of that biotype in that peak).
+  blue ramp from `min` (palest, count = 1) to `max` (deepest,
+  reference figure max = 258). Empty cells: blank (no gene of that
+  biotype in that peak — matches the reference figure's treatment).
+- **Legend:** small horizontal colourbar above the table, label
+  "Gene count", range "1 … max" (matches reference figure).
 
 ### Companion controls
 
