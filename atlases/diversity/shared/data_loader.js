@@ -18,7 +18,8 @@
 // in-flight promise. Subsequent calls return the cached object.
 // =============================================================================
 
-const DATA_URL = 'atlases/diversity/data/embedded_tables.json';
+const DATA_URL          = 'atlases/diversity/data/embedded_tables.json';
+const TEXTURE_DATA_URL  = 'atlases/diversity/data/texture_metrics.json';
 
 // Map raw "dt_*" ids to the short alias the legacy code used.
 const ALIAS = {
@@ -64,11 +65,27 @@ const ALIAS = {
 let _cache = null;
 let _inflight = null;
 
+// The texture (DDI / χ_min) payload is *optional*. It is consumed by
+// pages/per_sample/page9.js and any future cross-page integrations
+// (planned: DDI/χ_min columns in page1 master table, DDI per-cluster
+// rollup on page4). Absent or empty file → WIN_METRICS resolves to null
+// and consumers fall back to a "data pending" render. See the schema
+// block in pages/per_sample/page9.html for the canonical shape.
+async function fetchTextureMetrics() {
+  try {
+    const res = await fetch(TEXTURE_DATA_URL);
+    if (!res.ok) return null;
+    return await res.json();
+  } catch (_e) {
+    return null;
+  }
+}
+
 export async function ensureData() {
   if (_cache) return _cache;
   if (_inflight) return _inflight;
   _inflight = (async () => {
-    const res = await fetch(DATA_URL);
+    const [res, wm] = await Promise.all([fetch(DATA_URL), fetchTextureMetrics()]);
     if (!res.ok) throw new Error(`embedded_tables.json fetch failed: ${res.status}`);
     const raw = await res.json();
     const D = {};
@@ -79,7 +96,7 @@ export async function ensureData() {
     if (Array.isArray(D.S9)) {
       D.S9.forEach(c => { CLUSTER_COLORS[c.k] = c.color; });
     }
-    _cache = { D, CLUSTER_COLORS };
+    _cache = { D, CLUSTER_COLORS, WIN_METRICS: wm };
     return _cache;
   })();
   return _inflight;

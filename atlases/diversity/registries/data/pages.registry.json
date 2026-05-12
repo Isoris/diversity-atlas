@@ -57,6 +57,13 @@
       "requires_layers": [],
       "requires_slots":  [],
       "preloads":        []
+    },
+    "page9": {
+      "_label": "texture — per-sample DDI × H scatter + per-window H strip (χ_min marker)",
+      "_doc": "Reads D.S1, D.S9, and the optional D.WIN_METRICS payload (texture_metrics.json). Renders a 'data pending' card when the texture payload is absent or empty. Substrate produced by catfish-diversity-analysis phase_2_discovery/04_window_H_and_DDI.sh (to be written).",
+      "requires_layers": [],
+      "requires_slots":  [],
+      "preloads":        []
     }
   }
 }

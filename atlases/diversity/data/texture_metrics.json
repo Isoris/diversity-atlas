@@ -1,0 +1,30 @@
+{
+  "_doc": "Per-sample texture metrics (DDI, χ_min) for page9. Round 1 ships an empty stub — page9 detects hasTexture() === false and renders the 'data pending' card. Populate by running phase_2_discovery/04_window_H_and_DDI.sh in catfish-diversity-analysis (to-be-written) and re-emitting this file with per_sample[], cohort_summary, windows{}, and per_sample_H_w{} per the schema in pages/per_sample/page9.html.",
+  "params": {
+    "win_kb": 50,
+    "step_kb": 50,
+    "min_callable_per_window": 15000,
+    "mad_constant": 1.4826,
+    "chi_min_neighbors": 5,
+    "h_proxy": "tP / nSites per window from per-sample ANGSD pestPG"
+  },
+  "cohort_summary": {
+    "n_samples": null,
+    "n_windows": null,
+    "h_gw_median": null,
+    "ddi_median": null,
+    "ddi_p25": null,
+    "ddi_p75": null,
+    "ddi_min": null,
+    "ddi_max": null,
+    "chi_min_median": null
+  },
+  "per_sample": [],
+  "windows": {
+    "chroms": [],
+    "cohort_median_H_w": [],
+    "cohort_q25_H_w": [],
+    "cohort_q75_H_w": []
+  },
+  "per_sample_H_w": {}
+}
