@@ -5,24 +5,22 @@
 **Target page:** `atlases/diversity/pages/per_sample/page5.{html,js}` — *ROH composition*
 **Status:** spec only. No pipeline run. No new page code.
 
-> ## ⚠ UNFINISHED — decisions deferred
+> ## ⚠ Decision status (2026-05-12 round-1 session)
 >
-> User explicitly deferred two design questions on 2026-05-12 ("I don't
-> know — write to specs as unfinished"). They are listed once below
-> and fully expanded in §6. Do not start the build session without
-> resolving both:
->
-> 1. **Constraint proxy ("pLI > 0.9" analog).** Catfish has no pLI.
+> 1. **Constraint proxy ("pLI > 0.9" analog).** Still **data-blocked**
+>    — catfish has no pLI and no proxy table exists yet in genome-atlas.
 >    Options on the table: single-copy BUSCO orthologs / OrthoFinder
 >    strict / all protein-coding (no filter) / dN/dS < 0.1 / hybrid
 >    (all four as switchable layers) / ohnolog status / low-dN/dS
->    teleost-conserved set. See §6.2.
-> 2. **Stratification axis.** Options on the table: K=8 only /
->    K=8 + per-family toggle / K=8 + per-sample drill-down / K=8 +
->    F_ROH-quartile toggle / all three modes. See §6.3.
->
-> Both questions block the pipeline product schema (constraint-proxy
-> column) and the page-side toggle set. Resolve before any code lands.
+>    teleost-conserved set. Decision deferred to the upstream
+>    genome-atlas session. The atlas reads `constraint_score` from
+>    the payload regardless of which proxy lands. See §6.2.
+> 2. ✅ **Stratification axis** — resolved to **all modes selectable**:
+>    pill toggle with K=8 (default) / per-family / per-sample
+>    drill-down / F_ROH-quartile. Same pill set used by the new
+>    Functional-Burden page (`SPEC_2026-05-12_functional_burden.md`
+>    §6.6). Implement the pill renderer in `shared/` so both pages
+>    share one component. See §6.3.
 **Reference figures (provided by user, 2026-05-12):**
 
 - **Plot A** — "Cumulative gene count (pLI > 0.9) vs ROH blocks", stacked-area
@@ -303,29 +301,21 @@ session must pick one of the following (or a hybrid).
   flexible, most data-heavy. Recommended hybrid set if going wide:
   (A) + (C) + (E).
 
-### 6.3 Stratification — group vs family vs sample — **UNFINISHED**
+### 6.3 Stratification — group vs family vs sample — ✅ RESOLVED (2026-05-12)
 
-**No stratification mode chosen as of 2026-05-12.** Build session
-must pick one (or several with a pill-toggle).
+**Decision:** option (E) — **all modes selectable**. Pill toggle
+with four states:
+  1. **K=8** (default) — 8 ancestry-cluster cumulative-burden curves
+  2. **per-family** — one curve per `family_id`; falls back to "no
+     family labels available" if the metadata column is empty
+  3. **per-sample drill-down** — overlay one sample's trajectory
+     on the K=8 background
+  4. **F_ROH quartile** — Q1–Q4 by genome-wide F_ROH; 4 curves
 
-- **(A) K=8 group only** — matches user direction "by group for sure".
-  Single stratification dimension. 8 colour bands.
-- **(B) K=8 group + per-family toggle** — adds a second stratification
-  mode if family/broodline metadata exists. Pre-req: confirm that the
-  cohort metadata file has a `family_id` or `broodline_id` column.
-  If only some samples have family labels, family-mode would render
-  only the labelled subset.
-- **(C) K=8 group + per-sample drill-down** — group as default; sample
-  picker overlays one sample's per-block trajectory on top. Useful
-  for the mosaic-rich page-9 DDI samples — answers "where does *this*
-  sample's ROH burden land relative to its group's cumulative
-  trajectory?"
-- **(D) K=8 group + F_ROH-quartile toggle** — switch the stratification
-  to F_ROH quartile bins (Q1–Q4 by genome-wide F_ROH). Reveals how
-  the gene-burden curve shifts with overall autozygosity rather than
-  ancestry. Pre-req: F_ROH per sample (have).
-- **(E) All modes selectable** — pill-toggle with multiple states.
-  Most flexible, biggest UI surface.
+**Same pill set** is used by the new Functional-Burden page
+(`SPEC_2026-05-12_functional_burden.md` §6.6, also resolved to
+option E). Implement the pill renderer in `shared/` so both pages
+share one component — avoids visual drift between burden pages.
 
 ---
 

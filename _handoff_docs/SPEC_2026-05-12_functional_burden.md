@@ -2,37 +2,48 @@
 
 **Date:** 2026-05-12
 **Target atlas:** diversity-atlas (new page — "main home" for functional burden)
-**Target page:** new `atlases/diversity/pages/<section>/pageN.{html,js}` —
-  *Functional Burden / Selection Efficacy*. Section + page-number deferred (see §6.1).
+**Target page:** **`atlases/diversity/pages/functional/page10.{html,js}`** —
+  *Functional Burden / Selection Efficacy*. Dedicated new section
+  `functional/`. User direction 2026-05-12: *"it should be on its own
+  page — we have evolution of proteins + VESM + deleterious functional
+  and per group of genes and many things"*.
 **Companion overlay:** Inversion Atlas per-candidate consequence panel —
   small per-karyotype subset of the same layers (see §10). **Not** a new
   Inversion Atlas page; a panel inside the existing per-candidate view.
 **Status:** spec only. No pipeline run. No new page code.
 
-> ## ⚠ UNFINISHED — decisions deferred
+> ## ⚠ Resolved decisions (2026-05-12 round-1 session)
 >
-> User wrote this page brief on 2026-05-12 but several upstream choices
-> are still open. Do not start the build session without resolving them.
+> Four of the six original UNFINISHED decisions were resolved
+> interactively. Two remain.
 >
-> 1. **Page location & number.** Options on the table: new
->    `stratified/page10.html` (alongside page 4) / new
->    `per_sample/page10.html` (alongside pages 1, 5, 9) / new
->    `functional/page10.html` (new section) / fold into existing
->    page 5 as a second tab. See §6.1.
-> 2. **πN/πS estimator.** Options on the table: site-count ratio
->    (Σ πN_sites / Σ πS_sites) / Watterson-θ ratio (θN/θS) / Tajima-θ
->    ratio per-window then averaged / block-jackknife mean across
->    chromosomes. See §6.2.
-> 3. **0-fold/4-fold degeneracy source.** Options on the table:
->    snpEff CDS annotations + custom degeneracy classifier / VEP
->    + Ensembl degeneracy table / custom from genome-atlas CDS FASTA
->    (Biopython three-codon enumeration) / dN/dS-pipeline by-product
->    if (D) below is already chosen for ROH-burden spec. See §6.3.
-> 4. **VESM payload source.** Options on the table: pre-computed
->    VESM scores from genome-atlas (canonical) / on-the-fly VESM
->    prediction per-cohort / a non-VESM substitute (SIFT / PolyPhen-2
->    / MutPred / AlphaMissense-fish) if VESM-for-catfish isn't ready.
->    See §6.4.
+> 1. ✅ **Page location:** new `functional/` section, dedicated
+>    `page10.html` + `page10.js`. (§6.1 below — resolved.)
+> 2. ✅ **πN/πS estimator:** deferred to the **unified ancestry
+>    repo** dispatcher. The atlas does not pick the method; it
+>    reads whatever the pipeline emits via the same dispatcher
+>    pattern already used by `texture_metrics.json`. The unified
+>    ancestry repo owns the method choice. (§6.2 below — resolved.)
+> 3. **0-fold/4-fold degeneracy source.** Constrained by the
+>    annotator pick (see (5) below). bcftools csq + snpEff give
+>    per-site syn/missense/LOF tags but neither emits 0/4-fold
+>    directly — a small custom degeneracy classifier from
+>    genome-atlas CDS FASTA is still needed downstream. Decision
+>    deferred to upstream pipeline session. (§6.3.)
+> 4. **VESM payload source.** Still data-blocked — VESM-for-catfish
+>    does not exist yet. The atlas reads `vesm_burden` from the
+>    payload; the predictor choice (canonical VESM / on-the-fly /
+>    AlphaMissense-fish substitute) is owned by the upstream
+>    pipeline session. (§6.4.)
+> 5. ✅ **Annotator tool:** **bcftools csq + snpEff** (both, cross-confirm).
+>    csq is haplotype-aware (correct syn/nonsyn calls for MNPs and
+>    adjacent variants); snpEff provides the HIGH-impact LOF tags
+>    and broad annotation. Agreement between the two becomes a
+>    confidence filter on the LOF set. (§6.5 below — resolved.)
+> 6. ✅ **Stratification axis:** **all modes selectable** — pill
+>    toggle with K=8 (default) / per-family / per-sample drill-down
+>    / F_ROH-quartile. Same pill set is used by the ROH-burden page.
+>    (§6.6 below — resolved.)
 > 5. **LOF caller.** Options on the table: snpEff "HIGH" impact
 >    (stop-gain / start-loss / splice-donor/acceptor / frameshift)
 >    / LOFTEE (Ensembl VEP plugin) / custom rule set. See §6.5.
@@ -276,40 +287,54 @@ Pipeline detail beyond this spec is up to the analysis repo.
 
 ## 6. Open design questions
 
-### 6.1 Page location & number — **UNFINISHED**
+### 6.1 Page location & number — ✅ RESOLVED (2026-05-12)
 
-No section / page-number chosen as of 2026-05-12. Options:
+**Decision:** option (C) — new `functional/` section, dedicated
+`page10.{html,js}`. User wording: *"it should be on its own page —
+we have evolution of proteins + VESM + deleterious functional and
+per group of genes and many things"*.
 
-- **(A) `stratified/page10.html`** — alongside page 4 (K=8 boxes).
-  Functional burden is mostly a group-stratification view, so this
-  groups it with the other stratification page.
-- **(B) `per_sample/page10.html`** — alongside pages 1, 5, 9. The
-  per-sample table is the second-most-prominent component, so this
-  groups it with the other per-sample pages.
-- **(C) `functional/page10.html`** — new section. Cleaner conceptually:
-  functional burden is its own theme, not a sub-flavour of "stratified"
-  or "per_sample". Matches the user wording "Functional Burden /
-  Selection Efficacy".
-- **(D) Fold into page 5 as a second tab.** Page 5 is ROH; ROH-overlap
-  is one of the five layers. Risks overloading page 5 with a
-  conceptually broader payload.
+Concretely: create `atlases/diversity/pages/functional/page10.html`
+and `page10.js`. Register in `manifest.json` as page 10 with a
+new section label (proposed: "functional"). Tab tooltip:
+"Functional burden / selection efficacy".
 
-Recommendation if no decision: (C), new `functional/` section, since
-the user explicitly framed this as a top-level page ("Diversity Atlas
-page: 'Functional Burden / Selection Efficacy'").
+The section is sized for growth — protein-evolution layers beyond
+the v1 five (e.g. per-gene-family burden tables, dN/dS heatmaps
+once that pipeline exists) will land as additional pages in
+`functional/`.
 
-### 6.2 πN/πS estimator — **UNFINISHED**
+### 6.2 πN/πS estimator — ✅ RESOLVED (2026-05-12)
 
-- **(A) Site-count ratio** — Σ pairwise diffs at N-sites ÷ Σ pairwise
-  diffs at S-sites. Simplest; what most papers report. Sensitive to
-  small-denominator noise when stratified to small groups.
-- **(B) Watterson θ ratio** — θN/θS. More variance-robust at low
-  sample counts; less directly comparable to literature.
-- **(C) Per-window Tajima θ, then mean** — robust to large-effect
-  windows. Adds a window-size hyperparameter.
-- **(D) Block-jackknife mean across chromosomes** — same estimator
-  as (A) but with proper CIs. Probably wanted *on top* of whichever
-  point estimator wins, not instead of one.
+**Decision:** **deferred to the unified ancestry repo** (pipeline
+side, not atlas side). User direction: *"it's in the unified
+ancestry repo so just write() to a dispatcher or add to a file
+so it will wire to the server later"*.
+
+The atlas does **not** pick the estimator. It reads `piN`, `piS`,
+`piN_piS`, and `piN_piS_ci` from the `functional_burden.json`
+payload via a dispatcher in `shared/data_loader.js`, in exactly the
+same pattern as the existing `texture_metrics.json` reader.
+
+Concrete atlas-side wiring (to land at build time):
+
+```js
+// shared/data_loader.js — add to the parallel-fetch block:
+const FUNCTIONAL_BURDEN_PATH =
+  'atlases/diversity/data/functional_burden.json';
+// ... in loadAll():
+const fbResp = await fetch(FUNCTIONAL_BURDEN_PATH).catch(() => null);
+ctx.FUNCTIONAL_BURDEN = fbResp && fbResp.ok ? await fbResp.json() : null;
+```
+
+`ctx.FUNCTIONAL_BURDEN === null` → page 10 renders the "data
+pending" fallback card (same pattern as page 9). The unified
+ancestry repo owns the method choice; whatever it writes into the
+JSON, the page surfaces.
+
+This keeps the atlas method-agnostic: if the pipeline changes from
+site-count to Watterson-θ later, the atlas needs no changes — only
+the JSON contents shift.
 
 ### 6.3 0-fold/4-fold degeneracy source — **UNFINISHED**
 
@@ -334,28 +359,51 @@ page: 'Functional Burden / Selection Efficacy'").
   ready yet. The page label changes accordingly ("missense
   deleterious score" — agnostic to predictor).
 
-### 6.5 LOF caller — **UNFINISHED**
+### 6.5 Annotator + LOF caller — ✅ RESOLVED (2026-05-12)
 
-- **(A) snpEff "HIGH" impact** — stop-gain, start-loss,
-  splice-donor/acceptor, frameshift. Loose definition;
-  high recall, lower precision.
-- **(B) LOFTEE (Ensembl VEP plugin).** Stricter; designed to
-  exclude likely-benign LOFs. Needs VEP, not snpEff.
-- **(C) Custom rule set.** Define HIGH-impact criteria locally;
-  most control, least standard.
+**Decision:** **bcftools csq + snpEff** (both, cross-confirm).
 
-### 6.6 Stratification axis — **UNFINISHED**
+User direction: *"csq and snpeff"*.
 
-Same question as `SPEC_2026-05-12_roh_gene_burden.md` §6.3. Whatever
-is picked there **must match here** for visual consistency across
-the burden pages (page 5 ROH-burden and the new functional-burden
-page should share the same pill toggle).
+Rationale:
+- **bcftools csq** is haplotype-aware — handles MNPs and adjacent
+  variants correctly when assigning syn/missense calls. This matters
+  for the πN vs πS partition: a naïve per-site annotator can
+  miscall composite codons that csq gets right.
+- **snpEff** provides HIGH-impact LOF tags (stop-gain, start-loss,
+  splice-donor/acceptor, frameshift) and broader functional
+  annotation. It's the standard for the LOF call set.
+- **Agreement between the two** becomes a confidence filter on the
+  LOF set: a variant called HIGH-impact by snpEff AND non-synonymous
+  by csq is high-confidence LOF; either-only is medium-confidence.
 
-- **(A) K=8 group only.**
-- **(B) K=8 + per-family toggle.**
-- **(C) K=8 + per-sample drill-down.**
-- **(D) K=8 + F_ROH-quartile toggle.**
-- **(E) All modes selectable.**
+Concrete LOF criterion:
+- **High-confidence LOF** (default, used in the headline `lof_count`):
+  snpEff `IMPACT=HIGH` AND csq consequence in {`stop_gained`,
+  `start_lost`, `splice_acceptor`, `splice_donor`, `frameshift`}.
+- **Loose LOF** (kept in the payload, surfaced via pill toggle):
+  snpEff `IMPACT=HIGH` OR csq `splice_region`/`stop_lost`.
+
+The payload (§4) should carry both counts (`lof_count_strict` and
+`lof_count_loose`) per sample so the page can switch via a pill
+toggle without re-fetching.
+
+### 6.6 Stratification axis — ✅ RESOLVED (2026-05-12)
+
+**Decision:** option (E) — **all modes selectable**. Pill toggle
+with four states:
+  1. **K=8** (default) — 8 ancestry-cluster boxes
+  2. **per-family** — one box per `family_id` (only samples with
+     metadata; falls back to "no family labels available" if the
+     metadata column is empty)
+  3. **per-sample drill-down** — table-row click overlays one
+     sample's values on top of the K=8 view
+  4. **F_ROH quartile** — Q1–Q4 by genome-wide F_ROH, 4 boxes
+
+**Same pill set** must appear on the ROH-burden page
+(`SPEC_2026-05-12_roh_gene_burden.md` §6.3, also resolved to
+option E). Implement the pill renderer in `shared/` so both pages
+share one component.
 
 ---
 
