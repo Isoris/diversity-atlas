@@ -26,12 +26,12 @@ single `ctx` object:
 
 | Layer | File | Required? | Failure mode |
 |---|---|---|---|
-| 1. **Bulk snapshot** | `atlases/diversity/data/embedded_tables.json` | ✅ required | `ensureData()` throws → page mount fails |
-| 2. **Optional payloads** | `atlases/diversity/data/texture_metrics.json` | optional | `ctx.WIN_METRICS = null` |
-| | `atlases/diversity/data/functional_burden.json` | optional | `ctx.FUNCTIONAL_BURDEN = null` |
-| | `atlases/diversity/data/roh_gene_overlap.json` | optional | `ctx.ROH_GENE_OVERLAP = null` |
-| | `atlases/diversity/data/divergence_network.json` | optional | `ctx.DIVERGENCE_NETWORK = null` |
-| 3. **Per-variant assets** | `atlases/diversity/data/msa/<variant_id>.svg` | optional | page-10 MSA panel renders "no MSA available" |
+| 1. **Bulk snapshot** | `data/embedded_tables.json` | ✅ required | `ensureData()` throws → page mount fails |
+| 2. **Optional payloads** | `data/texture_metrics.json` | optional | `ctx.WIN_METRICS = null` |
+| | `data/functional_burden.json` | optional | `ctx.FUNCTIONAL_BURDEN = null` |
+| | `data/roh_gene_overlap.json` | optional | `ctx.ROH_GENE_OVERLAP = null` |
+| | `data/divergence_network.json` | optional | `ctx.DIVERGENCE_NETWORK = null` |
+| 3. **Per-variant assets** | `data/msa/<variant_id>.svg` | optional | page-10 MSA panel renders "no MSA available" |
 
 Optional payloads with a `null` resolution → the consuming page detects
 the absence (via `hasTexture()`, `hasBurden()`, `hasNetwork()`, etc.) and
@@ -53,7 +53,7 @@ Diversity_atlas.html v2.4   ← 2.5 MB single-file, 37 inlined <script type="app
    │
    │   (programmatic carve during round-1 migration)
    ▼
-atlases/diversity/data/embedded_tables.json
+data/embedded_tables.json
    │
    │   (data_loader.js renames each dt_* key to a short alias)
    ▼
@@ -261,7 +261,7 @@ catfish-diversity-analysis output tree (proposed extensions):
 ```
 
 Or — equally valid — fold them into the existing 08/04 directories. The
-atlas only cares about the **final JSON sitting in `atlases/diversity/data/`**;
+atlas only cares about the **final JSON sitting in `data/`**;
 which step produces it is a pipeline-architecture decision.
 
 ---
