@@ -6,6 +6,8 @@ Per-sample diversity lens for the 226-sample pure *C. gariepinus* hatchery cohor
 
 ```
 atlases/diversity/               — atlas package (paired with atlas-core)
+                                   ATLAS IS A VIEWER, NOT A STORE.
+                                   Reads results from data/ but does not own them.
   manifest.json                  — atlas declaration: 11 pages, green accent
   pages/                         — page1 samples · page2 chromosomes · page3 hotspots ·
                                    page4 ancestry · page5 ROH · page6 pruning & QC ·
@@ -14,18 +16,23 @@ atlases/diversity/               — atlas package (paired with atlas-core)
                                    page10 functional burden (VESM / πN/πS / LOF / splice / MSA) ·
                                    page11 group divergence (FST / DXY / dA network)
   registries/data/               — pages / layers / slots / files / operations registries
+                                   (files.registry.json points at the data/ paths below)
   shared/                        — data_loader · formatters · plots · svg · tables ·
                                    tooltip · palette · stratification
   css/diversity.css              — atlas-wide stylesheet (green accent)
-  data/                          — embedded_tables.json + four optional payloads:
-                                   texture_metrics.json (page9),
-                                   functional_burden.json (page10),
-                                   roh_gene_overlap.json (page5 extension),
-                                   divergence_network.json (page11)
+
+data/                            — RESULTS (lives outside the atlas — see data/README.md)
+  embedded_tables.json           — required bulk snapshot (~2.4 MB)
+  texture_metrics.json           — optional, page 9
+  functional_burden.json         — optional, page 10
+  roh_gene_overlap.json          — optional, page 5 extension
+  divergence_network.json        — optional, page 11
+  msa/<variant_id>.svg           — optional, page 10 MSA panel
 
 Diversity_atlas.html             — legacy 2.5 MB single-file (kept as carve source-of-truth)
 KICKOFF_diversity_atlas.md       — round-0 kickoff doc (page audit, open questions)
 _handoff_docs/                   — round-N handoffs + spec docs for unbuilt pipeline products
+                                   DATA_PROVENANCE.md — for-each-value upstream source map
 0_READ_ME_FIRST.md               — overview of the four-atlas migration
 ```
 

@@ -217,7 +217,7 @@ page.
 ## 5. Combined payload
 
 Single file, planned at
-`atlases/diversity/data/roh_gene_overlap.json`:
+`data/roh_gene_overlap.json`:
 
 ```jsonc
 {
@@ -370,7 +370,7 @@ Pipeline detail beyond this spec is up to the pipeline repo.
 
 Mirrors the page9 (texture) round-2 pattern:
 
-1. Extend `atlases/diversity/data/data_loader.js` with a
+1. Extend `atlases/diversity/shared/data_loader.js` with a
    `ROH_GENE_OVERLAP` slot, graceful no-data fallback (renders
    "data pending" pill, returns empty arrays — same shape as
    `WIN_METRICS` in this round).

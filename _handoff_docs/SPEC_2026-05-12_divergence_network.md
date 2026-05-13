@@ -129,7 +129,7 @@ Layout choice: pill-toggle.
 ## 4. Data shape
 
 Single payload, planned at
-`atlases/diversity/data/divergence_network.json`:
+`data/divergence_network.json`:
 
 ```jsonc
 {
@@ -217,7 +217,7 @@ Mirrors the page9 (texture) round-2 pattern:
 1. New page `atlases/diversity/pages/stratified/pageN.{html,js}`
    (number TBD; existing stratified page is `page4` for K=8 cluster
    boxes — this new page sits beside it).
-2. Extend `atlases/diversity/data/data_loader.js` with a
+2. Extend `atlases/diversity/shared/data_loader.js` with a
    `DIVERGENCE_NETWORK` slot, graceful no-data fallback.
 3. Register in `manifest.json`, `pages.registry.json`,
    `files.registry.json` (template:

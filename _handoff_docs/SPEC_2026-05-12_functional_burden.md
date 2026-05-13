@@ -383,7 +383,7 @@ fetches.
 
 Size estimate: ~226 sample rows × ~15 numeric fields + 8 group rows ×
 ~12 numeric fields + alt stratifications ≈ small (low tens of kB).
-Embed in `atlases/diversity/data/functional_burden.json`, load via
+Embed in `data/functional_burden.json`, load via
 `shared/data_loader.js`.
 
 Empty payload → page renders the same no-data fallback pattern as
@@ -456,7 +456,7 @@ Concrete atlas-side wiring (to land at build time):
 ```js
 // shared/data_loader.js — add to the parallel-fetch block:
 const FUNCTIONAL_BURDEN_PATH =
-  'atlases/diversity/data/functional_burden.json';
+  'data/functional_burden.json';
 // ... in loadAll():
 const fbResp = await fetch(FUNCTIONAL_BURDEN_PATH).catch(() => null);
 ctx.FUNCTIONAL_BURDEN = fbResp && fbResp.ok ? await fbResp.json() : null;
@@ -1097,13 +1097,13 @@ For each variant in the top-burden set (§13), the pipeline runs:
 2. Run a fast MSA (MAFFT or MUSCLE) over the 6–10 sequences,
    windowed to ±30 aa around the variant position.
 3. Render with pyMSAviz, save as
-   `atlases/diversity/data/msa/<variant_id>.svg`.
+   `data/msa/<variant_id>.svg`.
 
 The functional_burden.json payload references these files:
 
 ```json
 "msa_links": {
-  "chr07:12345678:A:G": "atlases/diversity/data/msa/chr07_12345678_A_G.svg",
+  "chr07:12345678:A:G": "data/msa/chr07_12345678_A_G.svg",
   ...
 }
 ```
@@ -1116,7 +1116,7 @@ not available for this variant" fallback card.
 
 Pre-rendering ~60 variants (one per top-burden gene per group +
 cohort-wide top 50) × ~5–10 KB per SVG = **~0.3–0.6 MB total** in
-`atlases/diversity/data/msa/`. Acceptable on-disk; lazy-loaded
+`data/msa/`. Acceptable on-disk; lazy-loaded
 client-side so the page itself stays light.
 
 If the user later wants on-demand MSA for arbitrary variants

@@ -5,8 +5,10 @@
 // Diversity_atlas.html v2.4 inlined as <script type="application/json">.
 //
 // In the migrated tree those blobs live in
-//   atlases/diversity/data/embedded_tables.json
-// keyed by their original "dt_*" id. This module fetches that file once,
+//   data/embedded_tables.json
+// (top-level, OUTSIDE the atlas package — the atlas is a viewer, not a
+// store; see data/README.md for the architectural rule).
+// They are keyed by their original "dt_*" id. This module fetches that file once,
 // caches the parsed result, and re-publishes the data under the short
 // names the legacy renderers use: D.globals, D.S1, ..., D.REF.
 //
@@ -18,11 +20,11 @@
 // in-flight promise. Subsequent calls return the cached object.
 // =============================================================================
 
-const DATA_URL              = 'atlases/diversity/data/embedded_tables.json';
-const TEXTURE_DATA_URL      = 'atlases/diversity/data/texture_metrics.json';
-const FUNCTIONAL_BURDEN_URL = 'atlases/diversity/data/functional_burden.json';
-const ROH_GENE_OVERLAP_URL  = 'atlases/diversity/data/roh_gene_overlap.json';
-const DIVERGENCE_NETWORK_URL = 'atlases/diversity/data/divergence_network.json';
+const DATA_URL              = 'data/embedded_tables.json';
+const TEXTURE_DATA_URL      = 'data/texture_metrics.json';
+const FUNCTIONAL_BURDEN_URL = 'data/functional_burden.json';
+const ROH_GENE_OVERLAP_URL  = 'data/roh_gene_overlap.json';
+const DIVERGENCE_NETWORK_URL = 'data/divergence_network.json';
 
 // Map raw "dt_*" ids to the short alias the legacy code used.
 const ALIAS = {
