@@ -12,6 +12,7 @@
 
 import { ensureData } from '../../shared/data_loader.js';
 import { ensureTip }  from '../../shared/tooltip.js';
+import { listLayers, getLayer } from '../../shared/api_client.js';
 import {
   fmtSci, fmt2, fmt3, fmtH, fmtMb, fmtKb, fmtP, fmtPct, clusterSwatch
 } from '../../shared/formatters.js';
@@ -240,6 +241,67 @@ function plotsPage1() {
   });
 }
 
+// ─── Envelope-aware data-source badge (2026-05-14) ──────────────────────
+// data_loader.js loads the `embedded_tables` slot via GET /api/diversity/
+// embedded_tables (atlas-core's diversity_endpoint.py). The action
+// pipeline's import_slot action wraps that same response into a
+// staging_diversity_slot_v0 envelope. This badge surfaces whether such
+// a capture exists for the slot — useful when reviewing whether the
+// displayed numbers correspond to a registered, action-logged snapshot
+// or are coming straight from a static file.
+
+async function _findEmbeddedTablesEnvelope() {
+  try {
+    const list = await listLayers({
+      layer_type: 'diversity_slot',
+      stage:      'staging',
+      limit:      50,
+    });
+    const rows = (list && list.layers) || [];
+    // The diversity import_slot dispatcher encodes the layer_id as
+    // `diversity_slot_<dataset_id>_<action_suffix>` without the slot
+    // name, so we have to fetch each envelope to read payload.slot.
+    // Chatty but cheap for a 50-row tail.
+    let best = null;
+    for (const row of rows) {
+      try {
+        const env = await getLayer(row.layer_id);
+        const slot = env && env.payload && env.payload.slot;
+        if (slot === 'embedded_tables') {
+          if (best == null || (env.created_at || '') > (best.created_at || '')) {
+            best = env;
+          }
+        }
+      } catch (_e) { continue; }
+    }
+    return best;
+  } catch (_e) { return null; }
+}
+
+function _renderProvenanceBadge(envelope) {
+  const slot = document.getElementById('ssEnvelopeBadge');
+  if (!slot) return;
+  if (envelope == null) {
+    slot.className = 'data-source-badge demo';
+    slot.textContent =
+      '◌  Live from /api/diversity/embedded_tables ' +
+      '(no action-pipeline capture in the layers index).';
+    slot.title = 'Run `atlas_action submit` with type=import_slot, ' +
+                 'target.slot=embedded_tables to register a capture.';
+    return;
+  }
+  const bytes = envelope.payload && envelope.payload.bytes;
+  slot.className = 'data-source-badge live';
+  slot.textContent =
+    `●  Captured snapshot: ${envelope.layer_id} ` +
+    (bytes ? `(${bytes.toLocaleString()} bytes) ` : '') +
+    `· created ${envelope.created_at || '?'}`;
+  slot.title = `Provenance: action_id=${envelope.provenance?.action_id || '?'}, ` +
+               `runner=${envelope.provenance?.runner || '?'}`;
+}
+
+// ─── Lifecycle ──────────────────────────────────────────────────────────
+
 export async function mount(root, atlasState, registry) {
   ensureTip();
   const ctx = await ensureData();
@@ -249,6 +311,13 @@ export async function mount(root, atlasState, registry) {
   ssWire();
   ssRender();
   plotsPage1();
+
+  // Envelope probe runs asynchronously after the synchronous render —
+  // page is interactive immediately, badge updates when probe resolves.
+  // Any failure (404, offline, CORS) silently leaves the slot empty.
+  _findEmbeddedTablesEnvelope()
+    .then(_renderProvenanceBadge)
+    .catch(() => _renderProvenanceBadge(null));
 }
 
 export async function unmount(root) {

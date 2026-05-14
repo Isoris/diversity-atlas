@@ -5,6 +5,24 @@
       Per-individual H · F_ROH · ROH counts · θ in/out ROH for all 226 broodstock. Click rows for drill-down. Plots below: distributions and pairwise relationships.
     </div>
 
+    <!-- Envelope-aware provenance badge (2026-05-14). Populated by
+         page1.js::_renderProvenanceBadge — empty until the mount-time
+         probe resolves, then advertises the latest
+         staging_diversity_slot_v0 capture for the embedded_tables slot
+         (the slot data_loader.js reads). Inline styles so no CSS file
+         touched; promotable to css/diversity.css once more pages adopt
+         the pattern. -->
+    <div id="ssEnvelopeBadge" class="data-source-badge" style="
+         font-size: 12px;
+         color: #666;
+         margin: 4px 0 8px;
+         padding: 4px 8px;
+         background: #f5f5f5;
+         border-left: 3px solid #ccc;
+         border-radius: 2px;
+         line-height: 1.4;
+         min-height: 1em;"></div>
+
     <div class="stat-strip" id="ssTopStrip"></div>
 
     <div class="card">
