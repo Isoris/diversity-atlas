@@ -1,0 +1,14 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "staging_diversity_slot_v0.schema.json",
+  "title": "staging_diversity_slot_v0 — loose capture of one /api/diversity/{slot} payload",
+  "description": "Staging payload: the raw JSON returned by /api/diversity/{slot}, captured verbatim under payload.body, with the slot name echoed for indexability. Schema is intentionally permissive (additionalProperties: true) — promote to a normalized schema (one per slot type) once the shape stabilises.",
+  "type": "object",
+  "required": ["slot"],
+  "additionalProperties": true,
+  "properties": {
+    "slot":  { "type": "string" },
+    "body":  { "description": "Raw JSON document from the slot endpoint." },
+    "bytes": { "type": "integer", "minimum": 0 }
+  }
+}

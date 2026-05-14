@@ -1,0 +1,9 @@
+{
+  "actions": {
+    "import_slot": {
+      "runner":      "runners.import_slot.import_slot",
+      "schema_in":   "import_slot_v1",
+      "description": "Capture one of the five diversity slots (GET /api/diversity/{slot}) as a staging_diversity_slot_v0 layer. Source endpoint: atlas-core/server/diversity_endpoint.py."
+    }
+  }
+}

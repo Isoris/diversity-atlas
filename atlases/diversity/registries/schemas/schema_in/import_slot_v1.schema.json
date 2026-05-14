@@ -1,0 +1,32 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "import_slot_v1.schema.json",
+  "title": "import_slot_v1 — manifest contract for diversity-atlas JSON-slot capture",
+  "description": "Validates POST /api/actions when type='import_slot'. Wraps GET /api/diversity/{slot} (the diversity_endpoint.py sidecar) and emits a staging_diversity_slot_v0 layer. target.slot must be one of the names exposed by GET /api/diversity/slots: embedded_tables, texture_metrics, functional_burden, roh_gene_overlap, divergence_network.",
+  "type": "object",
+  "required": ["target"],
+  "additionalProperties": true,
+  "properties": {
+    "target": {
+      "type": "object",
+      "required": ["slot"],
+      "additionalProperties": true,
+      "properties": {
+        "slot": {
+          "type": "string",
+          "enum": [
+            "embedded_tables",
+            "texture_metrics",
+            "functional_burden",
+            "roh_gene_overlap",
+            "divergence_network"
+          ]
+        }
+      }
+    },
+    "params": {
+      "type": "object",
+      "additionalProperties": true
+    }
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "extractors": [
+    {
+      "extractor_id":   "extract_staging_diversity_slot_v0",
+      "layer_type":     "diversity_slot",
+      "schema_version": "staging_diversity_slot_v0",
+      "stage":          "staging",
+      "parser":         "extractors.diversity_slot.extract",
+      "input_format":   "json"
+    }
+  ]
+}
