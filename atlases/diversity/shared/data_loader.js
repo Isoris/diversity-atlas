@@ -20,11 +20,18 @@
 // in-flight promise. Subsequent calls return the cached object.
 // =============================================================================
 
-const DATA_URL              = 'data/embedded_tables.json';
-const TEXTURE_DATA_URL      = 'data/texture_metrics.json';
-const FUNCTIONAL_BURDEN_URL = 'data/functional_burden.json';
-const ROH_GENE_OVERLAP_URL  = 'data/roh_gene_overlap.json';
-const DIVERGENCE_NETWORK_URL = 'data/divergence_network.json';
+// Each slot has two URLs: the semantic API endpoint (preferred) and the
+// static relative path that the legacy renderers shipped with. The loader
+// tries the API first and falls back to the static path so the atlas keeps
+// rendering when served as a plain static site (e.g. from disk, or before
+// the atlas_server diversity router is mounted).
+const SLOT_URLS = {
+  embedded_tables:    ['/api/diversity/embedded_tables',    'data/embedded_tables.json'],
+  texture_metrics:    ['/api/diversity/texture_metrics',    'data/texture_metrics.json'],
+  functional_burden:  ['/api/diversity/functional_burden',  'data/functional_burden.json'],
+  roh_gene_overlap:   ['/api/diversity/roh_gene_overlap',   'data/roh_gene_overlap.json'],
+  divergence_network: ['/api/diversity/divergence_network', 'data/divergence_network.json'],
+};
 
 // Map raw "dt_*" ids to the short alias the legacy code used.
 const ALIAS = {
@@ -70,40 +77,37 @@ const ALIAS = {
 let _cache = null;
 let _inflight = null;
 
-// The texture (DDI / χ_min) payload is *optional*. It is consumed by
-// pages/per_sample/page9.js and any future cross-page integrations
-// (planned: DDI/χ_min columns in page1 master table, DDI per-cluster
-// rollup on page4). Absent or empty file → WIN_METRICS resolves to null
-// and consumers fall back to a "data pending" render. See the schema
-// block in pages/per_sample/page9.html for the canonical shape.
-async function fetchOptional(url) {
-  try {
-    const res = await fetch(url);
-    if (!res.ok) return null;
-    return await res.json();
-  } catch (_e) {
-    return null;
+// Try API endpoint first, fall back to the static relative path. Returns
+// the parsed JSON or null if both URLs are unreachable / non-OK.
+// The texture, functional_burden, roh_gene_overlap and divergence_network
+// payloads are *optional* — absent → consumers render "data pending"
+// fallbacks. embedded_tables is required; its caller throws on null.
+async function fetchSlot(slot) {
+  const urls = SLOT_URLS[slot];
+  if (!urls) return null;
+  for (const url of urls) {
+    try {
+      const res = await fetch(url);
+      if (res.ok) return await res.json();
+    } catch (_e) { /* try next */ }
   }
+  return null;
 }
-
-const fetchTextureMetrics     = () => fetchOptional(TEXTURE_DATA_URL);
-const fetchFunctionalBurden   = () => fetchOptional(FUNCTIONAL_BURDEN_URL);
-const fetchRohGeneOverlap     = () => fetchOptional(ROH_GENE_OVERLAP_URL);
-const fetchDivergenceNetwork  = () => fetchOptional(DIVERGENCE_NETWORK_URL);
 
 export async function ensureData() {
   if (_cache) return _cache;
   if (_inflight) return _inflight;
   _inflight = (async () => {
-    const [res, wm, fb, rgo, dn] = await Promise.all([
-      fetch(DATA_URL),
-      fetchTextureMetrics(),
-      fetchFunctionalBurden(),
-      fetchRohGeneOverlap(),
-      fetchDivergenceNetwork(),
+    const [raw, wm, fb, rgo, dn] = await Promise.all([
+      fetchSlot('embedded_tables'),
+      fetchSlot('texture_metrics'),
+      fetchSlot('functional_burden'),
+      fetchSlot('roh_gene_overlap'),
+      fetchSlot('divergence_network'),
     ]);
-    if (!res.ok) throw new Error(`embedded_tables.json fetch failed: ${res.status}`);
-    const raw = await res.json();
+    if (raw === null) {
+      throw new Error('embedded_tables fetch failed (tried /api/diversity/embedded_tables and data/embedded_tables.json)');
+    }
     const D = {};
     for (const [id, alias] of Object.entries(ALIAS)) {
       D[alias] = (id in raw) ? raw[id] : null;
