@@ -23,6 +23,26 @@
          line-height: 1.4;
          min-height: 1em;"></div>
 
+    <!-- Mode-B cross-check badge (2026-05-20). Populated by
+         samples.js::_probeModeBHet — probes registry.resolve(
+         'samples_genomewide_het') which fetches the pipeline output
+         directly from /mnt/e/results_diversity/02_heterozygosity/
+         04_summary/genomewide_heterozygosity.tsv via the master_config
+         static mount. Compares the resulting median H against the
+         manuscript-carve median (D.globals.h_median). Fails soft when
+         the registry isn't injected (standalone test mode) or the layer
+         isn't reachable (no static mount, file missing). -->
+    <div id="ssModeBBadge" class="data-source-badge" style="
+         font-size: 12px;
+         color: #666;
+         margin: 4px 0 8px;
+         padding: 4px 8px;
+         background: #f5f5f5;
+         border-left: 3px solid #ccc;
+         border-radius: 2px;
+         line-height: 1.4;
+         min-height: 1em;"></div>
+
     <div class="stat-strip" id="ssTopStrip"></div>
 
     <div class="card">

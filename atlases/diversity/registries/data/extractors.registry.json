@@ -42,11 +42,10 @@
       "parser":         "extractors.pestpg.extract",
       "input_format":   "tsv",
       "params": {
-        "comment_prefix": "#(indexStart",
         "expected_columns": ["Chr", "WinCenter", "tW", "tP", "tF", "tH", "tL", "Tajima", "fuf", "fud", "fayh", "zeng", "nSites"],
         "value_cols": ["tP", "tW", "Tajima"]
       },
-      "_doc":           "Parses an ANGSD doThetaStat {sample}.win{N}.step{M}.pestPG file. Skips the header annotation row. Emits { sample_id, win_bp, step_bp, windows: [{ chrom, win_center, tW, tP, tajima, n_sites }], summary: { n_windows, mean_pi, median_pi, max_tajima, min_tajima } }."
+      "_doc":           "Parses an ANGSD doThetaStat {sample}.win{N}.step{M}.pestPG file. The first line starts with '#(indexStart...' but IS the header row (its first cell is a junk label, the rest are real column names) — do not pass comment_prefix='#(indexStart' or you'll strip the column names off every data row. Emits { sample_id, win_bp, step_bp, windows: [{ chrom, win_center, tW, tP, tajima, n_sites }], summary: { n_windows, mean_pi, median_pi, max_tajima, min_tajima } }."
     },
 
     {
