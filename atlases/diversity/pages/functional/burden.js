@@ -1,5 +1,5 @@
 // =============================================================================
-// atlases/diversity/pages/functional/page10.js — Functional burden / selection
+// atlases/diversity/pages/functional/burden.js — Functional burden / selection
 // =============================================================================
 // Stage:        functional (new section, round 3)
 // Spec:         _handoff_docs/SPEC_2026-05-12_functional_burden.md

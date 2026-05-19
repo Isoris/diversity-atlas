@@ -1,5 +1,5 @@
 // =============================================================================
-// atlases/diversity/pages/stratified/page11.js — Group divergence network
+// atlases/diversity/pages/stratified/divergence.js — Group divergence network
 // =============================================================================
 // Stage:        stratified (new page, round 3)
 // Spec:         _handoff_docs/SPEC_2026-05-12_divergence_network.md

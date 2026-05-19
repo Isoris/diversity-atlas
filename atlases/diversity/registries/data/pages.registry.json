@@ -1,78 +1,78 @@
 {
   "$schema": "../../../../core/registry_core.schema.json",
-  "_doc": "Per-page data and slot requirements for the diversity atlas. Round-1 ships every page reading exclusively from the embedded_tables.json snapshot loaded by atlases/diversity/shared/data_loader.js — no layer is registered, no slot is required. Registry-content decisions (requires_layers / requires_slots / preloads) are owned by Quentin and out-of-scope for migration rounds, per the architectural-discipline rule established in the inversion atlas round-5-step-17 handoff.",
+  "_doc": "Per-page data and slot requirements for the diversity atlas. Round-1 ships every page reading exclusively from the embedded_tables.json snapshot loaded by atlases/diversity/shared/data_loader.js — no layer is registered, no slot is required. Registry-content decisions (requires_layers / requires_slots / preloads) are owned by Quentin and out-of-scope for migration rounds, per the architectural-discipline rule established in the inversion atlas round-5-step-17 handoff. 2026-05-19: keys renamed from page1..page11 to meaningful names (samples / chromosomes / hotspots / ancestry / roh / pruning_qc / about / roadmap / texture / burden / divergence) — see per-page README.md beside each module.",
   "pages": {
-    "page1": {
+    "samples": {
       "_label": "samples — per-sample master table + 5 distribution/relationship plots",
       "_doc": "Reads D.globals, D.S1, D.S9, D.ST2. Click-row drill-down for sample detail panel.",
       "requires_layers": [],
       "requires_slots":  [],
       "preloads":        []
     },
-    "page2": {
+    "chromosomes": {
       "_label": "chromosomes — per-chromosome θπ (ST1), F_ROH (S4), KW (S6)",
       "_doc": "Reads D.ST1, D.S4, D.S6, D.SZ, D.globals.",
       "requires_layers": [],
       "requires_slots":  [],
       "preloads":        []
     },
-    "page3": {
+    "hotspots": {
       "_label": "hotspots — 19 θπ outlier windows + per-sample × per-window heatmap",
       "_doc": "Reads D.ST1, D.ST3, D.ST3b.",
       "requires_layers": [],
       "requires_slots":  [],
       "preloads":        []
     },
-    "page4": {
+    "ancestry": {
       "_label": "ancestry — K=8 stratified F_ROH/H tests + K-sweep trajectory",
       "_doc": "Reads D.S5_kw, D.S5_pair, D.S9, D.S7, D.S10, D.S1, D.globals.",
       "requires_layers": [],
       "requires_slots":  [],
       "preloads":        []
     },
-    "page5": {
+    "roh": {
       "_label": "ROH composition — length-class bins (S8), per-chrom heatmap (S8b), S12 het in/out, S8c long tracts",
       "_doc": "Reads D.S8, D.S8b, D.S1, D.S4, D.SD4, D.S12, D.S12_summary, D.S8c_long.",
       "requires_layers": [],
       "requires_slots":  [],
       "preloads":        []
     },
-    "page6": {
+    "pruning_qc": {
       "_label": "pruning & QC — NAToRA (S11), ngsF-HMM (SZ), Spearman matrix (S3), het in/out (S1)",
       "_doc": "Reads D.S11, D.SZ, D.S3, D.S1, D.S9, D.globals.",
       "requires_layers": [],
       "requires_slots":  [],
       "preloads":        []
     },
-    "page7": {
+    "about": {
       "_label": "about — headline numbers, MODULE_3 methods (SD1-SD8), coverage map, placeholder/real-data cards (S4b, ST4, ST5, REF)",
       "_doc": "Reads D.globals, D.SD1..D.SD8, D.S4b, D.S4b_meta, D.ST4_meta, D.ST5, D.ST5_meta, D.REF, D.REF_meta.",
       "requires_layers": [],
       "requires_slots":  [],
       "preloads":        []
     },
-    "page8": {
+    "roadmap": {
       "_label": "roadmap — static narrative of what's shipped vs. planned",
       "_doc": "Pure static fragment, no data reads.",
       "requires_layers": [],
       "requires_slots":  [],
       "preloads":        []
     },
-    "page9": {
+    "texture": {
       "_label": "texture — per-sample DDI × H scatter + per-window H strip (χ_min marker)",
-      "_doc": "Reads D.S1, D.S9, and the optional D.WIN_METRICS payload (texture_metrics.json). Renders a 'data pending' card when the texture payload is absent or empty. Substrate produced by catfish-diversity-analysis phase_2_discovery/04_window_H_and_DDI.sh (to be written).",
+      "_doc": "Reads D.S1, D.S9, and the optional D.WIN_METRICS payload (texture_metrics.json). Renders a 'data pending' card when the texture payload is absent or empty. Substrate produced by catfish-diversity-analysis/04_window_diversity_texture/STEP_A06_window_H_and_DDI.sh (adapter still to be written; see _handoff_docs/).",
       "requires_layers": [],
       "requires_slots":  [],
       "preloads":        []
     },
-    "page10": {
+    "burden": {
       "_label": "burden — functional burden / selection efficacy (5 layers + variant inventory + transcript view + MSA panel)",
       "_doc": "Reads D.S1, D.S9, and the optional ctx.FUNCTIONAL_BURDEN payload (functional_burden.json). Stratified by K=8 / family / sample / F_ROH-quartile via shared/stratification.js. Five layers: VESM deleterious burden, πN/πS, π0/π4, LOF count, ROH-overlap fraction. Variant inventory follows the black-grouse Nature 2024 Fig 2c snpEff impact-class style. GERP panel is off by default (no upstream track yet). Renders 'data pending' card when functional_burden.json is empty.",
       "requires_layers": [],
       "requires_slots":  [],
       "preloads":        []
     },
-    "page11": {
+    "divergence": {
       "_label": "divergence — pairwise group-divergence network (FST / DXY / dA)",
       "_doc": "Reads D.S1, D.S9, and the optional ctx.DIVERGENCE_NETWORK payload (divergence_network.json). Node-link plot with circular default layout (force-directed toggle); edges = pairwise FST (default) / DXY / dA between K=8 groups. Customisable edge filter (Show all / Top-N / Significant only) via a caret menu in the panel header. Renders 'data pending' card when divergence_network.json is empty.",
       "requires_layers": [],

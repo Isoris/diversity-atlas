@@ -1,95 +1,95 @@
 {
   "atlas_id": "diversity",
   "atlas_name": "Diversity Atlas",
-  "atlas_version": "2026-05-12-round3-burden",
-  "atlas_description": "Per-sample diversity / ROH / θπ landscape for the 226-sample pure C. gariepinus hatchery cohort. Decomposed from Diversity_atlas.html v2.4 (37 embedded tables, 8 page-level tabs). Round 2 added page9 'texture' (DDI + χ_min). Round 3 adds page10 'functional burden / selection efficacy' (new functional/ section: VESM + πN/πS + π0/π4 + LOF + ROH-overlap, plus variant inventory, transcript view, MSA panel), page11 'group divergence' (stratified/ section: pairwise FST/DXY/dA network with circular layout and hover CIs), and an ROH × gene-model extension to page5 (cumulative burden stack + biotype × peak heatmap). All three new payloads (functional_burden.json, roh_gene_overlap.json, divergence_network.json) are optional and ship as empty stubs — pages render no-data fallbacks until the upstream pipelines populate them.",
+  "atlas_version": "2026-05-19-rename",
+  "atlas_description": "Per-sample diversity / ROH / θπ landscape for the 226-sample pure C. gariepinus hatchery cohort. Decomposed from Diversity_atlas.html v2.4 (37 embedded tables, 8 page-level tabs). Round 2 added 'texture' (DDI + χ_min). Round 3 added 'burden' (VESM + πN/πS + π0/π4 + LOF + ROH-overlap), 'divergence' (FST/DXY/dA network), and an ROH × gene-model extension to 'roh' (cumulative burden stack + biotype × peak heatmap). 2026-05-19: pages renamed from page1..page11 to meaningful names (samples / chromosomes / hotspots / ancestry / roh / pruning_qc / about / roadmap / texture / burden / divergence) — see per-page README.md beside each module. All three round-3 payloads (functional_burden.json, roh_gene_overlap.json, divergence_network.json) remain optional and ship as empty stubs.",
   "pages": [
     {
-      "id": "page1",
+      "id": "samples",
       "label": "samples",
       "stage": "per_sample",
-      "fragment": "atlases/diversity/pages/per_sample/page1.html",
-      "module": "atlases/diversity/pages/per_sample/page1.js",
+      "fragment": "atlases/diversity/pages/per_sample/samples.html",
+      "module": "atlases/diversity/pages/per_sample/samples.js",
       "tooltip": "Per-sample table — H, F_ROH, ROH bins, θπ summaries. Click row for drill-down."
     },
     {
-      "id": "page2",
+      "id": "chromosomes",
       "label": "chromosomes",
       "stage": "per_chromosome",
-      "fragment": "atlases/diversity/pages/per_chromosome/page2.html",
-      "module": "atlases/diversity/pages/per_chromosome/page2.js",
+      "fragment": "atlases/diversity/pages/per_chromosome/chromosomes.html",
+      "module": "atlases/diversity/pages/per_chromosome/chromosomes.js",
       "tooltip": "Per-chromosome diversity — θπ + F_ROH + per-chromosome KW tests."
     },
     {
-      "id": "page3",
+      "id": "hotspots",
       "label": "hotspots",
       "stage": "per_chromosome",
-      "fragment": "atlases/diversity/pages/per_chromosome/page3.html",
-      "module": "atlases/diversity/pages/per_chromosome/page3.js",
+      "fragment": "atlases/diversity/pages/per_chromosome/hotspots.html",
+      "module": "atlases/diversity/pages/per_chromosome/hotspots.js",
       "tooltip": "θπ outlier windows — 19 hotspots above 99th percentile, with per-sample heatmap."
     },
     {
-      "id": "page4",
+      "id": "ancestry",
       "label": "ancestry",
       "stage": "stratified",
-      "fragment": "atlases/diversity/pages/stratified/page4.html",
-      "module": "atlases/diversity/pages/stratified/page4.js",
+      "fragment": "atlases/diversity/pages/stratified/ancestry.html",
+      "module": "atlases/diversity/pages/stratified/ancestry.js",
       "tooltip": "Ancestry × diversity — K=8 clusters, K-sweep K=2-12, per-Q correlations, KW + pairwise tests."
     },
     {
-      "id": "page5",
+      "id": "roh",
       "label": "ROH",
       "stage": "per_sample",
-      "fragment": "atlases/diversity/pages/per_sample/page5.html",
-      "module": "atlases/diversity/pages/per_sample/page5.js",
+      "fragment": "atlases/diversity/pages/per_sample/roh.html",
+      "module": "atlases/diversity/pages/per_sample/roh.js",
       "tooltip": "ROH composition — length-class bins, per-chr × per-sample F_ROH heatmap, length spectrum."
     },
     {
-      "id": "page6",
+      "id": "pruning_qc",
       "label": "pruning & QC",
       "stage": "qc",
-      "fragment": "atlases/diversity/pages/qc/page6.html",
-      "module": "atlases/diversity/pages/qc/page6.js",
+      "fragment": "atlases/diversity/pages/qc/pruning_qc.html",
+      "module": "atlases/diversity/pages/qc/pruning_qc.js",
       "tooltip": "Pruning & QC — NAToRA pruning, ngsF-HMM stability, Spearman correlation matrix, het in/out ROH."
     },
     {
-      "id": "page7",
+      "id": "about",
       "label": "about",
       "stage": "meta",
-      "fragment": "atlases/diversity/pages/meta/page7.html",
-      "module": "atlases/diversity/pages/meta/page7.js",
+      "fragment": "atlases/diversity/pages/meta/about.html",
+      "module": "atlases/diversity/pages/meta/about.js",
       "tooltip": "About — methods (SD1-SD8), glossary, headline numbers, data lineage."
     },
     {
-      "id": "page8",
+      "id": "roadmap",
       "label": "roadmap",
       "stage": "meta",
-      "fragment": "atlases/diversity/pages/meta/page8.html",
-      "module": "atlases/diversity/pages/meta/page8.js",
+      "fragment": "atlases/diversity/pages/meta/roadmap.html",
+      "module": "atlases/diversity/pages/meta/roadmap.js",
       "tooltip": "Roadmap — what's still planned but not yet shipped."
     },
     {
-      "id": "page9",
+      "id": "texture",
       "label": "texture",
       "stage": "per_sample",
-      "fragment": "atlases/diversity/pages/per_sample/page9.html",
-      "module": "atlases/diversity/pages/per_sample/page9.js",
-      "tooltip": "Per-sample texture — DDI (within-genome dispersion of H_w) and χ_min (cohort-relative diversity floor). Companion to the F_ROH|H framework on page 5. Appended at end to preserve existing page numbering per the migration-discipline rule."
+      "fragment": "atlases/diversity/pages/per_sample/texture.html",
+      "module": "atlases/diversity/pages/per_sample/texture.js",
+      "tooltip": "Per-sample texture — DDI (within-genome dispersion of H_w) and χ_min (cohort-relative diversity floor). Companion to the F_ROH|H framework on 'roh'."
     },
     {
-      "id": "page10",
+      "id": "burden",
       "label": "burden",
       "stage": "functional",
-      "fragment": "atlases/diversity/pages/functional/page10.html",
-      "module": "atlases/diversity/pages/functional/page10.js",
-      "tooltip": "Functional burden / selection efficacy — five co-located layers: VESM deleterious burden, πN/πS, π0/π4, LOF count, ROH-overlap fraction. Variant inventory by snpEff impact class, GERP panel (off by default), transcript view, MSA panel. Stratified by K=8 / family / per-sample / F_ROH-quartile via a shared pill toggle (also used by page 5)."
+      "fragment": "atlases/diversity/pages/functional/burden.html",
+      "module": "atlases/diversity/pages/functional/burden.js",
+      "tooltip": "Functional burden / selection efficacy — five co-located layers: VESM deleterious burden, πN/πS, π0/π4, LOF count, ROH-overlap fraction. Variant inventory by snpEff impact class, GERP panel (off by default), transcript view, MSA panel. Stratified by K=8 / family / per-sample / F_ROH-quartile via a shared pill toggle (also used by 'roh')."
     },
     {
-      "id": "page11",
+      "id": "divergence",
       "label": "divergence",
       "stage": "stratified",
-      "fragment": "atlases/diversity/pages/stratified/page11.html",
-      "module": "atlases/diversity/pages/stratified/page11.js",
+      "fragment": "atlases/diversity/pages/stratified/divergence.html",
+      "module": "atlases/diversity/pages/stratified/divergence.js",
       "tooltip": "Group-divergence network — node-link plot, nodes = K=8 ancestry groups (or per-farm / sex / karyotype), edges = pairwise FST / DXY / dA, edge thickness ∝ divergence. Circular layout default, force-directed toggle. Customisable edge filter (caret menu)."
     }
   ],
@@ -116,7 +116,7 @@
   "stylesheets": [
     "atlases/diversity/css/diversity.css"
   ],
-  "_stylesheets_doc": "Round-1 ships one bundle (verbatim extraction of the legacy <style> block). Future work: split into per-page stylesheets (atlases/diversity/css/pages/page1.css etc.) and reference them from each page entry's `stylesheet` field — the router loads page-stylesheet on mount.",
+  "_stylesheets_doc": "Round-1 ships one bundle (verbatim extraction of the legacy <style> block). Future work: split into per-page stylesheets (atlases/diversity/css/pages/<name>.css) and reference them from each page entry's `stylesheet` field — the router loads page-stylesheet on mount.",
   "scope_pickers": [],
   "_scope_pickers_doc": "No per-atlas scope pickers in round 1 — every page reads from the embedded_tables.json snapshot. When per-chromosome or per-cohort scope arrives, add pickers here (mirrors inversion-atlas activeChrom).",
   "stages": [

@@ -1,8 +1,8 @@
 // =============================================================================
-// atlases/diversity/pages/stratified/page4.js — Ancestry × diversity
+// atlases/diversity/pages/stratified/ancestry.js — Ancestry × diversity
 // =============================================================================
 // Stage:        stratified
-// Legacy DOM:   <div id="page4"> (Diversity_atlas.html v2.4 lines 701-855)
+// Legacy DOM:   <div id="page4"> (renamed -> id="ancestry") (Diversity_atlas.html v2.4 lines 701-855)
 // Renderers:    kwRender, pairwiseRender, clRender, kSweepRender, qHRender,
 //               plotsPage4 (legacy lines 2584-2751).
 // =============================================================================

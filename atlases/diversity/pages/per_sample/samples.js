@@ -1,8 +1,8 @@
 // =============================================================================
-// atlases/diversity/pages/per_sample/page1.js — Samples
+// atlases/diversity/pages/per_sample/samples.js — Samples
 // =============================================================================
 // Stage:        per_sample
-// Legacy DOM:   <div id="page1"> (Diversity_atlas.html v2.4 lines 407-504)
+// Legacy DOM:   <div id="page1"> (renamed -> id="samples") (Diversity_atlas.html v2.4 lines 407-504)
 // Renderers:    ssTopStrip, ssRender, ssWire, renderSampleDetail, plotsPage1
 //               (extracted verbatim from legacy lines 2047-2254).
 //

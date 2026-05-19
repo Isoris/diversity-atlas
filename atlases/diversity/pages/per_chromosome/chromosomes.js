@@ -1,8 +1,8 @@
 // =============================================================================
-// atlases/diversity/pages/per_chromosome/page2.js — Per-chromosome diversity
+// atlases/diversity/pages/per_chromosome/chromosomes.js — Per-chromosome diversity
 // =============================================================================
 // Stage:        per_chromosome
-// Legacy DOM:   <div id="page2"> (Diversity_atlas.html v2.4 lines 509-625)
+// Legacy DOM:   <div id="page2"> (renamed -> id="chromosomes") (Diversity_atlas.html v2.4 lines 509-625)
 // Renderers:    chrTopStrip, thetaChrRender, frohChrRender, kwChrRender,
 //               plotsPage2 (legacy lines 2259-2382).
 // =============================================================================

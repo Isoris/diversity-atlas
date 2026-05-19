@@ -1,8 +1,8 @@
 // =============================================================================
-// atlases/diversity/pages/qc/page6.js — Pruning & QC
+// atlases/diversity/pages/qc/pruning_qc.js — Pruning & QC
 // =============================================================================
 // Stage:        qc
-// Legacy DOM:   <div id="page6"> (Diversity_atlas.html v2.4 lines 1028-1147)
+// Legacy DOM:   <div id="page6"> (renamed -> id="pruning_qc") (Diversity_atlas.html v2.4 lines 1028-1147)
 // Renderers:    prRender, prWire, hmmRender, spearmanRender, plotsPage6
 //               (legacy lines 3034-3149).
 // =============================================================================

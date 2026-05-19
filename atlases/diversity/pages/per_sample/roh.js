@@ -1,8 +1,8 @@
 // =============================================================================
-// atlases/diversity/pages/per_sample/page5.js — ROH composition
+// atlases/diversity/pages/per_sample/roh.js — ROH composition
 // =============================================================================
 // Stage:        per_sample
-// Legacy DOM:   <div id="page5"> (Diversity_atlas.html v2.4 lines 860-1023)
+// Legacy DOM:   <div id="page5"> (renamed -> id="roh") (Diversity_atlas.html v2.4 lines 860-1023)
 // Renderers:    rohTopStrip, binSchemeRender, rohRender, rohWire, plotsPage5,
 //               s12Render/Wire, s8cRender/Wire (legacy 2756-3376).
 // =============================================================================

@@ -1,8 +1,8 @@
 // =============================================================================
-// atlases/diversity/pages/per_chromosome/page3.js — θπ hotspots
+// atlases/diversity/pages/per_chromosome/hotspots.js — θπ hotspots
 // =============================================================================
 // Stage:        per_chromosome
-// Legacy DOM:   <div id="page3"> (Diversity_atlas.html v2.4 lines 630-696)
+// Legacy DOM:   <div id="page3"> (renamed -> id="hotspots") (Diversity_atlas.html v2.4 lines 630-696)
 // Renderers:    clusterizeOutliers, hsRender, plotsPage3 (legacy 2463-2579).
 // =============================================================================
 

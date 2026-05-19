@@ -1,5 +1,5 @@
 // =============================================================================
-// atlases/diversity/pages/per_sample/page9.js — Per-sample texture (DDI, χ_min)
+// atlases/diversity/pages/per_sample/texture.js — Per-sample texture (DDI, χ_min)
 // =============================================================================
 // Stage:        per_sample
 // New page:     2026-05-12 (this round) — companion to the F_ROH|H framework.

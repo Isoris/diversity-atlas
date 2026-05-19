@@ -1,4 +1,4 @@
-// Smoke tests for diversity-atlas per_sample/page1.js's envelope-
+// Smoke tests for diversity-atlas per_sample/samples.js's envelope-
 // provenance badge.
 //
 // More interesting than the previous badge tests: the migration calls
@@ -8,7 +8,7 @@
 // selection.
 //
 // Run from diversity-atlas root:
-//   node atlases/diversity/pages/per_sample/test_page1_provenance.js
+//   node atlases/diversity/pages/per_sample/test_samples_provenance.js
 import { listLayers, getLayer } from '../../shared/api_client.js';
 
 // ----- fake DOM ---------------------------------------------------------
@@ -45,7 +45,7 @@ function eq(a, b, msg) {
   console.log(`  ok: ${msg}`);
 }
 
-// ----- mirror page1.js helpers (byte-equivalent) ------------------------
+// ----- mirror samples.js helpers (byte-equivalent) ------------------------
 
 async function _findEmbeddedTablesEnvelope() {
   try {

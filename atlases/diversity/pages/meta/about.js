@@ -1,8 +1,8 @@
 // =============================================================================
-// atlases/diversity/pages/meta/page7.js — About / methods / glossary
+// atlases/diversity/pages/meta/about.js — About / methods / glossary
 // =============================================================================
 // Stage:        meta
-// Legacy DOM:   <div id="page7"> (Diversity_atlas.html v2.4 lines 1152-1377)
+// Legacy DOM:   <div id="page7"> (renamed -> id="about") (Diversity_atlas.html v2.4 lines 1152-1377)
 // Renderers:    aboutHeadline, aboutSDTables, coverageTableRender,
 //               placeholderCardsRender (legacy lines 3154-3179, 3381-3746).
 // =============================================================================
