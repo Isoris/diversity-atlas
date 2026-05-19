@@ -9,7 +9,7 @@
 
 import { ensureData } from '../../shared/data_loader.js';
 import { ensureTip, showTip, hideTip, bindTip } from '../../shared/tooltip.js';
-import { fmtSci, fmt3 } from '../../shared/formatters.js';
+import { fmtSci, fmt3, clusterSwatch } from '../../shared/formatters.js';
 import { sortRows, applySortIndicators, fillSimpleTable } from '../../shared/tables.js';
 import { plotHeatmap } from '../../shared/plots.js';
 import {
@@ -17,11 +17,22 @@ import {
 } from '../../shared/svg.js';
 import { mountStratificationPills, frohQuartiles } from '../../shared/stratification.js';
 import { kColor, blueRamp } from '../../shared/palette.js';
+import { statCellHTML, wireInterpIcons, interpIcon } from '../../shared/interp.js';
 
 let D = null;
 let RGO = null;
 let CLUSTER_COLORS = null;
 const rgbState = { stratMode: 'K=8' };
+
+// Length-class biological interpretation — append a class-specific
+// interp tooltip to every cell in the ROH-class stat strip.
+const ROH_CLASS_INTERP = {
+  '1-2Mb':  '<b>Short ROHs (1–2 Mb).</b> Reflect <i>ancient autozygosity</i>: haploid blocks descended from a distant common ancestor (≥ ~50 generations back). High counts here without long blocks suggest a long-bottlenecked but currently outbred population.',
+  '2-4Mb':  '<b>Medium ROHs (2–4 Mb).</b> Intermediate timescale (≈ 10–50 generations back). Often dominate the ROH burden in moderately-bottlenecked broodstock cohorts.',
+  '4-8Mb':  '<b>Long ROHs (4–8 Mb).</b> Recent autozygosity (~5–10 generations). Above-cohort counts here flag samples whose grandparents were related.',
+  '8-16Mb': '<b>Very long ROHs (8–16 Mb).</b> Indicate close-kin mating in the past 2–3 parental generations (first-cousin level or closer).',
+  '>16Mb':  '<b>Ultra-long ROHs (&gt; 16 Mb).</b> Cousin-level or closer mating in the immediate parental generation. Heavily concentrated in a few specific samples → drill into the page-1 master table to identify.',
+};
 
 function rohTopStrip() {
   const totals = {};
@@ -35,13 +46,12 @@ function rohTopStrip() {
     const t = totals[c] || { n: 0, bp: 0 };
     return {
       lbl: c, val: (t.n || 0).toLocaleString(),
-      sub: 'Σ ' + (t.bp / 1e9).toFixed(1) + ' Gb (cohort)'
+      sub: 'Σ ' + (t.bp / 1e9).toFixed(1) + ' Gb (cohort)',
+      interp: ROH_CLASS_INTERP[c] || null,
     };
   });
-  document.getElementById('rohTopStrip').innerHTML = cells.map(c =>
-    `<div class="stat-cell"><div class="lbl">${c.lbl}</div>` +
-    `<div class="val">${c.val}</div><div class="sub">${c.sub}</div></div>`
-  ).join('');
+  document.getElementById('rohTopStrip').innerHTML = cells.map(statCellHTML).join('');
+  wireInterpIcons(document.getElementById('rohTopStrip'));
 }
 
 function binSchemeRender() {
@@ -596,6 +606,144 @@ function rgbWire() {
   }
 }
 
+// ---------------------------------------------------------------------------
+// Genes-in-ROH per-sample + private-ROH gene list
+// (rohGenesPerSampleCard + rohPrivateGeneListCard)
+// ---------------------------------------------------------------------------
+// Depends on roh_gene_overlap.json carrying two new fields:
+//   per_sample_genes[] — one row per sample with n_genes_in_roh,
+//                        n_genes_private_roh (genes in ROHs unique to
+//                        this sample), and frac_private.
+//   private_gene_list[] — cohort-wide aggregate: one row per unique gene
+//                        carried in at least one sample's private ROH,
+//                        with n_samples_private (how many samples carry it).
+// Schema codified in _handoff_docs/SPEC_2026-05-12_roh_gene_burden.md.
+// ---------------------------------------------------------------------------
+
+const rgpState = { sortKey: 'n_genes_private_roh', sortDir: 'desc', mode: 'all', search: '', clusterFilter: '' };
+const rpgState = { sortKey: 'n_samples_private', sortDir: 'desc', search: '', biotypeFilter: '' };
+
+function rgpRender() {
+  const tbody = document.querySelector('#rgpTable tbody');
+  const count = document.getElementById('rgpCount');
+  const tag = document.getElementById('rohGenesPerSampleTag');
+  if (!tbody) return;
+  const rows = (RGO && Array.isArray(RGO.per_sample_genes)) ? RGO.per_sample_genes : [];
+  if (rows.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="6" style="color:var(--ink-dim); font-style:italic; padding:14px;">' +
+      'ROH × gene-model intersection not yet populated. Once the upstream pipeline emits per_sample_genes[] in roh_gene_overlap.json, this table lights up with one row per sample.</td></tr>';
+    if (count) count.textContent = '';
+    if (tag) tag.textContent = '⏳ awaiting ROH × gene-model overlap';
+    return;
+  }
+  let filtered = rows.slice();
+  if (rgpState.search) {
+    const q = rgpState.search.toLowerCase();
+    filtered = filtered.filter(r => (r.sample || '').toLowerCase().includes(q));
+  }
+  if (rgpState.clusterFilter) filtered = filtered.filter(r => r.k8 === rgpState.clusterFilter);
+  if (rgpState.mode === 'private_only') filtered = filtered.filter(r => (r.n_genes_private_roh || 0) > 0);
+  filtered.sort((a, b) => {
+    const k = rgpState.sortKey;
+    const av = a[k], bv = b[k];
+    if (av == null && bv == null) return 0;
+    if (av == null) return 1; if (bv == null) return -1;
+    if (typeof av === 'string') return rgpState.sortDir === 'asc' ? av.localeCompare(bv) : bv.localeCompare(av);
+    return rgpState.sortDir === 'asc' ? av - bv : bv - av;
+  });
+  tbody.innerHTML = filtered.map(r =>
+    `<tr><td>${r.sample || '—'}</td>` +
+    `<td>${clusterSwatch ? clusterSwatch(r.k8, CLUSTER_COLORS) : (r.k8 || '—')}</td>` +
+    `<td>${r.f_roh != null ? fmt3(r.f_roh) : '—'}</td>` +
+    `<td>${r.n_genes_in_roh != null ? r.n_genes_in_roh : '—'}</td>` +
+    `<td>${r.n_genes_private_roh != null ? r.n_genes_private_roh : '—'}</td>` +
+    `<td>${r.frac_private != null ? (r.frac_private * 100).toFixed(1) + '%' : '—'}</td></tr>`).join('');
+  if (count) count.textContent = `${filtered.length} samples`;
+  if (tag) tag.textContent = `${filtered.length} / ${rows.length} samples`;
+}
+
+function rpgRender() {
+  const tbody = document.querySelector('#rpgTable tbody');
+  const count = document.getElementById('rpgCount');
+  const tag = document.getElementById('rohPrivateGeneListTag');
+  if (!tbody) return;
+  const rows = (RGO && Array.isArray(RGO.private_gene_list)) ? RGO.private_gene_list : [];
+  if (rows.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="6" style="color:var(--ink-dim); font-style:italic; padding:14px;">' +
+      'Private-ROH gene aggregate not yet populated. Reference target: the wild-individuals paper reported 80 genes in private ROHs (their table S17). When the upstream pipeline emits private_gene_list[] in roh_gene_overlap.json, this table lights up.</td></tr>';
+    if (count) count.textContent = '';
+    if (tag) tag.textContent = '⏳ awaiting ROH × gene-model overlap';
+    return;
+  }
+  let filtered = rows.slice();
+  if (rpgState.search) {
+    const q = rpgState.search.toLowerCase();
+    filtered = filtered.filter(r =>
+      (r.gene_symbol || '').toLowerCase().includes(q) ||
+      (r.gene_id || '').toLowerCase().includes(q));
+  }
+  if (rpgState.biotypeFilter) filtered = filtered.filter(r => r.biotype === rpgState.biotypeFilter);
+  filtered.sort((a, b) => {
+    const k = rpgState.sortKey;
+    const av = a[k], bv = b[k];
+    if (av == null && bv == null) return 0;
+    if (av == null) return 1; if (bv == null) return -1;
+    if (typeof av === 'string') return rpgState.sortDir === 'asc' ? av.localeCompare(bv) : bv.localeCompare(av);
+    return rpgState.sortDir === 'asc' ? av - bv : bv - av;
+  });
+  tbody.innerHTML = filtered.map(r =>
+    `<tr><td>${r.gene_symbol || '—'}</td>` +
+    `<td>${r.gene_id || '—'}</td>` +
+    `<td>${r.biotype || '—'}</td>` +
+    `<td>${r.chrom || '—'}</td>` +
+    `<td>${r.start != null ? (r.start / 1e6).toFixed(2) : '—'}</td>` +
+    `<td>${r.n_samples_private != null ? r.n_samples_private : '—'}</td></tr>`).join('');
+  if (count) count.textContent = `${filtered.length} genes`;
+  if (tag) tag.textContent = `${filtered.length} / ${rows.length} genes`;
+}
+
+function rgpWire() {
+  const search = document.getElementById('rgpSearch');
+  if (search) search.addEventListener('input', e => { rgpState.search = e.target.value; rgpRender(); });
+  const cf = document.getElementById('rgpClusterFilter');
+  if (cf) {
+    const ks = Array.from(new Set((D.S1 || []).map(s => s.k8).filter(Boolean))).sort();
+    ks.forEach(k => { cf.innerHTML += `<option value="${k}">${k}</option>`; });
+    cf.addEventListener('change', e => { rgpState.clusterFilter = e.target.value; rgpRender(); });
+  }
+  document.querySelectorAll('.pill[data-rgp-mode]').forEach(p => {
+    p.addEventListener('click', () => {
+      document.querySelectorAll('.pill[data-rgp-mode]').forEach(x => x.classList.remove('on'));
+      p.classList.add('on');
+      rgpState.mode = p.dataset.rgpMode;
+      rgpRender();
+    });
+  });
+  document.querySelectorAll('#rgpTable th[data-sort]').forEach(th => {
+    th.style.cursor = 'pointer';
+    th.addEventListener('click', () => {
+      const k = th.dataset.sort;
+      if (rgpState.sortKey === k) rgpState.sortDir = rgpState.sortDir === 'asc' ? 'desc' : 'asc';
+      else { rgpState.sortKey = k; rgpState.sortDir = 'desc'; }
+      rgpRender();
+    });
+  });
+
+  const ps = document.getElementById('rpgSearch');
+  if (ps) ps.addEventListener('input', e => { rpgState.search = e.target.value; rpgRender(); });
+  const bf = document.getElementById('rpgBiotypeFilter');
+  if (bf) bf.addEventListener('change', e => { rpgState.biotypeFilter = e.target.value; rpgRender(); });
+  document.querySelectorAll('#rpgTable th[data-sort]').forEach(th => {
+    th.style.cursor = 'pointer';
+    th.addEventListener('click', () => {
+      const k = th.dataset.sort;
+      if (rpgState.sortKey === k) rpgState.sortDir = rpgState.sortDir === 'asc' ? 'desc' : 'asc';
+      else { rpgState.sortKey = k; rpgState.sortDir = 'desc'; }
+      rpgRender();
+    });
+  });
+}
+
 export async function mount(root, atlasState, registry) {
   ensureTip();
   const ctx = await ensureData();
@@ -614,6 +762,9 @@ export async function mount(root, atlasState, registry) {
   rgbWire();
   plotRohGeneCumulative();
   plotRohBiotype();
+  rgpWire();
+  rgpRender();
+  rpgRender();
 }
 
 export async function unmount(root) {}

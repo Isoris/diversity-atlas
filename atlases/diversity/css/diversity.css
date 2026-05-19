@@ -227,8 +227,31 @@
              border: 1px solid var(--accent); border-radius: 3px;
              padding: 5px 8px; font-family: var(--mono); font-size: 10.5px;
              box-shadow: 0 2px 8px rgba(0,0,0,0.4);
-             max-width: 260px; line-height: 1.5;
-             display: none; white-space: nowrap; }
+             max-width: 360px; line-height: 1.55;
+             display: none; white-space: normal; }
   #plotTip.on { display: block; }
   #plotTip b { color: var(--accent); }
   #plotTip .row { white-space: nowrap; }
+
+  /* Interpretation icons (shared/interp.js) */
+  .interp-icon {
+    display: inline-block;
+    width: 13px; height: 13px;
+    line-height: 12px;
+    border-radius: 50%;
+    background: var(--panel-2);
+    color: var(--ink-dim);
+    font-size: 9px;
+    font-weight: 700;
+    text-align: center;
+    cursor: help;
+    margin-left: 5px;
+    vertical-align: middle;
+    user-select: none;
+    border: 1px solid var(--rule);
+    transition: background-color 0.12s, color 0.12s;
+  }
+  .interp-icon:hover, .interp-icon:focus {
+    background: var(--accent); color: #fff; outline: none;
+    border-color: var(--accent);
+  }

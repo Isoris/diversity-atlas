@@ -1,5 +1,5 @@
 {
-  "_doc": "ROH × gene-model intersection product for page5 extension (Plot A cumulative gene-burden stack + Plot B biotype × peak heatmap-table). Round-1 ships an empty stub — page5 detects the empty payload and renders the standard ROH composition view without the burden cards. Populate from the upstream pipeline (catfish-diversity-analysis + genome-atlas; see SPEC_2026-05-12_roh_gene_burden.md §4 for the schema and §6 for the unresolved data-side decisions — constraint proxy in particular).",
+  "_doc": "ROH × gene-model intersection product for page5 extension. Plot A: cumulative gene-burden stack. Plot B: biotype × peak heatmap-table. Genes-in-ROH per-sample table (with private-ROH counts, wild-individuals-paper Table S17 style). Private-ROH gene aggregate (cohort-wide list of genes appearing in any sample's private ROH). Round-3 ships an empty stub — page5 detects empty arrays and renders 'data pending' placeholders without breaking the legacy ROH composition view. Populate from the upstream pipeline (catfish-diversity-analysis + genome-atlas; see SPEC_2026-05-12_roh_gene_burden.md §4 for the schema and §6 for the unresolved constraint-proxy choice).",
   "version": "v0-stub",
   "generated_at": null,
   "constraint_proxy": null,
@@ -11,5 +11,9 @@
   },
   "per_family_cumulative": [],
   "per_sample_cumulative": {},
-  "per_quartile_cumulative": []
+  "per_quartile_cumulative": [],
+  "_per_sample_genes_schema": "per_sample_genes[]: { sample, k8, f_roh, n_genes_in_roh, n_genes_shared_roh, n_genes_private_roh, frac_private }. 'private' = gene falls in an ROH unique to this sample across the 226-sample cohort. Counts are over the constraint_proxy-filtered gene set when proxy != null, else all protein-coding genes.",
+  "per_sample_genes": [],
+  "_private_gene_list_schema": "private_gene_list[]: { gene_id, gene_symbol, biotype, chrom, start, end, n_samples_private, sample_ids[] }. One row per unique gene observed in any sample's private ROH; n_samples_private is the number of samples carrying it. Reference target from the wild-individuals paper: 80 protein-coding genes in their private ROHs (their table S17).",
+  "private_gene_list": []
 }

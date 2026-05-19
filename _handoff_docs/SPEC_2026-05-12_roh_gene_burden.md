@@ -247,6 +247,100 @@ lazy-loaded on click-to-detail.
 
 ---
 
+## 5a. Genes-in-ROH per-sample + private-ROH gene list
+
+Added 2026-05-14 per user direction: *"add the table of genes that have
+ROH and per sample views aswell. A total of 80 genes were in these wild
+individual private ROHs (table S17)."*
+
+The reference is the wild-individuals catfish paper, which reported 80
+protein-coding genes inside the cohort's <i>private</i> ROHs — ROHs
+unique to one wild individual rather than shared across the cohort.
+This atlas needs the same view at the cohort level (226 broodstock
+samples).
+
+Two new arrays land in `data/roh_gene_overlap.json` alongside the
+existing `blocks[]` / `peaks[]` / `per_group_cumulative` payloads:
+
+### 5a.1 `per_sample_genes[]` — one row per sample
+
+```jsonc
+"per_sample_genes": [
+  {
+    "sample":               "CGA009",
+    "k8":                   "K1",
+    "f_roh":                0.254,
+    "n_genes_in_roh":       null,   // total protein-coding genes inside any ROH
+    "n_genes_shared_roh":   null,   // genes in ROHs also present in ≥1 other sample
+    "n_genes_private_roh":  null,   // genes in ROHs unique to this sample
+    "frac_private":         null    // = n_genes_private_roh / n_genes_in_roh
+  }
+  // ...226 rows
+]
+```
+
+Definition of "private ROH": an ROH whose interval (with the agreed
+overlap tolerance — propose 50% reciprocal overlap as default, see
+§6.4 below) does **not** appear in any other sample in the cohort.
+
+The page 5 card `#rohGenesPerSampleCard` renders this as a sortable
+226-row table with an "all / private-only" pill toggle.
+
+### 5a.2 `private_gene_list[]` — one row per unique gene
+
+```jsonc
+"private_gene_list": [
+  {
+    "gene_id":              "ENSCGA00000012345",
+    "gene_symbol":          "myh7-like",
+    "biotype":              "Protein_coding",
+    "chrom":                "chr07",
+    "start":                12345678,
+    "end":                  12378901,
+    "n_samples_private":    null,   // how many samples carry this gene in a private ROH
+    "sample_ids":           []      // optional; long-form ID list for click-to-detail
+  }
+  // ...N rows (reference paper found N = 80 for their cohort)
+]
+```
+
+Reference figure target: this list should approach the
+wild-individuals paper's 80-gene Table S17 magnitude (their cohort vs
+this 226-sample cohort will differ in size — the absolute count is
+not the target, the format is).
+
+The page 5 card `#rohPrivateGeneListCard` renders this as a
+sortable / searchable table with a biotype filter.
+
+### 5a.3 Why this matters
+
+Private ROHs are candidates for **recent, sample-specific**
+autozygosity events — genes that are homozygous in one broodstock
+fish but not in the rest of the cohort. They are the right substrate
+for follow-up questions like:
+- which functions / gene families are over-represented in private
+  ROHs (GO enrichment over the gene list);
+- whether private-ROH genes correlate with phenotype outliers
+  (when phenotype data lands);
+- whether the cohort's effective founder size predicts the size of
+  the private-ROH gene set (smaller founders → fewer unique long
+  haplotypes → fewer private ROHs).
+
+### 5a.4 Pipeline addition
+
+Add to the upstream ROH × gene-model intersection step (§7 below):
+1. For each ROH call, tag it `private=true` if its interval matches
+   no other sample's ROH at the chosen overlap threshold.
+2. Build `per_sample_genes[]` by counting overlapping gene-model
+   entries inside private vs shared ROHs per sample.
+3. Build `private_gene_list[]` by `groupby(gene_id)` over the union
+   of private ROHs across the cohort.
+
+Size: 226 rows + (proposed) ≤ 200 genes ≈ < 30 kB. Stays in
+the same `roh_gene_overlap.json` payload, no new file.
+
+---
+
 ## 6. Open design questions (all to be decided at build time)
 
 User instruction 2026-05-12: write all options to the spec, decide later.
@@ -312,6 +406,29 @@ session must pick one of the following (or a hybrid).
   by side. Needs every chosen proxy emitted by the pipeline. Most
   flexible, most data-heavy. Recommended hybrid set if going wide:
   (A) + (C) + (E).
+
+### 6.4 Private-ROH overlap threshold — added 2026-05-14, default proposed
+
+When tagging an ROH as "private" (§5a.1), how much positional overlap
+with another sample's ROH disqualifies it from being private?
+
+- **(A) 50% reciprocal overlap (default proposed)** — standard
+  bedtools convention. Two ROHs are "the same" if each covers ≥ 50%
+  of the other. Picks up homologous tract calls even when boundary
+  estimates differ by a few hundred kb (ngsF-HMM boundaries are
+  noisy at ~10× coverage).
+- **(B) 1 bp overlap** — strict. Any positional overlap → shared.
+  Maximises the "private" call set but counts adjacent-but-different
+  tracts as one.
+- **(C) 80% reciprocal** — stricter than (A). Closer to "identical
+  tract" calls; smaller private set.
+- **(D) Threshold sweep, reported per-threshold** — emit
+  `per_sample_genes` for each of (A) / (B) / (C) and let the page
+  toggle. Bigger payload, more rigorous.
+
+Pipeline-side choice. The atlas reads whatever
+`per_sample_genes[]` ships. Default to (A) until a session
+revisits.
 
 ### 6.3 Stratification — group vs family vs sample — ✅ RESOLVED (2026-05-12)
 
