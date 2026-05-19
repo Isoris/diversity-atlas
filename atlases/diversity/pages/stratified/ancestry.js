@@ -15,9 +15,55 @@ import {
 import { sortRows, applySortIndicators } from '../../shared/tables.js';
 import { plotBoxes, plotBarH } from '../../shared/plots.js';
 import { buildSVG, svgClose, linScale, niceTicks, quartiles } from '../../shared/svg.js';
+import {
+  probeModeB, renderModeBBadge, distinctCount
+} from '../../shared/mode_b_badge.js';
 
 let D = null;
 let CLUSTER_COLORS = null;
+
+// ─── Mode-B cross-check ─────────────────────────────────────────────────
+// Resolves ancestry_het_kruskal_all (the K-sweep aggregate, single file
+// under 02_heterozygosity/05_ancestry_heterozygosity/tables/). Cross-
+// checks the resolved row count against D.S7 (the carve's K-sweep
+// trajectory) and the distinct-K coverage against the K=2..12 grid the
+// pipeline writes. Pass if both counts agree within a small tolerance.
+
+function _compareKSweep(probeResult) {
+  const rows = probeResult.rows;
+  // The K column may be 'K', 'k', or under a different label depending on
+  // how the upstream R wrote the header. Probe a few common spellings.
+  let nKObserved = distinctCount(rows, 'K');
+  if (nKObserved === 0) nKObserved = distinctCount(rows, 'k');
+  if (nKObserved === 0) {
+    // Fall back: scan all columns for one that looks like a small int.
+    const keys = Object.keys(rows[0] || {});
+    for (const k of keys) {
+      const dc = distinctCount(rows, k);
+      if (dc >= 3 && dc <= 15 && /K|cluster/i.test(k)) { nKObserved = dc; break; }
+    }
+  }
+
+  const carveSweep = (D && Array.isArray(D.S7)) ? D.S7 : [];
+  const carveRows  = carveSweep.length;
+  const carveKs    = new Set(carveSweep.map((r) => r && r.k).filter((x) => x != null)).size;
+
+  // The aggregate file has one row per (K × panel × test); D.S7 has one
+  // row per (K × panel). Expect rows >= carveRows (the pipeline may emit
+  // more tests than the carve materialises). Use a soft floor.
+  const rowsOk  = carveRows === 0 || rows.length >= Math.max(1, carveRows - 2);
+  const ksOk    = carveKs   === 0 || nKObserved >= Math.max(1, carveKs - 1);
+  const pass = rowsOk && ksOk;
+
+  const ksStr = nKObserved > 0 ? `${nKObserved} distinct K` : '(K column not detected)';
+  const carveStr = carveRows
+    ? `(carve D.S7 has ${carveRows} rows · ${carveKs} K values)`
+    : '(no D.S7 baseline)';
+  return {
+    pass,
+    summary: `K-sweep aggregate · ${probeResult.n} rows · ${ksStr} ${carveStr}`,
+  };
+}
 
 function kwRender() {
   const tbody = document.querySelector('#kwTable tbody');
@@ -222,6 +268,18 @@ export async function mount(root, atlasState, registry) {
   qHRender();
   plotsPage4();
   wireSorting();
+
+  // Mode-B probe — non-blocking; failure leaves the badge in its demo
+  // state but does not affect page rendering.
+  probeModeB(registry, 'ancestry_het_kruskal_all')
+    .then((r) => renderModeBBadge('ancModeBBadge', r, {
+      label:    'K-sweep KW',
+      layerKey: 'ancestry_het_kruskal_all',
+      compare:  _compareKSweep,
+    }))
+    .catch(() => renderModeBBadge('ancModeBBadge', { ok: false, reason: 'unknown' }, {
+      label: 'K-sweep KW', layerKey: 'ancestry_het_kruskal_all',
+    }));
 }
 
 export async function unmount(root) {}

@@ -1,5 +1,22 @@
 {
   "$schema": "../../../../core/registry_core.schema.json",
-  "_doc": "Backend operations exposed for the diversity atlas. Round-1 is empty: every page is pure browser-side rendering off the embedded_tables.json snapshot. Server compute (per-sample thetaStat from SAFs, ngsRelate kinship rebuild, multi-scale θπ aggregation) lands on the roadmap (page 8) and gets registered here when the LANTA jobs ship.",
-  "operations": {}
+  "_doc": "Backend operations exposed for the diversity atlas. Single operation today: `import_slot` wraps GET /api/diversity/{slot} (atlas-core/server/diversity_endpoint.py — JSON-shim for the 5 diversity slots loaded by shared/data_loader.js). The `staging_diversity_slot` layer in layers.registry.json resolves through this operation; the parallel `import_slot` action in actions.registry.json captures it via POST /api/actions. Server compute beyond this (per-sample thetaStat from SAFs, ngsRelate kinship rebuild, multi-scale θπ aggregation) lands when the LANTA jobs ship — see actions.registry.json for the planned action runners and _handoff_docs/MISSING_DATA.md for the substrate gaps.",
+
+  "operations": {
+
+    "import_slot": {
+      "_endpoint_origin": "atlas-core/server/diversity_endpoint.py — make_diversity_router()",
+      "endpoint": "/api/diversity/{slot}",
+      "method":   "GET",
+      "query_params": {
+        "slot": "string — one of: embedded_tables | texture_metrics | functional_burden | roh_gene_overlap | divergence_network"
+      },
+      "inputs":          [],
+      "output_schema":   "../schemas/schema_out/staging_diversity_slot_v0.schema.json",
+      "cache_key":       "diversity_slot:{slot}",
+      "cache_tier":      "warm",
+      "estimated_latency_ms": 50,
+      "_doc":            "Returns the raw JSON bytes of one of the 5 diversity slot files. The shim falls back to a 404 when the slot file isn't present (the four non-bulk slots are optional today — see _handoff_docs/DATA_PROVENANCE.md §2.4). Round-1: shared/data_loader.js calls these endpoints directly (preferred path) and falls back to static fetches of data/<slot>.json. The action-pipeline path POST /api/actions {type:import_slot, target:{slot}} captures the same bytes into a staging_diversity_slot_v0 layer envelope for provenance / audit."
+    }
+  }
 }

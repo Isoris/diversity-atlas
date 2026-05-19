@@ -116,6 +116,20 @@ export async function ensureData() {
     if (Array.isArray(D.S9)) {
       D.S9.forEach(c => { CLUSTER_COLORS[c.k] = c.color; });
     }
+    // Provenance block (added 2026-05-20 per MISSING_DATA.md #5).
+    // Underscore-prefixed top-level keys carry the carve's version /
+    // source / content-hash; surfaced via ctx.PROVENANCE for downstream
+    // pages (e.g. the about page) or any cross-check that wants to
+    // compare the carve fingerprint against a pipeline export. Absent
+    // for legacy embedded_tables.json files without the block — fields
+    // are null in that case.
+    const PROVENANCE = {
+      data_version:   raw._data_version   || null,
+      source_html:    raw._source_html    || null,
+      carved_at:      raw._carved_at      || null,
+      content_sha256: raw._content_sha256 || null,
+      n_dt_blobs:     raw._n_dt_blobs     || null,
+    };
     _cache = {
       D,
       CLUSTER_COLORS,
@@ -123,6 +137,7 @@ export async function ensureData() {
       FUNCTIONAL_BURDEN:  fb,
       ROH_GENE_OVERLAP:   rgo,
       DIVERGENCE_NETWORK: dn,
+      PROVENANCE,
     };
     return _cache;
   })();

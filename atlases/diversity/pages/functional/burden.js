@@ -28,6 +28,26 @@ import { fmt2, fmt3, fmtH, fmtPct, fmtSci, clusterSwatch } from '../../shared/fo
 import { buildSVG, svgClose, linScale, niceTicks } from '../../shared/svg.js';
 import { mountStratificationPills, frohQuartiles } from '../../shared/stratification.js';
 import { SNPEFF_IMPACT_COLORS, GERP_HIGHLIGHT, kColor } from '../../shared/palette.js';
+import { probeModeB, renderModeBBadge } from '../../shared/mode_b_badge.js';
+
+// ─── Mode-B cross-check ─────────────────────────────────────────────────
+function _extractBurdenRows(payload) {
+  return (payload && Array.isArray(payload.per_sample)) ? payload.per_sample : null;
+}
+
+function _compareBurden(probeResult) {
+  const pass = probeResult.n >= 200;
+  const inv = (probeResult.payload && Array.isArray(probeResult.payload.variant_inventory))
+    ? probeResult.payload.variant_inventory.length : 0;
+  const groups = (probeResult.payload && probeResult.payload.per_group
+                  && Array.isArray(probeResult.payload.per_group['K=8']))
+    ? probeResult.payload.per_group['K=8'].length : 0;
+  return {
+    pass,
+    summary: `${probeResult.n} samples · ` +
+             `variant_inventory ${inv} rows · per_group['K=8'] ${groups} entries`,
+  };
+}
 
 const fbState = {
   stratMode:        'K=8',        // K=8 | family | sample | froh_q
@@ -700,6 +720,18 @@ export async function mount(root, atlasState, registry) {
   buildMerged();
   fbWire();
   fbRenderAll();
+
+  // Mode-B probe — non-blocking. Reports stub-payload today; flips to ●
+  // when the upstream functional-burden pipeline ships per_sample[].
+  probeModeB(registry, 'functional_burden_payload', {}, { extractRows: _extractBurdenRows })
+    .then((r) => renderModeBBadge('fbModeBBadge', r, {
+      label:    'functional burden',
+      layerKey: 'functional_burden_payload',
+      compare:  _compareBurden,
+    }))
+    .catch(() => renderModeBBadge('fbModeBBadge', { ok: false, reason: 'unknown' }, {
+      label: 'functional burden', layerKey: 'functional_burden_payload',
+    }));
 }
 
 export async function unmount(root) {

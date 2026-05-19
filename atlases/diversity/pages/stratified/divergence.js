@@ -21,6 +21,31 @@ import { ensureTip, showTip, hideTip } from '../../shared/tooltip.js';
 import { fmt2, fmt3, fmtSci, clusterSwatch } from '../../shared/formatters.js';
 import { buildSVG, svgClose, linScale } from '../../shared/svg.js';
 import { kColor } from '../../shared/palette.js';
+import { probeModeB, renderModeBBadge } from '../../shared/mode_b_badge.js';
+
+// ─── Mode-B cross-check ─────────────────────────────────────────────────
+function _extractDivergenceRows(payload) {
+  return (payload && Array.isArray(payload.edges)) ? payload.edges : null;
+}
+
+function _compareDivergence(probeResult) {
+  const nEdges = probeResult.n;
+  const nNodes = (probeResult.payload && Array.isArray(probeResult.payload.groups))
+    ? probeResult.payload.groups.length : 0;
+  // Default grouping K=8 → 8 nodes, C(8,2)=28 edges. Per-farm / sex /
+  // karyotype modes have different counts, so don't hard-fail on edge
+  // count alone — verify the n(n-1)/2 relation instead.
+  const expectedEdges = nNodes > 1 ? (nNodes * (nNodes - 1)) / 2 : null;
+  const pairsOk = expectedEdges == null || nEdges === expectedEdges;
+  const pass = nEdges > 0 && nNodes > 0 && pairsOk;
+  return {
+    pass,
+    summary: `${nNodes} nodes · ${nEdges} edges` +
+             (expectedEdges != null
+               ? ` (expected C(${nNodes}, 2) = ${expectedEdges})`
+               : ''),
+  };
+}
 
 const dnState = {
   grouping:   'K=8',          // K=8 | farm | sex | karyotype
@@ -364,6 +389,18 @@ export async function mount(root, atlasState, registry) {
   syncEdgeFilterRadios();
   dnWire();
   dnRenderAll();
+
+  // Mode-B probe — non-blocking. Reports stub-payload today; flips to ●
+  // when the upstream realSFS + bootstrap pipeline ships nodes + edges.
+  probeModeB(registry, 'divergence_network_payload', {}, { extractRows: _extractDivergenceRows })
+    .then((r) => renderModeBBadge('dnModeBBadge', r, {
+      label:    'group divergence',
+      layerKey: 'divergence_network_payload',
+      compare:  _compareDivergence,
+    }))
+    .catch(() => renderModeBBadge('dnModeBBadge', { ok: false, reason: 'unknown' }, {
+      label: 'group divergence', layerKey: 'divergence_network_payload',
+    }));
 }
 
 export async function unmount(root) {

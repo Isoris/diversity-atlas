@@ -5,6 +5,22 @@
       Cross-validation and quality controls: NAToRA pruning (S11), ngsF-HMM convergence (SZ), Spearman correlation matrix (S3), het in/out ROH (S12 / S1).
     </div>
 
+    <!-- Mode-B cross-check badge (2026-05-20). ancestry_het_pruned81_samples
+         resolved through the registry; cross-checks the row count against
+         D.globals.n_pruned81 (carve says 81) and the overlap of sample
+         IDs with the carve's S11 "Retained" subset. Fail-soft per
+         shared/mode_b_badge.js. -->
+    <div id="prModeBBadge" class="data-source-badge" style="
+         font-size: 12px;
+         color: #666;
+         margin: 4px 0 8px;
+         padding: 4px 8px;
+         background: #f5f5f5;
+         border-left: 3px solid #ccc;
+         border-radius: 2px;
+         line-height: 1.4;
+         min-height: 1em;"></div>
+
     <div class="card">
       <div class="card-head">
         <div class="card-title">S11 · First-degree kinship pruning (NAToRA, θ ≥ 0.177)</div>

@@ -1,21 +1,16 @@
-// Smoke tests for samples.js's Mode-B cross-check badge.
+// Smoke tests for the shared Mode-B probe + badge helpers
+// (atlases/diversity/shared/mode_b_badge.js).
 //
-// Mirrors the helpers from samples.js byte-for-byte (the page module is
-// browser-ESM so we can't `import` it from Node trivially). Verifies:
-//   - happy path: registry returns rows → green ● badge with median ratio
-//   - registry undefined → demo ○ badge ("standalone")
-//   - registry.resolve throws → demo ○ badge ("resolve-threw")
-//   - rows empty → demo ○ badge ("empty-result")
-//   - carve-median match within 1 % → ● vs ⚠
-//   - real-disk variant: when E:/results_diversity/02_heterozygosity/
-//     04_summary/genomewide_heterozygosity.tsv is present, parse it the
-//     same way LayerRouter.parseDelimited would and confirm the median
-//     matches the manuscript carve (D.globals.h_median = ~4.55e-3).
+// Tests the real shared module via dynamic import — no mirroring. Runs
+// the same scenarios as before plus a real-disk variant that parses
+// genomewide_heterozygosity.tsv exactly like LayerRouter.parseDelimited.
 //
 // Run from the diversity-atlas root:
 //   node atlases/diversity/pages/per_sample/test_samples_modeb.js
 import fs from 'node:fs';
-import path from 'node:path';
+import {
+  probeModeB, renderModeBBadge, medianOf, relDiff,
+} from '../../shared/mode_b_badge.js';
 
 // ----- fake DOM ---------------------------------------------------------
 const _domElements = new Map();
@@ -28,74 +23,31 @@ globalThis.document = {
   getElementById(id) { return _domElements.get(id) || null; },
 };
 
-// ----- byte-equivalent copies of the samples.js helpers ----------------
-// Keep these in sync with the originals. Easier than wiring up a
-// browser-ESM loader for one smoke test.
-function _medianOfHet(rows) {
-  const xs = [];
-  for (const r of rows || []) {
-    const v = r && (r.het_genomewide ?? r.h ?? r.H);
-    if (typeof v === 'number' && Number.isFinite(v)) xs.push(v);
+// ----- samples-page comparator (mirrors samples.js::_compareSamplesHet) -
+function _compareSamplesHet(probeResult, D) {
+  const observed = medianOf(probeResult.rows, 'het_genomewide', 'h', 'H');
+  const baseline = (D && D.globals && (D.globals.h_median ?? D.globals.h_mean)) || null;
+  const diff = relDiff(observed, baseline);
+  const obsStr = observed != null ? observed.toExponential(3) : '—';
+  const baseStr = baseline != null ? baseline.toExponential(3) : '—';
+  if (diff == null) {
+    return { pass: true,
+             summary: `${probeResult.n} samples · median H = ${obsStr} (no carve median to compare)` };
   }
-  if (xs.length === 0) return null;
-  xs.sort((a, b) => a - b);
-  const mid = xs.length >> 1;
-  return (xs.length & 1) ? xs[mid] : 0.5 * (xs[mid - 1] + xs[mid]);
+  const pass = diff < 0.01;
+  const verdict = pass
+    ? `(matches carve median ${baseStr} within 1 %)`
+    : `(differs from carve ${baseStr} by ${(diff * 100).toFixed(1)} %)`;
+  return { pass,
+           summary: `${probeResult.n} samples · median H = ${obsStr} ${verdict}` };
 }
-async function _probeModeBHet(registry) {
-  if (!registry || typeof registry.resolve !== 'function') {
-    return { ok: false, reason: 'registry-not-injected' };
-  }
-  try {
-    const rows = await Promise.resolve(registry.resolve('samples_genomewide_het'));
-    if (!Array.isArray(rows) || rows.length === 0) {
-      return { ok: false, reason: 'empty-result' };
-    }
-    return {
-      ok:           true,
-      n_samples:    rows.length,
-      median_het:   _medianOfHet(rows),
-      sample_keys:  Object.keys(rows[0] || {}),
-    };
-  } catch (e) {
-    return { ok: false, reason: 'resolve-threw', error: String(e && e.message || e) };
-  }
-}
-function _renderModeBBadge(result, D) {
-  const slot = document.getElementById('ssModeBBadge');
-  if (!slot) return;
-  if (!result || !result.ok) {
-    slot.className = 'data-source-badge demo';
-    const reason = (result && result.reason) || 'unknown';
-    const hint = {
-      'registry-not-injected': 'shell did not inject the registry — running standalone?',
-      'empty-result':          'layer resolved but rows[] is empty — check the TSV.',
-      'resolve-threw':         (result && result.error) || 'fetch / parse error',
-      'unknown':               'no probe result',
-    }[reason] || reason;
-    slot.textContent = `○  Mode B (pipeline) unavailable — ${hint}`;
-    slot.title = 'registry.resolve("samples_genomewide_het") failed; ' +
-                 'page still renders from D.S1 (manuscript carve).';
-    return;
-  }
-  const carveMedian = (D && D.globals && (D.globals.h_median ?? D.globals.h_mean)) || null;
-  const diff = (carveMedian != null && result.median_het != null)
-    ? Math.abs(result.median_het - carveMedian) / carveMedian
-    : null;
-  const matches = diff != null && diff < 0.01;
-  slot.className = 'data-source-badge ' + (matches ? 'live' : 'demo');
-  const medianStr = result.median_het != null ? result.median_het.toExponential(3) : '—';
-  const carveStr  = carveMedian       != null ? carveMedian.toExponential(3)       : '—';
-  const tag = matches ? '●' : '⚠';
-  const verdict = (diff == null)
-    ? '(no carve median to compare)'
-    : matches
-      ? `(matches carve median ${carveStr} within 1 %)`
-      : `(differs from carve ${carveStr} by ${(diff * 100).toFixed(1)} %)`;
-  slot.textContent =
-    `${tag}  Mode B (pipeline) — ${result.n_samples} samples · median H = ${medianStr} ${verdict}`;
-  slot.title = `registry.resolve("samples_genomewide_het") → ` +
-               `${result.n_samples} rows, columns: ${result.sample_keys.join(', ')}`;
+
+function _renderForSamples(result, D) {
+  return renderModeBBadge('ssModeBBadge', result, {
+    label:    'per-sample H',
+    layerKey: 'samples_genomewide_het',
+    compare:  (r) => _compareSamplesHet(r, D),
+  });
 }
 
 // ----- parseDelimited mirror (matches atlas-core/core/layer_router.js) -
@@ -151,7 +103,7 @@ console.log('happy path with synthetic rows:');
   }));
   const registry = { resolve: () => fakeRows };
   const D = { globals: { h_median: 0.00457 } };
-  await _probeModeBHet(registry).then((r) => _renderModeBBadge(r, D));
+  await probeModeB(registry, 'samples_genomewide_het').then((r) => _renderForSamples(r, D));
   const slot = document.getElementById('ssModeBBadge');
   ok(slot.className === 'data-source-badge live', 'live class when within 1 %');
   ok(slot.textContent.includes('226 samples'),    'badge mentions sample count');
@@ -165,7 +117,7 @@ console.log('registry undefined → demo badge:');
   _domElements.clear();
   _makeSlot('ssModeBBadge');
   const D = { globals: { h_median: 0.00457 } };
-  await _probeModeBHet(undefined).then((r) => _renderModeBBadge(r, D));
+  await probeModeB(undefined, 'samples_genomewide_het').then((r) => _renderForSamples(r, D));
   const slot = document.getElementById('ssModeBBadge');
   ok(slot.className === 'data-source-badge demo', 'demo class');
   ok(slot.textContent.includes('standalone'),      'hints at standalone mode');
@@ -178,7 +130,7 @@ console.log('resolve throws → demo with error:');
   _makeSlot('ssModeBBadge');
   const registry = { resolve: () => { throw new Error('boom'); } };
   const D = { globals: { h_median: 0.00457 } };
-  await _probeModeBHet(registry).then((r) => _renderModeBBadge(r, D));
+  await probeModeB(registry, 'samples_genomewide_het').then((r) => _renderForSamples(r, D));
   const slot = document.getElementById('ssModeBBadge');
   ok(slot.className === 'data-source-badge demo', 'demo class');
   ok(slot.textContent.includes('boom'),           'badge surfaces the error message');
@@ -191,7 +143,7 @@ console.log('empty rows → demo:');
   _makeSlot('ssModeBBadge');
   const registry = { resolve: () => [] };
   const D = { globals: { h_median: 0.00457 } };
-  await _probeModeBHet(registry).then((r) => _renderModeBBadge(r, D));
+  await probeModeB(registry, 'samples_genomewide_het').then((r) => _renderForSamples(r, D));
   const slot = document.getElementById('ssModeBBadge');
   ok(slot.className === 'data-source-badge demo', 'demo class');
   ok(slot.textContent.includes('Mode B'),         'badge labels Mode B');
@@ -205,7 +157,7 @@ console.log('median differs > 1 % → warning badge:');
   const fakeRows = [{ sample: 'A', het_genomewide: 0.01 }];
   const registry = { resolve: () => fakeRows };
   const D = { globals: { h_median: 0.005 } };   // 100 % off
-  await _probeModeBHet(registry).then((r) => _renderModeBBadge(r, D));
+  await probeModeB(registry, 'samples_genomewide_het').then((r) => _renderForSamples(r, D));
   const slot = document.getElementById('ssModeBBadge');
   ok(slot.className === 'data-source-badge demo', 'demo class (differs)');
   ok(slot.textContent.startsWith('⚠'),            'warning glyph');
@@ -229,15 +181,50 @@ console.log('real-disk variant (skipped unless file present):');
     _makeSlot('ssModeBBadge');
     const registry = { resolve: () => rows };
     const D = { globals: { h_median: 0.00457 } };  // approximate manuscript value
-    await _probeModeBHet(registry).then((r) => _renderModeBBadge(r, D));
+    await probeModeB(registry, 'samples_genomewide_het').then((r) => _renderForSamples(r, D));
     const slot = document.getElementById('ssModeBBadge');
     ok(rows.length > 200, `parsed ${rows.length} rows from real TSV`);
     ok(slot.textContent.includes('Mode B'), 'real-disk badge renders Mode B label');
     // Confirm the median is in the right ballpark — keep tolerance loose because
     // h_median above is hand-typed from the manuscript and may be slightly off.
-    const median = _medianOfHet(rows);
+    const median = medianOf(rows, 'het_genomewide', 'h', 'H');
     ok(median > 0.003 && median < 0.006, `median H in plausible range (${median.toExponential(3)})`);
   }
+}
+
+// ----- test 7: extractRows callback (object payload) -------------------
+console.log('extractRows callback (object payload):');
+{
+  _domElements.clear();
+  _makeSlot('ssModeBBadge');
+  const payload = {
+    cohort_summary: { median_h_gw: 0.0046 },
+    per_sample: Array.from({ length: 226 }, (_, i) => ({ sample: `CGA${i}`, h_gw: 0.0045 })),
+  };
+  const registry = { resolve: () => payload };
+  const probe = await probeModeB(registry, 'texture_metrics_payload', {}, {
+    extractRows: (p) => (p && Array.isArray(p.per_sample)) ? p.per_sample : null,
+  });
+  ok(probe.ok === true, 'object payload with valid per_sample → ok');
+  ok(probe.n === 226, 'extractRows pulled 226 rows from per_sample');
+  ok(probe.payload === payload, 'raw payload exposed for top-level comparators');
+}
+
+// ----- test 8: stub payload (empty object) → distinct reason -----------
+console.log('stub payload → stub-payload reason:');
+{
+  _domElements.clear();
+  _makeSlot('ssModeBBadge');
+  const registry = { resolve: () => ({}) };
+  const probe = await probeModeB(registry, 'texture_metrics_payload', {}, {
+    extractRows: (p) => (p && Array.isArray(p.per_sample)) ? p.per_sample : null,
+  });
+  ok(probe.ok === false, 'stub object → not ok');
+  ok(probe.reason === 'stub-payload',
+     `reason='stub-payload' (got '${probe.reason}')`);
+  renderModeBBadge('ssModeBBadge', probe, { label: 'texture metrics', layerKey: 'texture_metrics_payload' });
+  const slot = document.getElementById('ssModeBBadge');
+  ok(slot.textContent.includes('data pending'), 'badge says "data pending" for stubs');
 }
 
 console.log('\nALL OK');

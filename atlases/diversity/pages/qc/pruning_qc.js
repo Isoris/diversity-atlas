@@ -15,9 +15,50 @@ import {
 import { sortRows, applySortIndicators } from '../../shared/tables.js';
 import { plotHist, plotBoxes, plotBarH } from '../../shared/plots.js';
 import { quartiles } from '../../shared/svg.js';
+import {
+  probeModeB, renderModeBBadge,
+} from '../../shared/mode_b_badge.js';
 
 let D = null;
 let CLUSTER_COLORS = null;
+
+// ─── Mode-B cross-check ─────────────────────────────────────────────────
+// Resolves ancestry_het_pruned81_samples — a single-column TSV listing the
+// NAToRA-retained subset. Cross-checks: (a) row count agrees with
+// D.globals.n_pruned81 (carve says 81), (b) sample IDs overlap with the
+// carve's S11 "Retained" subset.
+
+function _compareNATORA(probeResult) {
+  const rows = probeResult.rows;
+  // The first non-empty column is the sample id — pestPG-style header
+  // detection. parseDelimited's numeric coercion does not fire on
+  // string-typed CGA### values, so r.sample is always a string.
+  const pipelineSamples = new Set();
+  for (const r of rows) {
+    const v = r && (r.sample ?? r.sample_id ?? r.Sample ?? Object.values(r)[0]);
+    if (typeof v === 'string' && v.length > 0) pipelineSamples.add(v);
+  }
+
+  const carveCount = (D && D.globals && D.globals.n_pruned81) ?? null;
+  const carveRetained = (D && Array.isArray(D.S11))
+    ? D.S11.filter((r) => r && r.status === 'Retained').map((r) => r.sample)
+    : [];
+  const overlap = carveRetained.filter((s) => pipelineSamples.has(s)).length;
+
+  const countOk = (carveCount == null) || (pipelineSamples.size === carveCount);
+  const overlapOk = carveRetained.length === 0 || overlap === carveRetained.length;
+  const pass = countOk && overlapOk;
+
+  const carveStr = carveCount != null ? `${carveCount}` : '(no carve count)';
+  const overlapStr = carveRetained.length
+    ? `${overlap}/${carveRetained.length} carve-retained samples present`
+    : '(no S11 baseline)';
+  return {
+    pass,
+    summary: `${pipelineSamples.size} samples in pipeline file ` +
+             `(carve n_pruned81 = ${carveStr}) · ${overlapStr}`,
+  };
+}
 
 const prState = { sortKey: 'sample', sortDir: 'asc',
                   statusFilter: 'all', clusterFilter: '' };
@@ -162,6 +203,18 @@ export async function mount(root, atlasState, registry) {
   wireSorting();
   spearmanRender();
   plotsPage6();
+
+  // Mode-B probe — non-blocking; failure leaves the badge in its demo
+  // state but does not affect page rendering.
+  probeModeB(registry, 'ancestry_het_pruned81_samples')
+    .then((r) => renderModeBBadge('prModeBBadge', r, {
+      label:    'NAToRA pruned81',
+      layerKey: 'ancestry_het_pruned81_samples',
+      compare:  _compareNATORA,
+    }))
+    .catch(() => renderModeBBadge('prModeBBadge', { ok: false, reason: 'unknown' }, {
+      label: 'NAToRA pruned81', layerKey: 'ancestry_het_pruned81_samples',
+    }));
 }
 
 export async function unmount(root) {}

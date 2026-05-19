@@ -156,6 +156,37 @@ class HarvestRoundTrip(unittest.TestCase):
         finally:
             shutil.rmtree(tmp, ignore_errors=True)
 
+    @unittest.skipUnless(
+        pathlib.Path("E:/results_diversity/02_heterozygosity/05_ancestry_heterozygosity/tables/pruned81_samples.tsv").exists()
+        or pathlib.Path("/mnt/e/results_diversity/02_heterozygosity/05_ancestry_heterozygosity/tables/pruned81_samples.tsv").exists(),
+        "pruned81_samples.tsv not present"
+    )
+    def test_ancestry_het_pruned81_samples(self) -> None:
+        _ensure_master_config()
+        if not os.environ.get("ATLAS_MASTER_CONFIG"):
+            self.skipTest("ATLAS_MASTER_CONFIG not set")
+        tmp = pathlib.Path(tempfile.mkdtemp(prefix="harvest_smoke_"))
+        try:
+            _ensure_atlas_project_root(tmp)
+            from atlases.diversity.registries.runners.harvest_file import harvest_file
+            from atlases.diversity.registries.extractors.tsv_table import extract
+            manifest = {
+                "action_id":  "smoke_a005",
+                "dataset_id": "diversity_cohort_v1",
+                "type":       "harvest_file",
+                "target":     {"layer_key": "ancestry_het_pruned81_samples", "args": {}},
+            }
+            raw = harvest_file(manifest, client=None)
+            self.assertTrue(pathlib.Path(raw["file_path"]).exists())
+            payload = extract(raw, params={"infer_types": True})
+            self.assertEqual(payload["row_count"], 81)
+            self.assertIn(payload["columns"][0], ("sample", "sample_id"))
+            samples = [r[payload["columns"][0]] for r in payload["rows"]]
+            for s in samples:
+                self.assertRegex(s, r"^CGA[0-9]+$")
+        finally:
+            shutil.rmtree(tmp, ignore_errors=True)
+
     def test_harvest_missing_layer_raises(self) -> None:
         _ensure_master_config()
         if not os.environ.get("ATLAS_MASTER_CONFIG"):

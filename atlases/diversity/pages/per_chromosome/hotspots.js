@@ -15,8 +15,50 @@ import { plotHeatmap } from '../../shared/plots.js';
 import {
   buildSVG, svgClose, linScale, niceTicks, makeWarmScale
 } from '../../shared/svg.js';
+import {
+  probeModeB, renderModeBBadge, distinctCount
+} from '../../shared/mode_b_badge.js';
 
 let D = null;
+
+// ─── Mode-B cross-check ─────────────────────────────────────────────────
+// Probes one representative sample's pestPG at the fine 10 kb scale (the
+// resolution at which the hotspot scan operates) and checks: (a) windows
+// cover all 28 chroms, (b) per-window max θπ rises above the carve's
+// 5.27e-3 hotspot threshold somewhere on the genome.
+
+const _PROBE_SAMPLE_ID = 'CGA009';
+const _PROBE_WIN_BP    = 10000;
+const _PROBE_STEP_BP   = 2000;
+const _HOTSPOT_PI_FLOOR = 5.27e-3;   // matches subtitle's 99th-percentile threshold
+
+function _compareHotspots(probeResult) {
+  const rows = probeResult.rows;
+  const nChroms = distinctCount(rows, 'Chr');
+  let maxPi = -Infinity;
+  for (const r of rows) {
+    const tP = r && r.tP, ns = r && r.nSites;
+    if (typeof tP === 'number' && typeof ns === 'number' && ns > 0) {
+      const pi = tP / ns;
+      if (pi > maxPi) maxPi = pi;
+    }
+  }
+  const haveMax = Number.isFinite(maxPi);
+  const chromsOk = (nChroms === 28);
+  const peakOk = haveMax && maxPi >= _HOTSPOT_PI_FLOOR;
+  const pass = chromsOk && peakOk;
+  const peakStr = haveMax ? maxPi.toExponential(2) : '—';
+  const verdict = (!chromsOk)
+    ? `(expected 28 chroms, got ${nChroms})`
+    : (!peakOk)
+      ? `(no window above hotspot floor ${_HOTSPOT_PI_FLOOR.toExponential(2)})`
+      : `(peak above carve hotspot floor ${_HOTSPOT_PI_FLOOR.toExponential(2)})`;
+  return {
+    pass,
+    summary: `${_PROBE_SAMPLE_ID} @ 10 kb · ${nChroms} chroms · ` +
+             `${probeResult.n} windows · peak θπ = ${peakStr} ${verdict}`,
+  };
+}
 
 function clusterizeOutliers() {
   const data = D.ST3.slice().sort((a, b) =>
@@ -155,6 +197,20 @@ export async function mount(root, atlasState, registry) {
   hsRender();
   plotsPage3();
   wireSorting();
+
+  // Mode-B probe — non-blocking; failure leaves the badge in its demo
+  // state but does not affect page rendering.
+  probeModeB(registry, 'samples_theta_pi_pestpg', {
+    sample_id: _PROBE_SAMPLE_ID, win_bp: _PROBE_WIN_BP, step_bp: _PROBE_STEP_BP,
+  })
+    .then((r) => renderModeBBadge('hsModeBBadge', r, {
+      label:    'fine-scale θπ',
+      layerKey: 'samples_theta_pi_pestpg',
+      compare:  _compareHotspots,
+    }))
+    .catch(() => renderModeBBadge('hsModeBBadge', { ok: false, reason: 'unknown' }, {
+      label: 'fine-scale θπ', layerKey: 'samples_theta_pi_pestpg',
+    }));
 }
 
 export async function unmount(root) {}

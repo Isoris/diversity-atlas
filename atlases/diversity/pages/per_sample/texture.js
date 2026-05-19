@@ -26,6 +26,30 @@ import { ensureTip }  from '../../shared/tooltip.js';
 import { fmtSci, fmt3, fmtH, clusterSwatch } from '../../shared/formatters.js';
 import { plotScatter } from '../../shared/plots.js';
 import { buildSVG, svgClose, linScale, niceTicks } from '../../shared/svg.js';
+import { probeModeB, renderModeBBadge } from '../../shared/mode_b_badge.js';
+
+// ─── Mode-B cross-check ─────────────────────────────────────────────────
+// texture_metrics_payload is loaded today as a stub (`{}` placeholder). The
+// probe surfaces "○ data pending" until the upstream pipeline
+// (04_window_H_and_DDI.sh) ships a real payload; flips to ● when per_sample[]
+// is populated and matches the cohort N (226).
+
+function _extractTextureRows(payload) {
+  return (payload && Array.isArray(payload.per_sample)) ? payload.per_sample : null;
+}
+
+function _compareTexture(probeResult) {
+  const carveN = 226;   // cohort size (could read D.globals.n_samples but the
+                        // texture page renders before D is populated by mount)
+  const pass = probeResult.n >= 200;   // tolerate a few drops
+  const cohortMed = (probeResult.payload && probeResult.payload.cohort_summary
+                     && probeResult.payload.cohort_summary.median_h_gw);
+  const medStr = (typeof cohortMed === 'number') ? cohortMed.toExponential(2) : '—';
+  return {
+    pass,
+    summary: `${probeResult.n}/${carveN} samples · cohort median H_w = ${medStr}`,
+  };
+}
 
 const txState = {
   classFilter: 'all',
@@ -491,6 +515,18 @@ export async function mount(root, atlasState, registry) {
   txTopStrip();
   txWire();
   plotScatterDdiH();
+
+  // Mode-B probe — non-blocking. Will report stub-payload today; flips to
+  // ● when the upstream pipeline ships a populated per_sample[].
+  probeModeB(registry, 'texture_metrics_payload', {}, { extractRows: _extractTextureRows })
+    .then((r) => renderModeBBadge('txModeBBadge', r, {
+      label:    'texture metrics',
+      layerKey: 'texture_metrics_payload',
+      compare:  _compareTexture,
+    }))
+    .catch(() => renderModeBBadge('txModeBBadge', { ok: false, reason: 'unknown' }, {
+      label: 'texture metrics', layerKey: 'texture_metrics_payload',
+    }));
 }
 
 export async function unmount(root) {

@@ -5,6 +5,22 @@
       Within-genome heterogeneity of per-window H. Separates diffusely-diverse from mosaic-rich broodstock, and diffusely-depleted from mosaic-poor. Companion to the F_ROH|H framework on page 5.
     </div>
 
+    <!-- Mode-B cross-check badge (2026-05-20). texture_metrics_payload
+         resolved through the registry; extracts per_sample[]. Empty stub
+         on disk today → '○ data pending' until the upstream pipeline
+         (04_window_H_and_DDI.sh) ships a real payload. Fail-soft per
+         shared/mode_b_badge.js. -->
+    <div id="txModeBBadge" class="data-source-badge" style="
+         font-size: 12px;
+         color: #666;
+         margin: 4px 0 8px;
+         padding: 4px 8px;
+         background: #f5f5f5;
+         border-left: 3px solid #ccc;
+         border-radius: 2px;
+         line-height: 1.4;
+         min-height: 1em;"></div>
+
     <div class="stat-strip" id="txTopStrip"></div>
 
     <div class="card" id="txMissingCard" style="display:none;">

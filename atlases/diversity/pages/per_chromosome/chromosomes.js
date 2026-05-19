@@ -14,8 +14,59 @@ import {
 } from '../../shared/formatters.js';
 import { sortRows, applySortIndicators } from '../../shared/tables.js';
 import { plotBarH } from '../../shared/plots.js';
+import {
+  probeModeB, renderModeBBadge, meanOf, distinctCount, relDiff
+} from '../../shared/mode_b_badge.js';
 
 let D = null;
+
+// ─── Mode-B cross-check ─────────────────────────────────────────────────
+// Probes one representative sample's pestPG at the closest-to-carve scale
+// (500 kb non-overlapping) and cross-checks distinct-chrom count (28) +
+// per-window mean θπ against D.globals.theta_pi_mean. Per-sample is a
+// representative probe, not a cohort recomputation — keeps the page
+// interactive and avoids 226 fetches.
+
+const _PROBE_SAMPLE_ID = 'CGA009';
+const _PROBE_WIN_BP    = 500000;
+const _PROBE_STEP_BP   = 500000;
+
+function _compareChromsTheta(probeResult) {
+  const nChroms  = distinctCount(probeResult.rows, 'Chr');
+  // pestPG carries tP (sum of θπ over window's segregating sites) +
+  // nSites; per-window θπ = tP / nSites. Use the same coercion every
+  // sample does on the page.
+  const perWindowPi = [];
+  for (const r of probeResult.rows) {
+    const tP = (r && r.tP);
+    const ns = (r && r.nSites);
+    if (typeof tP === 'number' && typeof ns === 'number' && ns > 0) {
+      perWindowPi.push(tP / ns);
+    }
+  }
+  const meanPi = perWindowPi.length
+    ? perWindowPi.reduce((a, x) => a + x, 0) / perWindowPi.length
+    : null;
+  const carveMean = (D && D.globals && D.globals.theta_pi_mean) || null;
+  const diff = relDiff(meanPi, carveMean);
+
+  const chromsOk = (nChroms === 28);
+  const meanOk = diff != null && diff < 0.30;   // per-sample θπ is noisier
+                                                // than cohort mean — allow
+                                                // 30 % drift before flagging
+  const pass = chromsOk && (diff == null || meanOk);
+
+  const meanStr = meanPi != null ? meanPi.toExponential(2) : '—';
+  const baseStr = carveMean != null ? carveMean.toExponential(2) : '—';
+  const diffStr = diff != null
+    ? `${meanOk ? '~' : '⚠'}${(diff * 100).toFixed(0)} % vs carve cohort mean ${baseStr}`
+    : 'no carve baseline';
+  return {
+    pass,
+    summary: `${_PROBE_SAMPLE_ID} @ 500 kb · ${nChroms} chroms · ` +
+             `${probeResult.n} windows · per-window mean θπ = ${meanStr} (${diffStr})`,
+  };
+}
 
 function chrTopStrip() {
   const ths = D.ST1, fr = D.S4;
@@ -172,6 +223,20 @@ export async function mount(root, atlasState, registry) {
   kwChrRender();
   plotsPage2();
   wireTableSorting();
+
+  // Mode-B probe — fire after sync render; failure leaves the badge in
+  // its demo state but does not affect page rendering.
+  probeModeB(registry, 'samples_theta_pi_pestpg', {
+    sample_id: _PROBE_SAMPLE_ID, win_bp: _PROBE_WIN_BP, step_bp: _PROBE_STEP_BP,
+  })
+    .then((r) => renderModeBBadge('chrModeBBadge', r, {
+      label:    'per-chrom θπ',
+      layerKey: 'samples_theta_pi_pestpg',
+      compare:  _compareChromsTheta,
+    }))
+    .catch(() => renderModeBBadge('chrModeBBadge', { ok: false, reason: 'unknown' }, {
+      label: 'per-chrom θπ', layerKey: 'samples_theta_pi_pestpg',
+    }));
 }
 
 export async function unmount(root) {}

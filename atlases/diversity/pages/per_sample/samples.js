@@ -13,6 +13,7 @@
 import { ensureData } from '../../shared/data_loader.js';
 import { ensureTip }  from '../../shared/tooltip.js';
 import { listLayers, getLayer } from '../../shared/api_client.js';
+import { probeModeB, renderModeBBadge, medianOf, relDiff } from '../../shared/mode_b_badge.js';
 import {
   fmtSci, fmt2, fmt3, fmtH, fmtMb, fmtKb, fmtP, fmtPct, clusterSwatch
 } from '../../shared/formatters.js';
@@ -306,82 +307,26 @@ function _renderProvenanceBadge(envelope) {
 // config root → static mount → parseDelimited) and compares the result's
 // median H against D.globals.h_median (the manuscript-carve baseline).
 //
-// Fail modes (all soft):
-//   - registry undefined  → shell didn't inject it (standalone test mode).
-//   - resolve throws      → layer unreachable (no static mount, file
-//                           missing, master_config not configured).
-//   - empty result        → file present but parser couldn't make rows.
-//
-// The page stays interactive regardless. This badge is a probe, not a
-// dependency — D.S1 reads are unchanged.
+// Helpers live in shared/mode_b_badge.js so the chromosomes + ancestry
+// pages reuse the same probe + render path. The page stays interactive
+// regardless of probe outcome — this is a cross-check, not a dependency.
 
-function _medianOfHet(rows) {
-  const xs = [];
-  for (const r of rows || []) {
-    const v = r && (r.het_genomewide ?? r.h ?? r.H);
-    if (typeof v === 'number' && Number.isFinite(v)) xs.push(v);
+function _compareSamplesHet(probeResult) {
+  const observed = medianOf(probeResult.rows, 'het_genomewide', 'h', 'H');
+  const baseline = (D && D.globals && (D.globals.h_median ?? D.globals.h_mean)) || null;
+  const diff = relDiff(observed, baseline);
+  const obsStr = observed != null ? observed.toExponential(3) : '—';
+  const baseStr = baseline != null ? baseline.toExponential(3) : '—';
+  if (diff == null) {
+    return { pass: true,
+             summary: `${probeResult.n} samples · median H = ${obsStr} (no carve median to compare)` };
   }
-  if (xs.length === 0) return null;
-  xs.sort((a, b) => a - b);
-  const mid = xs.length >> 1;
-  return (xs.length & 1) ? xs[mid] : 0.5 * (xs[mid - 1] + xs[mid]);
-}
-
-async function _probeModeBHet(registry) {
-  if (!registry || typeof registry.resolve !== 'function') {
-    return { ok: false, reason: 'registry-not-injected' };
-  }
-  try {
-    const rows = await Promise.resolve(registry.resolve('samples_genomewide_het'));
-    if (!Array.isArray(rows) || rows.length === 0) {
-      return { ok: false, reason: 'empty-result' };
-    }
-    return {
-      ok:           true,
-      n_samples:    rows.length,
-      median_het:   _medianOfHet(rows),
-      sample_keys:  Object.keys(rows[0] || {}),
-    };
-  } catch (e) {
-    return { ok: false, reason: 'resolve-threw', error: String(e && e.message || e) };
-  }
-}
-
-function _renderModeBBadge(result) {
-  const slot = document.getElementById('ssModeBBadge');
-  if (!slot) return;
-  if (!result || !result.ok) {
-    slot.className = 'data-source-badge demo';
-    const reason = (result && result.reason) || 'unknown';
-    const hint = {
-      'registry-not-injected': 'shell did not inject the registry — running standalone?',
-      'empty-result':          'layer resolved but rows[] is empty — check the TSV.',
-      'resolve-threw':         (result && result.error) || 'fetch / parse error',
-      'unknown':               'no probe result',
-    }[reason] || reason;
-    slot.textContent = `○  Mode B (pipeline) unavailable — ${hint}`;
-    slot.title = 'registry.resolve("samples_genomewide_het") failed; ' +
-                 'page still renders from D.S1 (manuscript carve).';
-    return;
-  }
-  const carveMedian = (D && D.globals && (D.globals.h_median ?? D.globals.h_mean)) || null;
-  const diff = (carveMedian != null && result.median_het != null)
-    ? Math.abs(result.median_het - carveMedian) / carveMedian
-    : null;
-  const matches = diff != null && diff < 0.01;   // within 1 %
-  slot.className = 'data-source-badge ' + (matches ? 'live' : 'demo');
-  const medianStr = result.median_het != null ? result.median_het.toExponential(3) : '—';
-  const carveStr  = carveMedian       != null ? carveMedian.toExponential(3)       : '—';
-  const tag = matches ? '●' : '⚠';
-  const verdict = (diff == null)
-    ? '(no carve median to compare)'
-    : matches
-      ? `(matches carve median ${carveStr} within 1 %)`
-      : `(differs from carve ${carveStr} by ${(diff * 100).toFixed(1)} %)`;
-  slot.textContent =
-    `${tag}  Mode B (pipeline) — ${result.n_samples} samples · median H = ${medianStr} ${verdict}`;
-  slot.title = `registry.resolve("samples_genomewide_het") → ` +
-               `${result.n_samples} rows, columns: ${result.sample_keys.join(', ')}`;
+  const pass = diff < 0.01;
+  const verdict = pass
+    ? `(matches carve median ${baseStr} within 1 %)`
+    : `(differs from carve ${baseStr} by ${(diff * 100).toFixed(1)} %)`;
+  return { pass,
+           summary: `${probeResult.n} samples · median H = ${obsStr} ${verdict}` };
 }
 
 // ─── Lifecycle ──────────────────────────────────────────────────────────
@@ -406,9 +351,15 @@ export async function mount(root, atlasState, registry) {
   // Mode-B probe — exercise registry.resolve('samples_genomewide_het')
   // end-to-end against the on-disk pipeline output. Renders a cross-
   // check badge; failure is non-fatal.
-  _probeModeBHet(registry)
-    .then(_renderModeBBadge)
-    .catch(() => _renderModeBBadge({ ok: false, reason: 'unknown' }));
+  probeModeB(registry, 'samples_genomewide_het')
+    .then((r) => renderModeBBadge('ssModeBBadge', r, {
+      label:    'per-sample H',
+      layerKey: 'samples_genomewide_het',
+      compare:  _compareSamplesHet,
+    }))
+    .catch(() => renderModeBBadge('ssModeBBadge', { ok: false, reason: 'unknown' }, {
+      label: 'per-sample H', layerKey: 'samples_genomewide_het',
+    }));
 }
 
 export async function unmount(root) {
