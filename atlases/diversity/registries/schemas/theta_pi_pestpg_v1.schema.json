@@ -1,0 +1,73 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "theta_pi_pestpg_v1.schema.json",
+  "title": "theta_pi_pestpg_v1 — ANGSD thetaStat per-window pestPG row",
+  "description": "One row per non-overlapping (or sliding) window emitted by `thetaStat do_stat`. The on-disk format is a tab-separated text file with a comment header line starting with '#(indexStart' (skipped by the extractor) followed by columns: Chr, WinCenter, tW, tP, tF, tH, tL, Tajima, fuf, fud, fayh, zeng, nSites. Per-site θπ for the window is computed downstream as tP / nSites (NOT in this schema — the schema preserves the raw column shape). The pipeline emits four scales: win5000.step1000, win10000.step2000, win50000.step10000, win500000.step500000 (the last being non-overlapping 500 kb). 226 samples × 4 scales = 904 files.",
+  "type": "object",
+  "required": ["Chr", "WinCenter", "tW", "tP", "Tajima", "nSites"],
+  "additionalProperties": true,
+  "properties": {
+    "Chr": {
+      "type": "string",
+      "description": "Chromosome label as emitted by ANGSD (matches the reference FASTA header). Example: 'C_gar_LG01'."
+    },
+    "WinCenter": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Window center position in base pairs (1-based reference coordinates). For a window [start, end], WinCenter = (start + end) / 2."
+    },
+    "tW": {
+      "type": "number",
+      "description": "Sum of per-site Watterson's θ_W over the window (NOT a density — divide by nSites for per-site rate)."
+    },
+    "tP": {
+      "type": "number",
+      "description": "Sum of per-site pairwise θ_π over the window. Per-site θπ = tP / nSites when nSites > 0."
+    },
+    "tF": {
+      "type": "number",
+      "description": "Sum of θ_F (Fu & Li's F-based estimator) over the window."
+    },
+    "tH": {
+      "type": "number",
+      "description": "Sum of Fay & Wu's θ_H over the window."
+    },
+    "tL": {
+      "type": "number",
+      "description": "Sum of Zeng's θ_L over the window."
+    },
+    "Tajima": {
+      "type": ["number", "null"],
+      "description": "Tajima's D for the window. null when nSites is too small to compute the variance (ANGSD emits 0 or NaN; the extractor coerces NaN/empty/'.' → null)."
+    },
+    "fuf": {
+      "type": ["number", "null"],
+      "description": "Fu & Li's F* statistic (with outgroup). null when not computable."
+    },
+    "fud": {
+      "type": ["number", "null"],
+      "description": "Fu & Li's D* statistic (with outgroup). null when not computable."
+    },
+    "fayh": {
+      "type": ["number", "null"],
+      "description": "Fay & Wu's H statistic (with outgroup). null when not computable."
+    },
+    "zeng": {
+      "type": ["number", "null"],
+      "description": "Zeng's E statistic (with outgroup). null when not computable."
+    },
+    "nSites": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Number of callable sites in the window. Denominator for per-site rates. nSites=0 means the window had no data and per-site θ is undefined."
+    }
+  },
+  "_provenance": {
+    "pipeline":   "catfish-diversity-analysis/01_het_theta_pi/STEP_A02_run_heterozygosity.sh (thetaStat do_stat stage)",
+    "method_doc": "catfish-diversity-analysis/docs/methods/MODULE_3_methods.md §A02 + docs/methods/theta_pi_scaling.md",
+    "angsd_args": "thetaStat do_stat -type 2 (physical, anchored to chromosome start) -win <win_bp> -step <step_bp>",
+    "scales":     "win5000.step1000 | win10000.step2000 | win50000.step10000 | win500000.step500000",
+    "on_disk":    "diversity_theta_pi root → <sample>.win<win_bp>.step<step_bp>.pestPG",
+    "_arg":       "Each .pestPG has an optional sibling .pestPG.arg with the command-line (see samples_theta_pi_arg layer; currently disabled because not all are mirrored to E:)."
+  }
+}

@@ -1,0 +1,41 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "samples_roh_per_sample_v1.schema.json",
+  "title": "samples_roh_per_sample_v1 — per-sample ROH segment list",
+  "description": "Output of extract_samples_roh_per_sample_v1. Schema declared in advance; the pipeline output is NOT YET present on disk (diversity_roh root is empty — see _handoff_docs/MISSING_DATA.md §2). Expected source: per-sample ROH segment TSV with columns sample_id, chrom, start_bp, end_bp, length_bp, n_sites, quality.",
+  "type": "object",
+  "required": ["sample_id", "segments"],
+  "additionalProperties": true,
+  "properties": {
+    "sample_id": { "type": "string", "pattern": "^CGA[0-9]+$" },
+    "segments": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["chrom", "start_bp", "end_bp", "length_bp"],
+        "properties": {
+          "chrom":     { "type": "string" },
+          "start_bp":  { "type": "integer", "minimum": 0 },
+          "end_bp":    { "type": "integer", "minimum": 0 },
+          "length_bp": { "type": "integer", "minimum": 0 },
+          "n_sites":   { "type": ["integer", "null"], "minimum": 0 },
+          "quality":   { "type": ["number", "null"] }
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "n_segments":       { "type": "integer", "minimum": 0 },
+        "total_bp":         { "type": "integer", "minimum": 0 },
+        "longest_bp":       { "type": "integer", "minimum": 0 },
+        "n_segments_gt_1mb":{ "type": "integer", "minimum": 0 }
+      }
+    },
+    "_provenance": {
+      "type": "object",
+      "additionalProperties": true
+    }
+  }
+}

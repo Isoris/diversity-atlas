@@ -1,10 +1,518 @@
 {
   "$schema": "../../../../core/registry_core.schema.json",
-  "_doc": "Layer inventory for the diversity atlas. Round-1 is intentionally empty: every page reads the bulk embedded_tables.json snapshot via atlases/diversity/shared/data_loader.js, not via the layer-router. When the atlas grows beyond the MODULE_3 snapshot (per-sample θπ tracks, kinship matrix, ngsF-HMM per-window calls, ...), those data products should be registered as layers here on a per-page basis — see KICKOFF_diversity_atlas.md Q4 for the lazy-promotion strategy.",
+  "_doc": "Layer inventory for the diversity atlas. Two cohabiting access modes: (A) the legacy bulk-snapshot path — `data/embedded_tables.json` carved from manuscript Table 3 + supplements, loaded by atlases/diversity/shared/data_loader.js outside the registry, NOT declared here; and (B) the extractor-pattern layers added 2026-05-20 that point straight at the on-disk pipeline outputs under master_config roots `diversity_saf_per_sample / diversity_heterozygosity / diversity_theta_pi / diversity_roh / diversity_aggregated`. Mode B is the long-term direction (see _handoff_docs/DATA_PROVENANCE.md §2.4). Pages today do not depend on Mode B; it is wired so future pageN.js modules can swap a `D.S1.row` read for `registry.resolve('samples_genomewide_het')` without changing the carve.",
   "_tier_legend": {
     "hot":  "RAM-pinned at trigger event; pages read state directly; <1ms",
     "warm": "IndexedDB-cached at trigger event; first read async ~50ms; subsequent ~10ms",
     "cold": "Fetched on demand; spinner allowed"
   },
-  "layers": {}
+  "_v2_changes_2026-05-20": "First pass at IN/OUT JSON adapters for the diversity pipeline. Adds layer entries that resolve through master_config roots (no atlas-relative copies needed); paired with extractors.registry.json entries that normalize the raw TSV/pestPG into typed payloads, and actions.registry.json entries that let the browser trigger a server-side capture via POST /api/actions. Layers are warm-tier so the first read materialises and subsequent reads return from IndexedDB. ROH layers are declared but disabled — `diversity_roh` and `diversity_aggregated` are empty on disk today (see _handoff_docs/MISSING_DATA.md).",
+
+  "layers": {
+
+    "_section_1": "==== HETEROZYGOSITY DOMAIN — Module 02_heterozygosity (results_diversity/02_heterozygosity/) ====",
+
+    "samples_genomewide_het": {
+      "tier":           "warm",
+      "preload_on":     "page_mount",
+      "source":         "file",
+      "root":           "diversity_heterozygosity",
+      "path_under_root":"04_summary/genomewide_heterozygosity.tsv",
+      "format":         "tsv",
+      "schema":         "../schemas/samples_genomewide_het_v1.schema.json",
+      "schema_status":  "draft",
+      "fields":         ["sample", "het_genomewide", "n_sites_sfs", "sfs_bin0", "sfs_bin1"],
+      "_doc":           "One row per sample (n=226). Genome-wide H = sfs_bin1 / (sfs_bin0 + sfs_bin1) from a folded 1-D SFS. Feeds the H column of S1 (per-sample master table) and the single-cohort boxplot. Extractor: extract_genomewide_het_v1."
+    },
+
+    "samples_sfs": {
+      "tier":           "warm",
+      "preload_on":     "explicit",
+      "source":         "file",
+      "root":           "diversity_heterozygosity",
+      "path_under_root":"02_sfs/{sample_id}.est.ml",
+      "format":         "tsv",
+      "schema":         "../schemas/sample_sfs_v1.schema.json",
+      "schema_status":  "draft",
+      "_doc":           "Per-sample folded 1-D SFS emitted by realSFS -fold 1 (two whitespace-separated values per row: bin0_count, bin1_count). 226 files. Tier=warm/explicit because per-sample SFS is only fetched when a sample detail panel asks for it. Extractor: extract_sfs_ml_v1."
+    },
+
+    "samples_single_boxplot_input": {
+      "tier":           "warm",
+      "preload_on":     "page_mount",
+      "source":         "file",
+      "root":           "diversity_heterozygosity",
+      "path_under_root":"05_single_heterozygosity_boxplot/single_boxplot_input_dataframe.tsv",
+      "format":         "tsv",
+      "schema":         "../schemas/tsv_table_v1.schema.json",
+      "schema_status":  "draft",
+      "_doc":           "Long-format dataframe used by the cohort-wide single boxplot. Passthrough TSV — extractor preserves columns verbatim. Extractor: extract_tsv_passthrough_v1."
+    },
+
+    "_section_2": "==== ANCESTRY × HETEROZYGOSITY — Module 02_heterozygosity/05_ancestry_heterozygosity (per-K K=2..12 × cohort ∈ {all226, pruned81}) ====",
+    "_section_2_doc": "Each layer below templates on {K} and {cohort}. K is zero-padded two digits ('02'..'12'). cohort ∈ {'all226', 'pruned81'}. The full grid is 11 K × 2 cohorts = 22 per-layer files. Feeds pages `ancestry` (K=8 stratified F_ROH/H + K-sweep trajectory) and `pruning_qc` (NAToRA + ngsF-HMM). Atlas reads whichever K is active.",
+
+    "ancestry_het_kruskal": {
+      "tier":           "warm",
+      "preload_on":     "explicit",
+      "source":         "file",
+      "root":           "diversity_heterozygosity",
+      "path_under_root":"05_ancestry_heterozygosity/tables/kruskal_K{K}_{cohort}.tsv",
+      "format":         "tsv",
+      "schema":         "../schemas/ancestry_het_kruskal_v1.schema.json",
+      "schema_status":  "draft",
+      "_doc":           "Kruskal-Wallis test of heterozygosity across K cluster labels. Feeds S5_kw at K=8. Extractor: extract_tsv_passthrough_v1."
+    },
+
+    "ancestry_het_anova": {
+      "tier":           "warm",
+      "preload_on":     "explicit",
+      "source":         "file",
+      "root":           "diversity_heterozygosity",
+      "path_under_root":"05_ancestry_heterozygosity/tables/anova_K{K}_{cohort}.tsv",
+      "format":         "tsv",
+      "schema":         "../schemas/tsv_table_v1.schema.json",
+      "schema_status":  "draft"
+    },
+
+    "ancestry_het_pairwise_wilcox": {
+      "tier":           "warm",
+      "preload_on":     "explicit",
+      "source":         "file",
+      "root":           "diversity_heterozygosity",
+      "path_under_root":"05_ancestry_heterozygosity/tables/pairwise_wilcox_K{K}_{cohort}.tsv",
+      "format":         "tsv",
+      "schema":         "../schemas/tsv_table_v1.schema.json",
+      "schema_status":  "draft",
+      "_doc":           "Pairwise post-hoc Wilcoxon between K cluster labels. Closest match for S5_pair at K=8."
+    },
+
+    "ancestry_het_pairwise_ttest": {
+      "tier":           "warm",
+      "preload_on":     "explicit",
+      "source":         "file",
+      "root":           "diversity_heterozygosity",
+      "path_under_root":"05_ancestry_heterozygosity/tables/pairwise_ttest_K{K}_{cohort}.tsv",
+      "format":         "tsv",
+      "schema":         "../schemas/tsv_table_v1.schema.json",
+      "schema_status":  "draft"
+    },
+
+    "ancestry_het_cluster_summary": {
+      "tier":           "warm",
+      "preload_on":     "explicit",
+      "source":         "file",
+      "root":           "diversity_heterozygosity",
+      "path_under_root":"05_ancestry_heterozygosity/tables/cluster_summary_K{K}_{cohort}.tsv",
+      "format":         "tsv",
+      "schema":         "../schemas/tsv_table_v1.schema.json",
+      "schema_status":  "draft",
+      "_doc":           "Per-cluster summary (N, mean H, sd H, ...). Closest substrate for S9 centroids."
+    },
+
+    "ancestry_het_summary": {
+      "tier":           "warm",
+      "preload_on":     "explicit",
+      "source":         "file",
+      "root":           "diversity_heterozygosity",
+      "path_under_root":"05_ancestry_heterozygosity/tables/summary_K{K}_{cohort}.tsv",
+      "format":         "tsv",
+      "schema":         "../schemas/tsv_table_v1.schema.json",
+      "schema_status":  "draft"
+    },
+
+    "ancestry_het_outliers_cluster": {
+      "tier":           "warm",
+      "preload_on":     "explicit",
+      "source":         "file",
+      "root":           "diversity_heterozygosity",
+      "path_under_root":"05_ancestry_heterozygosity/tables/outliers_cluster_K{K}_{cohort}.tsv",
+      "format":         "tsv",
+      "schema":         "../schemas/tsv_table_v1.schema.json",
+      "schema_status":  "draft"
+    },
+
+    "ancestry_het_outliers_qmaxclass": {
+      "tier":           "warm",
+      "preload_on":     "explicit",
+      "source":         "file",
+      "root":           "diversity_heterozygosity",
+      "path_under_root":"05_ancestry_heterozygosity/tables/outliers_qmaxclass_K{K}_{cohort}.tsv",
+      "format":         "tsv",
+      "schema":         "../schemas/tsv_table_v1.schema.json",
+      "schema_status":  "draft"
+    },
+
+    "ancestry_het_q_correlations": {
+      "tier":           "warm",
+      "preload_on":     "explicit",
+      "source":         "file",
+      "root":           "diversity_heterozygosity",
+      "path_under_root":"05_ancestry_heterozygosity/tables/q_correlations_K{K}_{cohort}.tsv",
+      "format":         "tsv",
+      "schema":         "../schemas/tsv_table_v1.schema.json",
+      "schema_status":  "draft",
+      "_doc":           "Per-Q-component × H Spearman correlations. Closest substrate for S10."
+    },
+
+    "ancestry_het_q_linear_models": {
+      "tier":           "warm",
+      "preload_on":     "explicit",
+      "source":         "file",
+      "root":           "diversity_heterozygosity",
+      "path_under_root":"05_ancestry_heterozygosity/tables/q_linear_models_K{K}_{cohort}.tsv",
+      "format":         "tsv",
+      "schema":         "../schemas/tsv_table_v1.schema.json",
+      "schema_status":  "draft"
+    },
+
+    "ancestry_het_merged": {
+      "tier":           "warm",
+      "preload_on":     "explicit",
+      "source":         "file",
+      "root":           "diversity_heterozygosity",
+      "path_under_root":"05_ancestry_heterozygosity/tables/merged_K{K}_{cohort}.tsv",
+      "format":         "tsv",
+      "schema":         "../schemas/tsv_table_v1.schema.json",
+      "schema_status":  "draft",
+      "_doc":           "Merged per-sample table for a given K and cohort: sample × cluster label × Q vector × H. Per-sample drill-down substrate."
+    },
+
+    "_section_3": "==== ANCESTRY × HET — cross-K aggregates (single file, no template) ====",
+
+    "ancestry_het_anova_all": {
+      "tier":           "warm",
+      "preload_on":     "page_mount",
+      "source":         "file",
+      "root":           "diversity_heterozygosity",
+      "path_under_root":"05_ancestry_heterozygosity/tables/anova_results_all.tsv",
+      "format":         "tsv",
+      "schema":         "../schemas/tsv_table_v1.schema.json",
+      "schema_status":  "draft"
+    },
+
+    "ancestry_het_kruskal_all": {
+      "tier":           "warm",
+      "preload_on":     "page_mount",
+      "source":         "file",
+      "root":           "diversity_heterozygosity",
+      "path_under_root":"05_ancestry_heterozygosity/tables/kruskal_results_all.tsv",
+      "format":         "tsv",
+      "schema":         "../schemas/tsv_table_v1.schema.json",
+      "schema_status":  "draft",
+      "_doc":           "K-sweep trajectory of Kruskal-Wallis tests (K=2..12). Closest substrate for S7."
+    },
+
+    "ancestry_het_pairwise_ttest_all": {
+      "tier":           "warm",
+      "preload_on":     "explicit",
+      "source":         "file",
+      "root":           "diversity_heterozygosity",
+      "path_under_root":"05_ancestry_heterozygosity/tables/pairwise_ttest_results_all.tsv",
+      "format":         "tsv",
+      "schema":         "../schemas/tsv_table_v1.schema.json",
+      "schema_status":  "draft"
+    },
+
+    "ancestry_het_pairwise_wilcox_all": {
+      "tier":           "warm",
+      "preload_on":     "explicit",
+      "source":         "file",
+      "root":           "diversity_heterozygosity",
+      "path_under_root":"05_ancestry_heterozygosity/tables/pairwise_wilcox_results_all.tsv",
+      "format":         "tsv",
+      "schema":         "../schemas/tsv_table_v1.schema.json",
+      "schema_status":  "draft"
+    },
+
+    "ancestry_het_q_correlations_all": {
+      "tier":           "warm",
+      "preload_on":     "explicit",
+      "source":         "file",
+      "root":           "diversity_heterozygosity",
+      "path_under_root":"05_ancestry_heterozygosity/tables/q_correlations_all.tsv",
+      "format":         "tsv",
+      "schema":         "../schemas/tsv_table_v1.schema.json",
+      "schema_status":  "draft"
+    },
+
+    "ancestry_het_q_linear_models_all": {
+      "tier":           "warm",
+      "preload_on":     "explicit",
+      "source":         "file",
+      "root":           "diversity_heterozygosity",
+      "path_under_root":"05_ancestry_heterozygosity/tables/q_linear_models_all.tsv",
+      "format":         "tsv",
+      "schema":         "../schemas/tsv_table_v1.schema.json",
+      "schema_status":  "draft"
+    },
+
+    "ancestry_het_cluster_summary_all": {
+      "tier":           "warm",
+      "preload_on":     "page_mount",
+      "source":         "file",
+      "root":           "diversity_heterozygosity",
+      "path_under_root":"05_ancestry_heterozygosity/tables/cluster_summary_all.tsv",
+      "format":         "tsv",
+      "schema":         "../schemas/tsv_table_v1.schema.json",
+      "schema_status":  "draft"
+    },
+
+    "ancestry_het_cleaned_heterozygosity": {
+      "tier":           "warm",
+      "preload_on":     "page_mount",
+      "source":         "file",
+      "root":           "diversity_heterozygosity",
+      "path_under_root":"05_ancestry_heterozygosity/tables/cleaned_heterozygosity.tsv",
+      "format":         "tsv",
+      "schema":         "../schemas/tsv_table_v1.schema.json",
+      "schema_status":  "draft",
+      "_doc":           "Per-sample cleaned H values used as the dependent variable in every downstream stratified test."
+    },
+
+    "ancestry_het_cleaned_structure_labels": {
+      "tier":           "warm",
+      "preload_on":     "page_mount",
+      "source":         "file",
+      "root":           "diversity_heterozygosity",
+      "path_under_root":"05_ancestry_heterozygosity/tables/cleaned_structure_labels.tsv",
+      "format":         "tsv",
+      "schema":         "../schemas/tsv_table_v1.schema.json",
+      "schema_status":  "draft",
+      "_doc":           "Per-sample × per-K cluster label assignment. Source-of-truth for K=8 group membership used by every stratified plot."
+    },
+
+    "ancestry_het_pruned81_samples": {
+      "tier":           "warm",
+      "preload_on":     "page_mount",
+      "source":         "file",
+      "root":           "diversity_heterozygosity",
+      "path_under_root":"05_ancestry_heterozygosity/tables/pruned81_samples.tsv",
+      "format":         "tsv",
+      "schema":         "../schemas/tsv_table_v1.schema.json",
+      "schema_status":  "draft",
+      "_doc":           "List of the 81 NAToRA-pruned samples. Cross-references the 'pruned81' cohort in every K-template above."
+    },
+
+    "ancestry_het_best_seed_metadata": {
+      "tier":           "warm",
+      "preload_on":     "page_mount",
+      "source":         "file",
+      "root":           "diversity_heterozygosity",
+      "path_under_root":"05_ancestry_heterozygosity/tables/best_seed_metadata.tsv",
+      "format":         "tsv",
+      "schema":         "../schemas/tsv_table_v1.schema.json",
+      "schema_status":  "draft",
+      "_doc":           "Per-K best-seed selection metadata for NGSadmix runs."
+    },
+
+    "ancestry_het_all_outliers": {
+      "tier":           "warm",
+      "preload_on":     "explicit",
+      "source":         "file",
+      "root":           "diversity_heterozygosity",
+      "path_under_root":"05_ancestry_heterozygosity/tables/all_outliers.tsv",
+      "format":         "tsv",
+      "schema":         "../schemas/tsv_table_v1.schema.json",
+      "schema_status":  "draft"
+    },
+
+    "ancestry_het_whole_sample_outliers": {
+      "tier":           "warm",
+      "preload_on":     "explicit",
+      "source":         "file",
+      "root":           "diversity_heterozygosity",
+      "path_under_root":"05_ancestry_heterozygosity/tables/whole_sample_outliers_{cohort}.tsv",
+      "format":         "tsv",
+      "schema":         "../schemas/tsv_table_v1.schema.json",
+      "schema_status":  "draft"
+    },
+
+    "_section_4": "==== THETA-PI DOMAIN — Module 03_theta_pi (4 window scales × 226 samples = 904 .pestPG files) ====",
+    "_section_4_scales": "win10000.step2000 | win5000.step1000 | win50000.step10000 | win500000.step500000. Caller specifies {sample_id} and {win_bp}/{step_bp} (or pre-baked {scale} like '50kb' via a small JS helper). The per-window pestPG columns are: Chr, WinCenter, tW, tP, tF, tH, tL, Tajima, fuf, fud, fayh, zeng, nSites — see ANGSD doThetaStat docs.",
+
+    "samples_theta_pi_pestpg": {
+      "tier":           "warm",
+      "preload_on":     "explicit",
+      "source":         "file",
+      "root":           "diversity_theta_pi",
+      "path_under_root":"{sample_id}.win{win_bp}.step{step_bp}.pestPG",
+      "format":         "tsv",
+      "schema":         "../schemas/theta_pi_pestpg_v1.schema.json",
+      "schema_status":  "draft",
+      "fields":         ["Chr", "WinCenter", "tW", "tP", "Tajima", "nSites"],
+      "_doc":           "Per-sample per-window θπ + Tajima's D at one of 4 scales. Comments lines starting with '#(indexStart' are skipped by the extractor. tP/nSites is the diversity per window. Extractor: extract_pestpg_v1.",
+      "_callsite_example": "registry.resolve('samples_theta_pi_pestpg', { sample_id: 'CGA009', win_bp: 50000, step_bp: 10000 })"
+    },
+
+    "samples_theta_pi_arg": {
+      "tier":           "cold",
+      "preload_on":     "explicit",
+      "source":         "file",
+      "root":           "diversity_theta_pi",
+      "path_under_root":"{sample_id}.win{win_bp}.step{step_bp}.pestPG.arg",
+      "format":         "tsv",
+      "schema_status":  "any",
+      "_doc":           "Provenance side-car (ANGSD command-line). Optional; pulled only by the about/methods panel when a per-sample drill-down asks 'how was this computed?'.",
+      "disabled":       true,
+      "_disabled_reason":"2026-05-20: not all .pestPG files have a paired .arg in the on-disk listing yet — confirm before enabling. Likely emitted by thetaStat but currently absent from /mnt/e/results_diversity/03_theta_pi/."
+    },
+
+    "_section_5": "==== SAF DOMAIN — Module 01_saf_per_sample (only .arg log files mirrored to E:; .saf.idx/.saf.gz/.saf.pos.gz live on LANTA only) ====",
+
+    "samples_saf_arg": {
+      "tier":           "cold",
+      "preload_on":     "explicit",
+      "source":         "file",
+      "root":           "diversity_saf_per_sample",
+      "path_under_root":"{sample_id}.arg",
+      "format":         "tsv",
+      "schema_status":  "any",
+      "_doc":           "ANGSD command-line log for the per-sample SAF run. Useful for provenance / methods panel; not a substrate. The SAF binaries themselves (.saf.idx / .saf.gz / .saf.pos.gz) are NOT mirrored to E: — see _handoff_docs/MISSING_DATA.md."
+    },
+
+    "_section_6": "==== ROH DOMAIN — Module 04_roh (currently empty on disk) ====",
+
+    "samples_roh_per_sample": {
+      "tier":           "warm",
+      "preload_on":     "page_mount",
+      "source":         "file",
+      "root":           "diversity_roh",
+      "path_under_root":"per_sample/{sample_id}.roh.tsv",
+      "format":         "tsv",
+      "schema":         "../schemas/samples_roh_per_sample_v1.schema.json",
+      "schema_status":  "draft",
+      "disabled":       true,
+      "_disabled_reason":"2026-05-20: diversity_roh root is empty on disk; layer declared in advance so the wiring is ready when the pipeline ships. Expected layout per DATA_PROVENANCE.md is the catfish-diversity-analysis 04_roh_summary substrate (per-sample ROH segment table). See MISSING_DATA.md §2."
+    },
+
+    "cohort_froh_per_chrom": {
+      "tier":           "warm",
+      "preload_on":     "page_mount",
+      "source":         "file",
+      "root":           "diversity_roh",
+      "path_under_root":"per_chrom/froh_per_sample_per_chrom.tsv",
+      "format":         "tsv",
+      "schema":         "../schemas/tsv_table_v1.schema.json",
+      "schema_status":  "draft",
+      "disabled":       true,
+      "_disabled_reason":"2026-05-20: empty on disk. Closest substrate for D.S4 + the F_ROH column of D.S1. See MISSING_DATA.md §2."
+    },
+
+    "cohort_roh_length_bins": {
+      "tier":           "warm",
+      "preload_on":     "page_mount",
+      "source":         "file",
+      "root":           "diversity_roh",
+      "path_under_root":"per_sample/length_class_bins.tsv",
+      "format":         "tsv",
+      "schema":         "../schemas/tsv_table_v1.schema.json",
+      "schema_status":  "draft",
+      "disabled":       true,
+      "_disabled_reason":"2026-05-20: empty on disk. Closest substrate for D.S8 + D.S8b. See MISSING_DATA.md §2."
+    },
+
+    "_section_7": "==== AGGREGATED ROLLUPS — Module 05_aggregated (currently empty on disk) ====",
+
+    "cohort_master_samples": {
+      "tier":           "warm",
+      "preload_on":     "page_mount",
+      "source":         "file",
+      "root":           "diversity_aggregated",
+      "path_under_root":"samples_master.tsv",
+      "format":         "tsv",
+      "schema":         "../schemas/tsv_table_v1.schema.json",
+      "schema_status":  "draft",
+      "disabled":       true,
+      "_disabled_reason":"2026-05-20: diversity_aggregated root is empty on disk. Target: the cross-module per-sample master join that should land in 05_aggregated/ (H + F_ROH + K=8 label + ngsF-HMM convergence). Closest replacement for D.S1 once the upstream pipeline writes it. See MISSING_DATA.md §3."
+    },
+
+    "cohort_master_per_chrom": {
+      "tier":           "warm",
+      "preload_on":     "page_mount",
+      "source":         "file",
+      "root":           "diversity_aggregated",
+      "path_under_root":"per_chromosome_master.tsv",
+      "format":         "tsv",
+      "schema":         "../schemas/tsv_table_v1.schema.json",
+      "schema_status":  "draft",
+      "disabled":       true,
+      "_disabled_reason":"2026-05-20: empty on disk. Closest replacement for D.S4 once written. See MISSING_DATA.md §3."
+    },
+
+    "_section_8": "==== SPEC-DRIVEN OPTIONAL PAYLOADS (round-2 / round-3 specs in _handoff_docs/SPEC_2026-05-12_*.md) ====",
+    "_section_8_doc": "Four optional JSON payloads + per-variant MSA assets. Today loaded directly by shared/data_loader.js (parallel fetch alongside embedded_tables.json); registered here so future pages can call registry.resolve() and so schema validation can flip from 'draft' to 'validated' once the upstream pipelines emit non-stub payloads. All four ship as empty-object stubs today — page-side detector functions (hasTexture / hasBurden / hasNetwork / etc.) check for non-empty and render 'data pending' cards otherwise. Schemas are derived from the SPEC files §4 (data shape).",
+
+    "texture_metrics_payload": {
+      "tier":           "warm",
+      "preload_on":     "page_mount",
+      "source":         "file",
+      "path":           "data/texture_metrics.json",
+      "schema":         "../schemas/texture_metrics_v1.schema.json",
+      "schema_status":  "draft",
+      "owned_by":       "diversity",
+      "_doc":           "Per-sample texture metrics (DDI, χ_min, window H) for the `texture` page. Spec: data_loader.js header + DATA_PROVENANCE.md §3.1. Upstream owner: catfish-diversity-analysis / phase_2_discovery / 04_window_H_and_DDI.sh (to be written). Currently a stub on disk — page renders 'data pending' card. Estimated full size ~25 MB at 50 kb windows × 226 samples; consider parquet/binary if it grows beyond browser-comfort range."
+    },
+
+    "functional_burden_payload": {
+      "tier":           "warm",
+      "preload_on":     "page_mount",
+      "source":         "file",
+      "path":           "data/functional_burden.json",
+      "schema":         "../schemas/functional_burden_v1.schema.json",
+      "schema_status":  "draft",
+      "owned_by":       "diversity",
+      "_doc":           "Five-layer functional burden / selection efficacy payload for the `burden` page. Spec: SPEC_2026-05-12_functional_burden.md §4 + §12 (pairwise K-S) + §13 (transcripts) + §14 (msa_links). Annotator stack: bcftools csq + snpEff + VESM + custom splice module (§6.5). Upstream pipeline: proposed catfish-diversity-analysis 11_functional_burden/ (csq + snpEff + VESM + splice). Cross-atlas deps: gene model + CDS FASTA from genome-atlas. Currently a stub on disk."
+    },
+
+    "roh_gene_overlap_payload": {
+      "tier":           "warm",
+      "preload_on":     "page_mount",
+      "source":         "file",
+      "path":           "data/roh_gene_overlap.json",
+      "schema":         "../schemas/roh_gene_overlap_v1.schema.json",
+      "schema_status":  "draft",
+      "owned_by":       "diversity",
+      "_doc":           "ROH × gene-model intersection for the `roh` page extension (Plot A cumulative gene-burden + Plot B biotype × peak heatmap-table). Spec: SPEC_2026-05-12_roh_gene_burden.md §3 (Plot A) + §4 (Plot B). Open data dependency: constraint proxy (pLI analog) — §6.2 is still data-blocked (BUSCO / OrthoFinder / dN/dS / ohnolog / GERP ≥ 4); pipeline picks one once the genome-atlas track lands. Currently a stub on disk."
+    },
+
+    "divergence_network_payload": {
+      "tier":           "warm",
+      "preload_on":     "page_mount",
+      "source":         "file",
+      "path":           "data/divergence_network.json",
+      "schema":         "../schemas/divergence_network_v1.schema.json",
+      "schema_status":  "draft",
+      "owned_by":       "diversity",
+      "_doc":           "Group-divergence network for the `divergence` page (nodes = K=8 groups by default; edges = pairwise FST / DXY / dA). Spec: SPEC_2026-05-12_divergence_network.md §4. Default grouping K=8, plus alternative_groupings.farm / sex / karyotype:<inv_id>. Open dependency: FST estimator choice (Weir & Cockerham / Hudson / Reynolds) is pipeline-side — atlas reads whichever number ships. Upstream pipeline: catfish-diversity-analysis / phase_3_pairwise/02_group_divergence.sh (realSFS + bootstrap). Currently a stub on disk."
+    },
+
+    "msa_svg": {
+      "tier":           "cold",
+      "preload_on":     "explicit",
+      "source":         "file",
+      "path":           "data/msa/{variant_id}.svg",
+      "schema_status":  "any",
+      "format":         "binary",
+      "owned_by":       "diversity",
+      "_doc":           "Per-variant teleost-ortholog MSA pre-rendered by pyMSAviz. Spec: SPEC_2026-05-12_functional_burden.md §14. variant_id template uses the canonical 'chr:pos:ref:alt' form (e.g. 'chr07_12345678_A_G.svg' — underscored for filesystem safety). Atlas-side: <img> or <object> tag pointing at the SVG; missing key → 'MSA not available for this variant' fallback card. Estimated total size for the round-1 top-burden set (~60 variants × 5-10 KB) ≈ 0.3-0.6 MB. Cross-referenced from functional_burden_payload.msa_links[variant_id].",
+      "_callsite_example": "registry.resolve('msa_svg', { variant_id: 'chr07_12345678_A_G' })"
+    },
+
+    "_section_9": "==== STAGING-CAPTURE LAYER (existing) ====",
+    "_section_9_doc": "Output of the import_slot action — captures one /api/diversity/{slot} payload as a staging layer. Pre-existed this refactor; kept for the api_client / handoff tests.",
+
+    "staging_diversity_slot": {
+      "tier":           "warm",
+      "preload_on":     "explicit",
+      "source":         "operation",
+      "operation":      "import_slot",
+      "schema":         "../schemas/schema_out/staging_diversity_slot_v0.schema.json",
+      "schema_status":  "validated",
+      "_doc":           "Output of the import_slot action. Cached per (slot) tuple. Not consumed by any page today; emitted for downstream tools (export, audit)."
+    },
+
+    "_section_10": "==== CROSS-ATLAS POINTER (out of scope here; recorded only) ====",
+    "_section_10_doc": "SPEC_2026-05-12_pairwise_segclass.md routes pairwise θπ in het-inversion vs collinear segments to the population-atlas (per-pair is structurally a Population Atlas concern). NOT registered here. The population-atlas will own the layer entry + extractor for atlases/population/data/pairwise_segclass.json when that pipeline ships."
+  }
 }

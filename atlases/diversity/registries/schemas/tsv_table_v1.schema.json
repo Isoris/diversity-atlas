@@ -1,0 +1,22 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "tsv_table_v1.schema.json",
+  "title": "tsv_table_v1 — generic header-keyed TSV table",
+  "description": "Permissive passthrough schema for any TSV whose row shape the atlas does NOT yet need to constrain. The extractor (extract_tsv_passthrough_v1) reads the file with the first non-comment line as the header, then emits one object per data row with column-name keys. Use this schema when (a) the upstream column set is still evolving, (b) the atlas only reads a subset of columns by name, or (c) a layer is declared in advance of a stricter v2 schema. Promote a layer to its own typed schema once column names stabilise and the page-side reads exercise enough columns to validate.",
+  "type": "object",
+  "additionalProperties": {
+    "oneOf": [
+      { "type": "string" },
+      { "type": "number" },
+      { "type": "integer" },
+      { "type": "boolean" },
+      { "type": "null" }
+    ]
+  },
+  "_notes": [
+    "Row-level schema. The whole-file shape is `{ rows: tsv_table_v1[] }` — see the extractor for the wrapper.",
+    "additionalProperties allows any column name; values may be string|number|integer|boolean|null. The extractor decides type-coercion (default: numeric parse with NA → null fallback).",
+    "Comment lines starting with '#' are skipped by the extractor; the first non-comment line is treated as the header.",
+    "TSV files referenced by tsv_table_v1 today: anova_K{K}_{cohort}.tsv, pairwise_wilcox/ttest, cluster_summary, summary, outliers_*, q_correlations / q_linear_models, merged_K{K}_{cohort}.tsv, *_all.tsv aggregates, cleaned_heterozygosity, cleaned_structure_labels, pruned81_samples, best_seed_metadata, single_boxplot_input_dataframe, length_class_bins, samples_master, per_chromosome_master, froh_per_sample_per_chrom."
+  ]
+}

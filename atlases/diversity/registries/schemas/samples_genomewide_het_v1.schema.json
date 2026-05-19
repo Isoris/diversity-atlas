@@ -1,0 +1,42 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "samples_genomewide_het_v1.schema.json",
+  "title": "samples_genomewide_het_v1 — per-sample genome-wide heterozygosity row",
+  "description": "One row per sample (n=226 in the C. gariepinus hatchery cohort). Genome-wide H is derived from a folded 1-D site frequency spectrum produced by ANGSD + realSFS (see catfish-diversity-analysis/docs/methods/MODULE_3_methods.md §A02 'Per-sample heterozygosity estimation'). Feeds the H column of the per-sample master table (S1 in the legacy carve) and the single-cohort boxplot.",
+  "type": "object",
+  "required": ["sample", "het_genomewide", "n_sites_sfs", "sfs_bin0", "sfs_bin1"],
+  "additionalProperties": true,
+  "properties": {
+    "sample": {
+      "type": "string",
+      "description": "CGA-prefixed sample identifier (e.g. 'CGA009'). Matches the canonical 226-sample bamlist."
+    },
+    "het_genomewide": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1,
+      "description": "Genome-wide heterozygosity H = sfs_bin1 / (sfs_bin0 + sfs_bin1). Derived from the folded 1-D SFS."
+    },
+    "n_sites_sfs": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Total callable sites contributing to the SFS (sfs_bin0 + sfs_bin1, before filtering)."
+    },
+    "sfs_bin0": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Expected count of monomorphic sites under the folded SFS (i.e., reference-state sites). Real number because realSFS returns ML expectations, not integer counts."
+    },
+    "sfs_bin1": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Expected count of singleton (heterozygous) sites under the folded SFS. Real number because realSFS returns ML expectations."
+    }
+  },
+  "_provenance": {
+    "pipeline":   "catfish-diversity-analysis/01_het_theta_pi/STEP_A02_run_heterozygosity.sh",
+    "method_doc": "catfish-diversity-analysis/docs/methods/MODULE_3_methods.md §A02",
+    "angsd_args": "-doSaf 1 -GL 1 -minMapQ 30 -minQ 20 -C 50 (per-sample SAF), then realSFS -fold 1 -maxiter 2000 -tole 1e-16",
+    "on_disk":    "diversity_heterozygosity root → 04_summary/genomewide_heterozygosity.tsv (one row per sample)"
+  }
+}

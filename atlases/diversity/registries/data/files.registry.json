@@ -1,7 +1,10 @@
 {
   "$schema": "../../../../core/registry_core.schema.json",
-  "_doc": "Static file inventory for the diversity atlas. Round-1 ships exactly one file: the bulk JSON snapshot of the 37 MODULE_3 tables embedded in the legacy v2.4 HTML. The shell does not preload it via the file registry today — the data_loader module fetches it directly. Listed here for packaging and integrity checks.",
+  "_doc": "Static file inventory for the diversity atlas. Two cohorts of files: (A) the in-repo bulk snapshot + 4 optional payloads that ship inside data/ — round-1 carve-from-manuscript path, NOT a real pipeline output; (B) the on-disk pipeline outputs under master_config roots `diversity_*` (added 2026-05-20). The shell uses (A) for the existing data_loader.js path and (B) for packaging / integrity checks / dev tooling listings. Layer-level wiring for (B) lives in layers.registry.json.",
   "files": {
+
+    "_section_1": "==== In-repo data/ snapshot (manuscript carve) ====",
+
     "embedded_tables": {
       "path_template":     "data/embedded_tables.json",
       "scope":             "cohort",
@@ -9,8 +12,9 @@
       "preload_on":        "atlas_register",
       "estimated_size_mb": 2.4,
       "workflow":          "diversity",
-      "_doc":              "Single JSON with all 37 dt_* blobs from Diversity_atlas.html v2.4 (D.globals + D.S1..D.S12 + D.ST1..D.ST5 + D.SD1..D.SD8 + D.SZ + D.REF + meta blocks). Loaded once by shared/data_loader.js."
+      "_doc":              "Single JSON with all 37 dt_* blobs from Diversity_atlas.html v2.4. Loaded once by shared/data_loader.js. NOT registered as a layer — accessed by the JS loader directly."
     },
+
     "texture_metrics": {
       "path_template":     "data/texture_metrics.json",
       "scope":             "cohort",
@@ -21,6 +25,7 @@
       "optional":          true,
       "_doc":              "Per-sample texture metrics consumed by page9. Round-2 ships an empty stub; the full payload is emitted by catfish-diversity-analysis phase_2_discovery/04_window_H_and_DDI.sh and contains: params{}, cohort_summary{}, per_sample[] (sample, h_gw, ddi, chi_min, chi_min_chr, chi_min_pos, median_H_w, mad_H_w), windows{ chroms[], cohort_median_H_w[], cohort_q25_H_w[], cohort_q75_H_w[] }, per_sample_H_w{ sample_id: [H_w per window] }. Estimated full size ~25 MB at 50 kb windows × 226 samples; consider parquet/binary if it grows beyond browser-comfort range. Loaded by shared/data_loader.js in parallel with embedded_tables; a missing file resolves to null and page9 renders the 'data pending' card."
     },
+
     "functional_burden": {
       "path_template":     "data/functional_burden.json",
       "scope":             "cohort",
@@ -29,8 +34,9 @@
       "estimated_size_mb": 2,
       "workflow":          "diversity",
       "optional":          true,
-      "_doc":              "Functional burden / selection efficacy payload consumed by page10. Round-3 ships an empty stub; full payload is emitted by the upstream pipeline running bcftools csq + snpEff + VESM + custom splice module. Schema in SPEC_2026-05-12_functional_burden.md §4: variant_inventory[] (snpEff impact × mutation type), snpeff_totals[], gerp_inventory[] (off by default), per_sample[] (πN, πS, πN/πS, π0/π4, vesm_burden, lof_count, splice_count, ROH_overlap_fraction), per_group['K=8'][], pairwise_ks (K–S P-value matrices per layer), top_burden_genes_by_group, transcripts{}, splice_events[], msa_links (variant_id → SVG path). MSA SVGs live in data/msa/<variant_id>.svg, pre-rendered by pyMSAviz upstream. Loaded by shared/data_loader.js; absent → page10 'data pending' card."
+      "_doc":              "Functional burden / selection efficacy payload consumed by page10. Round-3 ships an empty stub; full payload is emitted by the upstream pipeline running bcftools csq + snpEff + VESM + custom splice module. Schema in SPEC_2026-05-12_functional_burden.md §4. Loaded by shared/data_loader.js; absent → page10 'data pending' card."
     },
+
     "roh_gene_overlap": {
       "path_template":     "data/roh_gene_overlap.json",
       "scope":             "cohort",
@@ -39,8 +45,9 @@
       "estimated_size_mb": 5,
       "workflow":          "diversity",
       "optional":          true,
-      "_doc":              "ROH × gene-model intersection product consumed by the page5 extension (Plot A cumulative gene-burden stack + Plot B biotype × peak heatmap-table). Round-3 ships an empty stub. Schema in SPEC_2026-05-12_roh_gene_burden.md §4 + §5: blocks[] (per-block { gene_ids[], biotype, constraint_score }), peaks[] (named ROH peaks with biotype_counts), per_group_cumulative['K=8'][] (cumulative high-constraint-gene count vs ROH-block rank, per group). Constraint proxy still data-blocked (§6.2 — pLI analog for catfish; possibly GERP ≥ 4 from teleost alignment if that track ever lands). Loaded by shared/data_loader.js; absent → page5 renders the standard ROH composition view without the new burden cards."
+      "_doc":              "ROH × gene-model intersection product consumed by the page5 extension. Round-3 ships an empty stub. Schema in SPEC_2026-05-12_roh_gene_burden.md §4 + §5."
     },
+
     "divergence_network": {
       "path_template":     "data/divergence_network.json",
       "scope":             "cohort",
@@ -49,7 +56,133 @@
       "estimated_size_mb": 0.5,
       "workflow":          "diversity",
       "optional":          true,
-      "_doc":              "Pairwise group-divergence network payload consumed by page11. Round-3 ships an empty stub. Schema in SPEC_2026-05-12_divergence_network.md §4: nodes[] (K=8 group label, n_samples, pi, pi_ci), edges[] (group_i, group_j, fst, fst_ci, dxy, dxy_ci, dA, n_bootstrap), alternative_groupings{} (farm, sex, karyotype:<inv_id>). Estimator (Weir & Cockerham vs Hudson vs Reynolds) is pipeline-side (§9.1); atlas reads whatever number ships. Loaded by shared/data_loader.js; absent → page11 'data pending' card."
+      "_doc":              "Pairwise group-divergence network payload consumed by page11. Round-3 ships an empty stub. Schema in SPEC_2026-05-12_divergence_network.md §4."
+    },
+
+    "_section_2": "==== On-disk pipeline outputs (under master_config roots diversity_*) ====",
+    "_section_2_doc": "Paths below use {root}/<sub> notation; resolve through master_config.yaml > roots.<root_name> at runtime. Each entry mirrors a layer in layers.registry.json. Edit master_config.yaml to relocate the entire family.",
+
+    "diversity_genomewide_het_tsv": {
+      "path_template":     "{diversity_heterozygosity}/04_summary/genomewide_heterozygosity.tsv",
+      "scope":             "cohort",
+      "tier":              "warm",
+      "preload_on":        "page_mount",
+      "estimated_size_mb": 0.05,
+      "workflow":          "diversity",
+      "_doc":              "Per-sample genome-wide H from realSFS folded SFS. Backs samples_genomewide_het layer."
+    },
+
+    "diversity_sfs_per_sample": {
+      "path_template":     "{diversity_heterozygosity}/02_sfs/{sample_id}.est.ml",
+      "scope":             "per_sample",
+      "tier":              "warm",
+      "preload_on":        "explicit",
+      "estimated_size_mb": 0.0001,
+      "workflow":          "diversity",
+      "_doc":              "Per-sample folded 1-D SFS. Backs samples_sfs layer."
+    },
+
+    "diversity_single_boxplot_input": {
+      "path_template":     "{diversity_heterozygosity}/05_single_heterozygosity_boxplot/single_boxplot_input_dataframe.tsv",
+      "scope":             "cohort",
+      "tier":              "warm",
+      "preload_on":        "page_mount",
+      "estimated_size_mb": 0.1,
+      "workflow":          "diversity"
+    },
+
+    "diversity_ancestry_het_tables": {
+      "path_pattern":      "{diversity_heterozygosity}/05_ancestry_heterozygosity/tables/{kruskal|anova|pairwise_wilcox|pairwise_ttest|cluster_summary|summary|outliers_cluster|outliers_qmaxclass|q_correlations|q_linear_models|merged}_K{02..12}_{all226|pruned81}.tsv",
+      "scope":             "cohort",
+      "tier":              "warm",
+      "preload_on":        "explicit",
+      "workflow":          "diversity",
+      "_doc":              "Per-K × cohort stratified tests. Eleven test families × 11 K × 2 cohorts ≈ 242 files. Backs ancestry_het_* per-K layers in layers.registry.json."
+    },
+
+    "diversity_ancestry_het_aggregates": {
+      "scope":             "cohort",
+      "tier":              "warm",
+      "preload_on":        "page_mount",
+      "workflow":          "diversity",
+      "list": [
+        "{diversity_heterozygosity}/05_ancestry_heterozygosity/tables/anova_results_all.tsv",
+        "{diversity_heterozygosity}/05_ancestry_heterozygosity/tables/kruskal_results_all.tsv",
+        "{diversity_heterozygosity}/05_ancestry_heterozygosity/tables/pairwise_ttest_results_all.tsv",
+        "{diversity_heterozygosity}/05_ancestry_heterozygosity/tables/pairwise_wilcox_results_all.tsv",
+        "{diversity_heterozygosity}/05_ancestry_heterozygosity/tables/q_correlations_all.tsv",
+        "{diversity_heterozygosity}/05_ancestry_heterozygosity/tables/q_linear_models_all.tsv",
+        "{diversity_heterozygosity}/05_ancestry_heterozygosity/tables/cluster_summary_all.tsv",
+        "{diversity_heterozygosity}/05_ancestry_heterozygosity/tables/cleaned_heterozygosity.tsv",
+        "{diversity_heterozygosity}/05_ancestry_heterozygosity/tables/cleaned_structure_labels.tsv",
+        "{diversity_heterozygosity}/05_ancestry_heterozygosity/tables/pruned81_samples.tsv",
+        "{diversity_heterozygosity}/05_ancestry_heterozygosity/tables/best_seed_metadata.tsv",
+        "{diversity_heterozygosity}/05_ancestry_heterozygosity/tables/all_outliers.tsv",
+        "{diversity_heterozygosity}/05_ancestry_heterozygosity/tables/summary_report.tsv"
+      ],
+      "_doc":              "Cross-K aggregates — single files, no template. Backs ancestry_het_*_all + cleaned_* + pruned81 layers."
+    },
+
+    "diversity_theta_pi_pestpg": {
+      "path_template":     "{diversity_theta_pi}/{sample_id}.win{win_bp}.step{step_bp}.pestPG",
+      "scope":             "per_sample",
+      "tier":              "warm",
+      "preload_on":        "explicit",
+      "estimated_size_mb": 0.3,
+      "workflow":          "diversity",
+      "_doc":              "ANGSD doThetaStat per-window output, 4 scales × 226 samples = 904 files. Backs samples_theta_pi_pestpg layer.",
+      "_scales": [
+        "win10000.step2000",
+        "win5000.step1000",
+        "win50000.step10000",
+        "win500000.step500000"
+      ]
+    },
+
+    "diversity_saf_arg": {
+      "path_template":     "{diversity_saf_per_sample}/{sample_id}.arg",
+      "scope":             "per_sample",
+      "tier":              "cold",
+      "preload_on":        "explicit",
+      "estimated_size_mb": 0.01,
+      "workflow":          "diversity",
+      "_doc":              "ANGSD command-line provenance log per sample. NB: the SAF binaries themselves (.saf.idx / .saf.gz / .saf.pos.gz) are not present on E:/results_diversity/01_saf_per_sample/ — only the .arg log files were mirrored from LANTA. See MISSING_DATA.md §1."
+    },
+
+    "diversity_roh_pending": {
+      "scope":             "cohort",
+      "tier":              "warm",
+      "preload_on":        "page_mount",
+      "workflow":          "diversity",
+      "optional":          true,
+      "_doc":              "diversity_roh root is currently EMPTY on disk. Layer entries (samples_roh_per_sample, cohort_froh_per_chrom, cohort_roh_length_bins) are declared in layers.registry.json with disabled: true so the wiring is ready when the pipeline ships. See MISSING_DATA.md §2."
+    },
+
+    "diversity_aggregated_pending": {
+      "scope":             "cohort",
+      "tier":              "warm",
+      "preload_on":        "page_mount",
+      "workflow":          "diversity",
+      "optional":          true,
+      "_doc":              "diversity_aggregated root is currently EMPTY on disk. cohort_master_samples + cohort_master_per_chrom layers in layers.registry.json carry disabled: true. See MISSING_DATA.md §3."
+    },
+
+    "raw_results_capture": {
+      "path_template":     "raw_results/diversity/{action_id}/{slot}.json",
+      "scope":             "per_session",
+      "tier":              "warm",
+      "writable":          true,
+      "workflow":          "diversity",
+      "_doc":              "Where the import_slot runner persists the bytes captured from GET /api/diversity/{slot}. Read by the diversity_slot extractor. action_id is the manifest id; slot is one of embedded_tables / texture_metrics / functional_burden / roh_gene_overlap / divergence_network."
+    },
+
+    "raw_results_harvest": {
+      "path_template":     "raw_results/diversity/{action_id}/{layer_key}_{leaf}",
+      "scope":             "per_session",
+      "tier":              "warm",
+      "writable":          true,
+      "workflow":          "diversity",
+      "_doc":              "Where the harvest_file runner persists the bytes copied from a master_config-root file. Read by the matching normalizer extractor (extract_genomewide_het_v1, extract_pestpg_v1, extract_tsv_passthrough_v1, ...)."
     }
   }
 }

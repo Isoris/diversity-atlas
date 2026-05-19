@@ -1,0 +1,73 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "samples_roh_per_sample_v1.schema.json",
+  "title": "samples_roh_per_sample_v1 — per-sample ROH segment row",
+  "description": "One row per called Run-of-Homozygosity segment for one sample. ROH are detected by ngsF-HMM on genotype likelihoods (no hard-call bias at low coverage) — see catfish-diversity-analysis/docs/methods/MODULE_3_methods.md §A03-A04. Length bins follow the demographic convention: short (<1 Mb, ancestral bottlenecks), medium (1-5 Mb, historical inbreeding), long (>5 Mb, recent inbreeding). NOTE: as of 2026-05-20 the diversity_roh root is empty on disk — this schema is published in advance so the wiring is ready when the pipeline ships the per-sample segment tables.",
+  "type": "object",
+  "required": ["sample", "chrom", "start_bp", "end_bp", "length_bp"],
+  "additionalProperties": true,
+  "properties": {
+    "sample": {
+      "type": "string",
+      "description": "CGA-prefixed sample identifier. One sample contributes many rows (one per segment)."
+    },
+    "chrom": {
+      "type": "string",
+      "description": "Chromosome label matching the reference FASTA header (e.g. 'C_gar_LG01')."
+    },
+    "start_bp": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "ROH segment start coordinate in base pairs (1-based, inclusive)."
+    },
+    "end_bp": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "ROH segment end coordinate (1-based, inclusive). end_bp >= start_bp."
+    },
+    "length_bp": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Segment length in bp = end_bp - start_bp + 1. Used to bucket into the short/medium/long length classes."
+    },
+    "length_class": {
+      "type": "string",
+      "enum": ["short", "medium", "long"],
+      "description": "Demographic length class: short < 1 Mb, medium ∈ [1 Mb, 5 Mb], long > 5 Mb. See MODULE_3 §A04 for the rationale."
+    },
+    "n_sites": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Number of callable sites within the segment. Used as a denominator for in-ROH heterozygosity computation."
+    },
+    "het_in_roh": {
+      "type": ["number", "null"],
+      "minimum": 0,
+      "maximum": 1,
+      "description": "Heterozygosity computed within this ROH segment (expected to be near zero; nonzero values flag mis-calls or recombinant segments). null when n_sites = 0."
+    },
+    "posterior_min": {
+      "type": ["number", "null"],
+      "minimum": 0,
+      "maximum": 1,
+      "description": "Minimum per-site IBD posterior across the segment (from ngsF-HMM). Useful for calibrating the threshold that converted posteriors → discrete segment calls. null when not reported."
+    },
+    "posterior_mean": {
+      "type": ["number", "null"],
+      "minimum": 0,
+      "maximum": 1,
+      "description": "Mean per-site IBD posterior across the segment. null when not reported."
+    },
+    "seed": {
+      "type": ["integer", "null"],
+      "description": "The ngsF-HMM random seed (1 of 10 replicates ∈ 42..51) of the replicate whose call set was retained (the one with the highest log-likelihood). null when not recorded."
+    }
+  },
+  "_provenance": {
+    "pipeline":   "catfish-diversity-analysis/02_roh/STEP_A03_run_ngsF_HMM.sh + STEP_A04_parse_roh_and_het.sh",
+    "method_doc": "catfish-diversity-analysis/docs/methods/MODULE_3_methods.md §A03-A04",
+    "ngsf_hmm":   "10 random restarts (seeds 42-51), retained the replicate with highest log-likelihood",
+    "on_disk":    "diversity_roh root → per_sample/<sample>.roh.tsv  (NOT YET WRITTEN; layer disabled in layers.registry.json)",
+    "_status":    "2026-05-20: schema published in advance; the producing pipeline step is still pending. See _handoff_docs/MISSING_DATA.md §2."
+  }
+}

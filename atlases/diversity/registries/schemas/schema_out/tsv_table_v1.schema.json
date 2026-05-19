@@ -1,0 +1,33 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "tsv_table_v1.schema.json",
+  "title": "tsv_table_v1 — generic TSV passthrough payload",
+  "description": "Output of extract_tsv_passthrough_v1. Loose row-oriented capture of any tabular file whose shape doesn't justify a dedicated schema. Used by the ancestry_het_* per-K layers and any other tabular layer with schema=schemas/tsv_table_v1.schema.json. Promote to a dedicated schema_out file when the shape stabilises.",
+  "type": "object",
+  "required": ["columns", "rows"],
+  "additionalProperties": true,
+  "properties": {
+    "columns": {
+      "type": "array",
+      "items": { "type": "string" },
+      "description": "Ordered list of column names from the header row."
+    },
+    "rows": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "description": "One row keyed by column name. Numeric cells coerced when params.infer_types=true; missing / NA / -nan / -inf cells become null."
+      }
+    },
+    "row_count": { "type": "integer", "minimum": 0 },
+    "_provenance": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "source_path": { "type": "string" },
+        "parsed_at":   { "type": "string" }
+      }
+    }
+  }
+}

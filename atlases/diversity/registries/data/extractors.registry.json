@@ -1,4 +1,5 @@
 {
+  "_doc": "IN-side adapters for the diversity atlas. An extractor takes a dict of raw output paths (as returned by the runner) plus a small params dict, and returns a layer payload — a Python dict that validates against schemas/schema_out/<schema_version>.schema.json. Mirrors atlases/inversion/registries/data/extractors.registry.json. Parsers under atlases/diversity/registries/extractors/ are Python modules; the dispatcher imports them per-call via importlib. _stage values: 'staging' = loose passthrough, schema is permissive; 'normalized' = typed payload that validates against a strict schema.",
   "extractors": [
     {
       "extractor_id":   "extract_staging_diversity_slot_v0",
@@ -6,7 +7,87 @@
       "schema_version": "staging_diversity_slot_v0",
       "stage":          "staging",
       "parser":         "extractors.diversity_slot.extract",
-      "input_format":   "json"
+      "input_format":   "json",
+      "_doc":           "Existing extractor — parses a captured /api/diversity/{slot} JSON payload verbatim under payload.body. Paired with the import_slot action."
+    },
+
+    {
+      "extractor_id":   "extract_genomewide_het_v1",
+      "layer_type":     "samples_genomewide_het",
+      "schema_version": "samples_genomewide_het_v1",
+      "stage":          "normalized",
+      "parser":         "extractors.genomewide_het.extract",
+      "input_format":   "tsv",
+      "params": {
+        "expected_columns": ["sample", "het_genomewide", "n_sites_sfs", "sfs_bin0", "sfs_bin1"]
+      },
+      "_doc":           "Parses 04_summary/genomewide_heterozygosity.tsv into a typed per-sample table. Emits { samples: [{ sample_id, het_genomewide, n_sites_sfs, sfs_bin0, sfs_bin1 }], summary: { n_samples, median_het, mean_het, ... } }."
+    },
+
+    {
+      "extractor_id":   "extract_sfs_ml_v1",
+      "layer_type":     "sample_sfs",
+      "schema_version": "sample_sfs_v1",
+      "stage":          "normalized",
+      "parser":         "extractors.sfs_ml.extract",
+      "input_format":   "tsv",
+      "_doc":           "Parses a per-sample {sample}.est.ml file into { sample_id, bins: [bin0, bin1], folded: true, h: bin1 / (bin0 + bin1) }. realSFS -fold 1 emits two whitespace-separated values."
+    },
+
+    {
+      "extractor_id":   "extract_pestpg_v1",
+      "layer_type":     "theta_pi_windows",
+      "schema_version": "theta_pi_pestpg_v1",
+      "stage":          "normalized",
+      "parser":         "extractors.pestpg.extract",
+      "input_format":   "tsv",
+      "params": {
+        "comment_prefix": "#(indexStart",
+        "expected_columns": ["Chr", "WinCenter", "tW", "tP", "tF", "tH", "tL", "Tajima", "fuf", "fud", "fayh", "zeng", "nSites"],
+        "value_cols": ["tP", "tW", "Tajima"]
+      },
+      "_doc":           "Parses an ANGSD doThetaStat {sample}.win{N}.step{M}.pestPG file. Skips the header annotation row. Emits { sample_id, win_bp, step_bp, windows: [{ chrom, win_center, tW, tP, tajima, n_sites }], summary: { n_windows, mean_pi, median_pi, max_tajima, min_tajima } }."
+    },
+
+    {
+      "extractor_id":   "extract_tsv_passthrough_v1",
+      "layer_type":     "tsv_table",
+      "schema_version": "tsv_table_v1",
+      "stage":          "staging",
+      "parser":         "extractors.tsv_table.extract",
+      "input_format":   "tsv",
+      "params": {
+        "infer_types": true,
+        "max_rows": 100000
+      },
+      "_doc":           "Generic TSV-to-rows passthrough used by the ancestry_het_* per-K layers and any other tabular file whose shape doesn't justify a dedicated extractor. Emits { columns: [...], rows: [{...}, ...], row_count, _provenance: { source_path, parsed_at } }. Numeric columns coerced when infer_types is true; '-nan' / '-inf' / 'NA' all become null."
+    },
+
+    {
+      "extractor_id":   "extract_ancestry_het_kruskal_v1",
+      "layer_type":     "ancestry_het_kruskal",
+      "schema_version": "ancestry_het_kruskal_v1",
+      "stage":          "normalized",
+      "parser":         "extractors.tsv_table.extract",
+      "input_format":   "tsv",
+      "params": {
+        "infer_types":  true,
+        "rename_columns": { "p.value": "p_value", "p_adj": "p_value_adj" }
+      },
+      "_doc":           "Specialised wrapper over the generic TSV extractor for kruskal_K{K}_{cohort}.tsv: normalizes dot-suffixed R column names so the JS consumer doesn't have to. Emits the same shape as tsv_table_v1 but advertised as a normalized stage."
+    },
+
+    {
+      "extractor_id":   "extract_samples_roh_per_sample_v1",
+      "layer_type":     "samples_roh_per_sample",
+      "schema_version": "samples_roh_per_sample_v1",
+      "stage":          "normalized",
+      "parser":         "extractors.roh_per_sample.extract",
+      "input_format":   "tsv",
+      "params": {
+        "expected_columns": ["sample_id", "chrom", "start_bp", "end_bp", "length_bp", "n_sites", "quality"]
+      },
+      "_doc":           "Planned extractor for per-sample ROH segment tables. Parser module not yet written — see MISSING_DATA.md §2 (ROH pipeline output is empty on disk today). Emits { sample_id, segments: [{ chrom, start_bp, end_bp, length_bp, n_sites, quality }], summary: { n_segments, total_bp, longest_bp, n_segments_gt_1mb } }. Add `disabled: true` once the parser stub is committed if you want the dispatcher to soft-fail."
     }
   ]
 }

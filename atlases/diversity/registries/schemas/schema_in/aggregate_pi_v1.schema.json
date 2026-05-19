@@ -1,0 +1,35 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "aggregate_pi_v1.schema.json",
+  "title": "aggregate_pi_v1 — manifest contract for cohort θπ aggregation",
+  "description": "PLANNED. Validates POST /api/actions when type='aggregate_pi'. Combines per-sample pestPG files (samples_theta_pi_pestpg) into a cohort θπ track at a requested scale. Pure-Python compute; persisted under _cache/server_results/aggregate_pi/{hash}.json. Targets the 05_aggregated/ output directory once that pipeline lands.",
+  "type": "object",
+  "required": ["target", "params"],
+  "additionalProperties": true,
+  "properties": {
+    "target": {
+      "type": "object",
+      "required": ["sample_ids"],
+      "properties": {
+        "sample_ids": {
+          "type": "array",
+          "items": { "type": "string", "pattern": "^CGA[0-9]+$" },
+          "minItems": 2
+        },
+        "cohort_label": {
+          "type": "string",
+          "description": "Optional label for the resulting cohort track (e.g. 'all226', 'pruned81', 'K8_cluster3')."
+        }
+      }
+    },
+    "params": {
+      "type": "object",
+      "required": ["win_bp", "step_bp"],
+      "properties": {
+        "win_bp":  { "type": "integer", "minimum": 100 },
+        "step_bp": { "type": "integer", "minimum": 100 },
+        "metric":  { "type": "string", "enum": ["pi", "watterson", "tajima"], "default": "pi" }
+      }
+    }
+  }
+}

@@ -1,0 +1,26 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "sample_sfs_v1.schema.json",
+  "title": "sample_sfs_v1 — per-sample 1-D folded SFS payload",
+  "description": "Output of extract_sfs_ml_v1. Source: results_diversity/02_heterozygosity/02_sfs/{sample}.est.ml — two whitespace-separated values (bin0, bin1) emitted by `realSFS -fold 1`.",
+  "type": "object",
+  "required": ["sample_id", "bins"],
+  "additionalProperties": true,
+  "properties": {
+    "sample_id": { "type": "string", "pattern": "^CGA[0-9]+$" },
+    "bins": {
+      "type": "array",
+      "items": { "type": "number", "minimum": 0 },
+      "minItems": 2,
+      "maxItems": 2,
+      "description": "[bin0, bin1] — counts of homozygous-reference (bin0) and heterozygous (bin1) sites in the folded SFS."
+    },
+    "folded":      { "type": "boolean", "default": true },
+    "h":           { "type": ["number", "null"], "minimum": 0, "description": "Convenience: bin1 / (bin0 + bin1)." },
+    "n_sites":     { "type": ["integer", "null"], "minimum": 0, "description": "bin0 + bin1." },
+    "_provenance": {
+      "type": "object",
+      "additionalProperties": true
+    }
+  }
+}

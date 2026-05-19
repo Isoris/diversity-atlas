@@ -1,9 +1,38 @@
 {
+  "_doc": "OUT-side adapters for the diversity atlas. An action declares how POST /api/actions resolves a (type, target, params) triple to a runner module that produces raw outputs the dispatcher then hands to an extractor. Mirrors atlases/inversion/registries/data/actions.registry.json. Each entry: { runner: 'runners.<module>.<callable>', schema_in: '<v1 schema id>', description }. Schemas live at registries/schemas/schema_in/<schema_in>.schema.json.",
   "actions": {
+
     "import_slot": {
       "runner":      "runners.import_slot.import_slot",
       "schema_in":   "import_slot_v1",
-      "description": "Capture one of the five diversity slots (GET /api/diversity/{slot}) as a staging_diversity_slot_v0 layer. Source endpoint: atlas-core/server/diversity_endpoint.py."
+      "description": "Capture one of the five diversity slots (GET /api/diversity/{slot}) as a staging_diversity_slot_v0 layer. Source endpoint: atlas-core/server/diversity_endpoint.py. Existing action — kept for the api_client + handoff tests."
+    },
+
+    "harvest_file": {
+      "runner":      "runners.harvest_file.harvest_file",
+      "schema_in":   "harvest_file_v1",
+      "description": "Resolve a layer_key + per-layer args (e.g. sample_id, K, cohort, win_bp) against master_config roots, copy the on-disk file into raw_results/diversity/{action_id}/, and return its path. The dispatcher then dispatches to the matching extractor declared on the layer. This is the IN-side adapter glue that lets the browser request a typed layer envelope for any file declared in layers.registry.json with source=file. Supersedes import_slot for non-API on-disk inputs."
+    },
+
+    "run_realsfs": {
+      "runner":      "runners.run_realsfs.run_realsfs",
+      "schema_in":   "run_realsfs_v1",
+      "description": "PLANNED. Server-side wrapper around `realSFS -fold 1 <sample>.saf.idx` to (re)produce {sample}.est.ml. Requires the SAF binaries (.saf.idx + .saf.gz + .saf.pos.gz) to be present on the server's local filesystem — see MISSING_DATA.md §1. Runner module not yet written.",
+      "_status":     "planned"
+    },
+
+    "run_thetastat": {
+      "runner":      "runners.run_thetastat.run_thetastat",
+      "schema_in":   "run_thetastat_v1",
+      "description": "PLANNED. Server-side wrapper around `thetaStat do_stat <prefix> -win <win_bp> -step <step_bp>` to (re)produce a {sample}.win{N}.step{M}.pestPG file at an arbitrary scale beyond the four pre-baked. Requires the per-sample .thetas.idx + .thetas.gz emitted by `angsd -doThetas` upstream of doThetaStat. Runner module not yet written.",
+      "_status":     "planned"
+    },
+
+    "aggregate_pi": {
+      "runner":      "runners.aggregate_pi.aggregate_pi",
+      "schema_in":   "aggregate_pi_v1",
+      "description": "PLANNED. Cross-sample aggregator that combines per-sample pestPG files (samples_theta_pi_pestpg) into a cohort θπ track at a requested scale. Pure-Python compute (no engine); persist: true so the result is cached at _cache/server_results/aggregate_pi/{hash}.json. Targets the 05_aggregated/ output directory on disk — see MISSING_DATA.md §3.",
+      "_status":     "planned"
     }
   }
 }

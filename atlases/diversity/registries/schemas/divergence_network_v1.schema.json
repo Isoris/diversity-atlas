@@ -1,0 +1,75 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "divergence_network_v1.schema.json",
+  "title": "divergence_network_v1 — pairwise group-divergence network payload",
+  "description": "Output payload consumed by the diversity-atlas `divergence` page (node-link diagram; nodes = K=8 groups by default; edges = pairwise FST / DXY / dA / Nei). Spec source: _handoff_docs/SPEC_2026-05-12_divergence_network.md §4. Open dependency: F_ST estimator choice (Weir & Cockerham / Hudson / Reynolds) is pipeline-side — atlas reads whichever number ships. Round-1 ships an empty-stub on disk.",
+  "type": "object",
+  "additionalProperties": true,
+  "properties": {
+    "version":      { "type": "string" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "params": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "grouping":                          { "type": "string", "description": "e.g. 'K=8', 'farm', 'sex', 'karyotype:INV_LG07_v3'" },
+        "fst_estimator":                     { "type": ["string", "null"], "enum": ["Weir-Cockerham", "Hudson", "Reynolds", null] },
+        "n_bootstrap":                       { "type": ["integer", "null"], "minimum": 0 },
+        "min_callable_sites_per_group_pair": { "type": ["integer", "null"], "minimum": 0 }
+      }
+    },
+    "groups": {
+      "type": "array",
+      "description": "One per group node. K=8 default = 8 entries.",
+      "items": {
+        "type": "object",
+        "required": ["id", "n_samples"],
+        "additionalProperties": true,
+        "properties": {
+          "id":              { "type": "string" },
+          "n_samples":       { "type": "integer", "minimum": 0 },
+          "pi_within":       { "type": ["number", "null"], "minimum": 0 },
+          "pi_within_ci95":  { "type": "array", "items": { "type": ["number", "null"] }, "minItems": 2, "maxItems": 2 },
+          "h_mean":          { "type": ["number", "null"], "minimum": 0 },
+          "f_roh_mean":      { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
+          "theta_w":         { "type": ["number", "null"], "minimum": 0 },
+          "colour":          { "type": ["string", "null"], "description": "Hex (mirrors K=8 palette)." }
+        }
+      }
+    },
+    "edges": {
+      "type": "array",
+      "description": "One per group pair. K=8 default = C(8,2) = 28 entries.",
+      "items": {
+        "type": "object",
+        "required": ["i", "j"],
+        "additionalProperties": true,
+        "properties": {
+          "i":          { "type": "string" },
+          "j":          { "type": "string" },
+          "fst":        { "type": ["number", "null"] },
+          "fst_ci95":   { "type": "array", "items": { "type": ["number", "null"] }, "minItems": 2, "maxItems": 2 },
+          "dxy":        { "type": ["number", "null"] },
+          "dxy_ci95":   { "type": "array", "items": { "type": ["number", "null"] }, "minItems": 2, "maxItems": 2 },
+          "da":         { "type": ["number", "null"] },
+          "da_ci95":    { "type": "array", "items": { "type": ["number", "null"] }, "minItems": 2, "maxItems": 2 },
+          "nei_d":      { "type": ["number", "null"] },
+          "n_i":        { "type": ["integer", "null"], "minimum": 0 },
+          "n_j":        { "type": ["integer", "null"], "minimum": 0 }
+        }
+      }
+    },
+    "alternative_groupings": {
+      "type": "object",
+      "description": "Optional secondary payloads keyed by grouping mode (e.g. 'farm', 'sex', 'karyotype:INV_LG07_v3'). Each value has its own groups[] + edges[] of the same shape.",
+      "additionalProperties": {
+        "type": "object",
+        "properties": {
+          "groups": { "type": "array" },
+          "edges":  { "type": "array" }
+        }
+      }
+    },
+    "_doc": { "type": "string" }
+  }
+}

@@ -1,0 +1,233 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "functional_burden_v1.schema.json",
+  "title": "functional_burden_v1 — five-layer functional burden / selection efficacy payload",
+  "description": "Output payload consumed by the diversity-atlas `burden` page. Spec sources: _handoff_docs/SPEC_2026-05-12_functional_burden.md §4 (per_sample / per_group) + §3.1 (variant_inventory) + §6.5 (annotator stack — bcftools csq + snpEff + VESM + custom splice module) + §12 (pairwise_ks) + §13 (transcripts) + §14 (msa_links). Round-1 ships an empty-stub on disk; page10 detects empty and renders the 'data pending' fallback.",
+  "type": "object",
+  "additionalProperties": true,
+  "properties": {
+    "version":         { "type": "string" },
+    "generated_at":    { "type": "string", "format": "date-time" },
+    "pipeline_steps":  { "type": "array", "items": { "type": "string" } },
+    "estimator": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "piN_piS_method": { "type": ["string", "null"] },
+        "pi0_pi4_method": { "type": ["string", "null"] },
+        "ci_method":      { "type": "string", "default": "block-jackknife across chromosomes" },
+        "block_size_bp":  { "type": "integer", "minimum": 100000, "default": 5000000 }
+      }
+    },
+    "cohort_summary": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "pi":          { "type": ["number", "null"] },
+        "piN_piS":     { "type": ["number", "null"] },
+        "piN_piS_ci":  { "type": "array", "items": { "type": ["number", "null"] }, "minItems": 2, "maxItems": 2 },
+        "pi0_pi4":     { "type": ["number", "null"] },
+        "pi0_pi4_ci":  { "type": "array", "items": { "type": ["number", "null"] }, "minItems": 2, "maxItems": 2 },
+        "vesm_burden": { "type": ["number", "null"] },
+        "lof_count":   { "type": ["integer", "null"] }
+      }
+    },
+    "variant_inventory": {
+      "type": "array",
+      "description": "Per (snpEff impact, mutation_type) bin — feeds the cohort-wide variant-inventory panel (§3.1).",
+      "items": {
+        "type": "object",
+        "required": ["type", "impact", "n"],
+        "additionalProperties": true,
+        "properties": {
+          "type":   { "type": "string" },
+          "impact": { "type": "string", "enum": ["High", "Moderate", "Low", "Modifier"] },
+          "n":      { "type": ["integer", "null"], "minimum": 0 }
+        }
+      }
+    },
+    "snpeff_totals": {
+      "type": "array",
+      "description": "4-bar roll-up of variant_inventory by impact class.",
+      "items": {
+        "type": "object",
+        "required": ["impact"],
+        "properties": {
+          "impact": { "type": "string", "enum": ["High", "Moderate", "Low", "Modifier"] },
+          "n":      { "type": ["integer", "null"], "minimum": 0 }
+        }
+      }
+    },
+    "gerp_inventory": {
+      "type": ["array", "null"],
+      "description": "Off-by-default per §3.2 — null until the upstream teleost GERP track lands. When present: 6-bin row set ≥4 / 3-4 / 2-3 / 1-2 / 0-1 / <0.",
+      "items": {
+        "type": "object",
+        "properties": {
+          "bin":         { "type": "string" },
+          "n":           { "type": ["integer", "null"] },
+          "n_lof":       { "type": ["integer", "null"] },
+          "n_missense":  { "type": ["integer", "null"] }
+        }
+      }
+    },
+    "per_sample": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["sample_id"],
+        "additionalProperties": true,
+        "properties": {
+          "sample_id":           { "type": "string", "pattern": "^CGA[0-9]+$" },
+          "k8":                  { "type": ["string", "null"] },
+          "family_id":           { "type": ["string", "null"] },
+          "F_ROH":               { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
+          "pi":                  { "type": ["number", "null"] },
+          "piN":                 { "type": ["number", "null"] },
+          "piS":                 { "type": ["number", "null"] },
+          "piN_piS":             { "type": ["number", "null"] },
+          "piN_piS_ci":          { "type": "array", "items": { "type": ["number", "null"] }, "minItems": 2, "maxItems": 2 },
+          "pi0":                 { "type": ["number", "null"] },
+          "pi4":                 { "type": ["number", "null"] },
+          "pi0_pi4":             { "type": ["number", "null"] },
+          "pi0_pi4_ci":          { "type": "array", "items": { "type": ["number", "null"] }, "minItems": 2, "maxItems": 2 },
+          "vesm_burden":         { "type": ["number", "null"] },
+          "vesm_n_sites":        { "type": ["integer", "null"] },
+          "lof_count":           { "type": ["integer", "null"] },
+          "lof_count_strict":    { "type": ["integer", "null"] },
+          "lof_count_loose":     { "type": ["integer", "null"] },
+          "splice_disruption_count": { "type": ["integer", "null"] },
+          "lof_in_roh":          { "type": ["integer", "null"] },
+          "vesm_in_roh_frac":    { "type": ["number", "null"], "minimum": 0, "maximum": 1 }
+        }
+      }
+    },
+    "per_group": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Keyed by stratification mode ('K=8', 'family', 'F_ROH_quartile'). Each value is an array of per-group rows.",
+      "properties": {
+        "K=8": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["group"],
+            "properties": {
+              "group":             { "type": "string" },
+              "n_samples":         { "type": ["integer", "null"] },
+              "pi":                { "type": ["number", "null"] },
+              "piN_piS":           { "type": ["number", "null"] },
+              "piN_piS_ci":        { "type": "array", "items": { "type": ["number", "null"] }, "minItems": 2, "maxItems": 2 },
+              "pi0_pi4":           { "type": ["number", "null"] },
+              "pi0_pi4_ci":        { "type": "array", "items": { "type": ["number", "null"] }, "minItems": 2, "maxItems": 2 },
+              "vesm_burden_mean":  { "type": ["number", "null"] },
+              "lof_count_mean":    { "type": ["number", "null"] },
+              "roh_overlap_frac":  { "type": ["number", "null"], "minimum": 0, "maximum": 1 }
+            }
+          }
+        }
+      }
+    },
+    "pairwise_ks": {
+      "type": "object",
+      "additionalProperties": true,
+      "description": "Per-layer K-S P-value matrices across groups (28 pairs for K=8). Spec §12.",
+      "patternProperties": {
+        "^(piN_piS|pi0_pi4|vesm_burden|lof_count|roh_overlap)$": {
+          "type": "object",
+          "properties": {
+            "groups":    { "type": "array", "items": { "type": "string" } },
+            "P_matrix":  { "type": "array", "items": { "type": "array", "items": { "type": ["number", "null"] } } },
+            "P_BH":      { "type": "array", "items": { "type": "array", "items": { "type": ["number", "null"] } } }
+          }
+        }
+      }
+    },
+    "alternative_stratifications": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "family":          { "type": "array" },
+        "F_ROH_quartile":  { "type": "array" },
+        "karyotype": {
+          "type": "object",
+          "description": "Keyed by inversion_id. Feeds the inversion-atlas overlay panel (Spec §10).",
+          "additionalProperties": true
+        }
+      }
+    },
+    "top_burden_genes_by_group": {
+      "type": "object",
+      "description": "Per-K=8 group → one top-burden gene_id. Spec §13.2.",
+      "additionalProperties": { "type": "string" }
+    },
+    "transcripts": {
+      "type": "object",
+      "description": "Keyed by transcript_id. Spec §13.3.",
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": true,
+        "properties": {
+          "gene_id":     { "type": "string" },
+          "gene_symbol": { "type": ["string", "null"] },
+          "chrom":       { "type": "string" },
+          "strand":      { "type": "string", "enum": ["+", "-"] },
+          "tx_start":    { "type": "integer", "minimum": 0 },
+          "tx_end":      { "type": "integer", "minimum": 0 },
+          "exons": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "start": { "type": "integer", "minimum": 0 },
+                "end":   { "type": "integer", "minimum": 0 },
+                "type":  { "type": "string", "enum": ["5UTR", "CDS", "3UTR"] }
+              }
+            }
+          },
+          "variants": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "pos":            { "type": "integer", "minimum": 0 },
+                "ref":            { "type": "string" },
+                "alt":            { "type": "string" },
+                "consequence":    { "type": "string" },
+                "snpeff_impact":  { "type": "string", "enum": ["High", "Moderate", "Low", "Modifier"] },
+                "vesm_score":     { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
+                "csq_hgvsp":      { "type": ["string", "null"] },
+                "splice_event":   { "type": ["string", "null"] },
+                "n_carriers":     { "type": ["integer", "null"], "minimum": 0 },
+                "confidence_tier":{ "type": ["string", "null"], "enum": ["high", "medium", "low", null] }
+              }
+            }
+          }
+        }
+      }
+    },
+    "splice_events": {
+      "type": "array",
+      "description": "Per variant included in the transcript-view panel — splice gain/loss/shift records. Spec §6.5.1.",
+      "items": {
+        "type": "object",
+        "required": ["variant_id", "event"],
+        "properties": {
+          "variant_id":   { "type": "string" },
+          "gene":         { "type": ["string", "null"] },
+          "transcript":   { "type": ["string", "null"] },
+          "event":        { "type": "string", "enum": ["splice_donor_loss", "splice_acceptor_loss", "splice_donor_gain", "splice_acceptor_gain", "splice_shift"] },
+          "delta_score":  { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
+          "tool":         { "type": ["string", "null"] },
+          "tool_version": { "type": ["string", "null"] }
+        }
+      }
+    },
+    "msa_links": {
+      "type": "object",
+      "description": "variant_id → relative SVG path. Spec §14.3. Atlas renders via the `msa_svg` layer.",
+      "additionalProperties": { "type": "string" }
+    },
+    "_doc": { "type": "string" }
+  }
+}

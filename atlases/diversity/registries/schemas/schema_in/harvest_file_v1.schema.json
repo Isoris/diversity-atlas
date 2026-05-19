@@ -1,0 +1,44 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "harvest_file_v1.schema.json",
+  "title": "harvest_file_v1 — manifest contract for harvesting an on-disk layer file",
+  "description": "Validates POST /api/actions when type='harvest_file'. The action resolves a layer_key (declared in layers.registry.json with source=file) plus the per-layer template args (sample_id / K / cohort / win_bp / step_bp / etc.) against master_config roots, copies the matched file into raw_results/diversity/{action_id}/, and emits the layer envelope by dispatching to the matching extractor.",
+  "type": "object",
+  "required": ["target"],
+  "additionalProperties": true,
+  "properties": {
+    "target": {
+      "type": "object",
+      "required": ["layer_key"],
+      "additionalProperties": true,
+      "properties": {
+        "layer_key": {
+          "type": "string",
+          "description": "A key declared in atlases/diversity/registries/data/layers.registry.json with source=file. Dispatch fails if the key is missing or has a non-file source.",
+          "examples": [
+            "samples_genomewide_het",
+            "samples_sfs",
+            "samples_theta_pi_pestpg",
+            "ancestry_het_kruskal",
+            "ancestry_het_cluster_summary"
+          ]
+        },
+        "args": {
+          "type": "object",
+          "description": "Template-fill args for the layer's path_under_root. Required keys depend on the layer's placeholders.",
+          "additionalProperties": true,
+          "examples": [
+            { "sample_id": "CGA009" },
+            { "sample_id": "CGA009", "win_bp": 50000, "step_bp": 10000 },
+            { "K": "08", "cohort": "all226" }
+          ]
+        }
+      }
+    },
+    "params": {
+      "type": "object",
+      "description": "Optional extractor params (override defaults declared in extractors.registry.json).",
+      "additionalProperties": true
+    }
+  }
+}

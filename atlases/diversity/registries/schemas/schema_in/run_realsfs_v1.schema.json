@@ -1,0 +1,26 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "run_realsfs_v1.schema.json",
+  "title": "run_realsfs_v1 — manifest contract for server-side realSFS compute",
+  "description": "PLANNED. Validates POST /api/actions when type='run_realsfs'. Wraps `realSFS -fold 1 <sample>.saf.idx -P <ncores>` to produce {sample}.est.ml. Blocked: the SAF binaries (.saf.idx + .saf.gz + .saf.pos.gz) are not mirrored to E:/results_diversity/01_saf_per_sample/ today (only .arg log files are). See _handoff_docs/MISSING_DATA.md §1.",
+  "type": "object",
+  "required": ["target"],
+  "additionalProperties": true,
+  "properties": {
+    "target": {
+      "type": "object",
+      "required": ["sample_id"],
+      "properties": {
+        "sample_id": { "type": "string", "pattern": "^CGA[0-9]+$" }
+      }
+    },
+    "params": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "fold":   { "type": "integer", "enum": [0, 1], "default": 1 },
+        "ncores": { "type": "integer", "minimum": 1, "default": 4 }
+      }
+    }
+  }
+}

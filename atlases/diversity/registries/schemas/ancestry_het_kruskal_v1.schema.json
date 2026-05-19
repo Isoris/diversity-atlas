@@ -1,0 +1,57 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "ancestry_het_kruskal_v1.schema.json",
+  "title": "ancestry_het_kruskal_v1 — Kruskal-Wallis omnibus test of H across K cluster labels",
+  "description": "One row per (K, cohort) combination. Kruskal-Wallis tests the null that heterozygosity distributions are identical across the K ancestry clusters defined by NGSadmix. Feeds the S5_kw block of the ancestry page at K=8 (and the K-sweep trajectory at S7 when aggregated across K). The corresponding paired files live under 05_ancestry_heterozygosity/tables/ for each K ∈ 2..12 and each cohort ∈ {all226, pruned81}.",
+  "type": "object",
+  "required": ["K", "cohort", "statistic", "p_value", "n"],
+  "additionalProperties": true,
+  "properties": {
+    "K": {
+      "type": "integer",
+      "minimum": 2,
+      "maximum": 12,
+      "description": "Number of ancestry clusters in the NGSadmix run that produced the labels."
+    },
+    "cohort": {
+      "type": "string",
+      "enum": ["all226", "pruned81"],
+      "description": "Sample subset used: all226 = full cohort; pruned81 = NAToRA-pruned (1st-degree-relative-free) subset."
+    },
+    "statistic": {
+      "type": "number",
+      "description": "Kruskal-Wallis H statistic (chi-square-distributed under H0 with K-1 df)."
+    },
+    "df": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Degrees of freedom (K - 1 if all clusters have ≥1 sample)."
+    },
+    "p_value": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1,
+      "description": "Asymptotic chi-square P-value. Bonferroni / FDR adjustment is the consumer's responsibility (the table reports raw P)."
+    },
+    "n": {
+      "type": "integer",
+      "minimum": 0,
+      "description": "Total samples included in the test (after dropping samples with missing H or cluster label)."
+    },
+    "n_clusters_tested": {
+      "type": "integer",
+      "minimum": 1,
+      "description": "Number of clusters that actually contributed ≥1 sample. May differ from K if a small cohort × high-K cell collapses some clusters."
+    },
+    "effect_size_eta2": {
+      "type": ["number", "null"],
+      "description": "Eta-squared effect size (H − K + 1) / (n − K). Optional; populated when the upstream R script computed it. null when not available."
+    }
+  },
+  "_provenance": {
+    "pipeline":   "catfish-diversity-analysis/01_het_theta_pi/STEP_A05_ancestry_heterozygosity.R (R-side, statistical layer)",
+    "method_doc": "catfish-diversity-analysis/docs/methods/MODULE_3_methods.md §B01 'Visualization and statistical analysis'",
+    "on_disk":    "diversity_heterozygosity root → 05_ancestry_heterozygosity/tables/kruskal_K{K}_{cohort}.tsv",
+    "k_sweep":    "kruskal_results_all.tsv is the same shape concatenated across K=2..12 — see ancestry_het_kruskal_all layer."
+  }
+}

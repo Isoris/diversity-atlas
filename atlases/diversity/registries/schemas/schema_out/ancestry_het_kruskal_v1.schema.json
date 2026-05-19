@@ -1,0 +1,39 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "ancestry_het_kruskal_v1.schema.json",
+  "title": "ancestry_het_kruskal_v1 — Kruskal-Wallis test of H across K cluster labels",
+  "description": "Output of extract_ancestry_het_kruskal_v1. Source: results_diversity/02_heterozygosity/05_ancestry_heterozygosity/tables/kruskal_K{K}_{cohort}.tsv. Same shape as tsv_table_v1 but with R-style dot-suffixed columns renamed (p.value → p_value, p_adj → p_value_adj).",
+  "type": "object",
+  "required": ["columns", "rows"],
+  "additionalProperties": true,
+  "properties": {
+    "columns": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "rows": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": true,
+        "properties": {
+          "test":          { "type": "string" },
+          "statistic":     { "type": ["number", "null"] },
+          "df":            { "type": ["number", "null"] },
+          "p_value":       { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
+          "p_value_adj":   { "type": ["number", "null"], "minimum": 0, "maximum": 1 },
+          "n":             { "type": ["integer", "null"], "minimum": 0 },
+          "K":             { "type": ["integer", "null"] },
+          "cohort":        { "type": ["string", "null"] }
+        }
+      }
+    },
+    "K":           { "type": ["integer", "null"], "description": "Convenience: K parsed from the source filename." },
+    "cohort":      { "type": ["string", "null"],  "description": "Convenience: cohort label parsed from the source filename ('all226' or 'pruned81')." },
+    "row_count":   { "type": "integer", "minimum": 0 },
+    "_provenance": {
+      "type": "object",
+      "additionalProperties": true
+    }
+  }
+}

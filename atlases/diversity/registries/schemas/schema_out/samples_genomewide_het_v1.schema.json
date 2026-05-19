@@ -1,0 +1,45 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "samples_genomewide_het_v1.schema.json",
+  "title": "samples_genomewide_het_v1 — per-sample genome-wide heterozygosity payload",
+  "description": "Output of extract_genomewide_het_v1. Source: results_diversity/02_heterozygosity/04_summary/genomewide_heterozygosity.tsv. One row per sample (n=226 today).",
+  "type": "object",
+  "required": ["samples"],
+  "additionalProperties": true,
+  "properties": {
+    "samples": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["sample_id", "het_genomewide"],
+        "properties": {
+          "sample_id":      { "type": "string", "pattern": "^CGA[0-9]+$" },
+          "het_genomewide": { "type": ["number", "null"], "minimum": 0 },
+          "n_sites_sfs":    { "type": ["integer", "null"], "minimum": 0 },
+          "sfs_bin0":       { "type": ["number", "null"], "minimum": 0 },
+          "sfs_bin1":       { "type": ["number", "null"], "minimum": 0 }
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "n_samples":   { "type": "integer", "minimum": 0 },
+        "mean_het":    { "type": ["number", "null"] },
+        "median_het":  { "type": ["number", "null"] },
+        "min_het":     { "type": ["number", "null"] },
+        "max_het":     { "type": ["number", "null"] }
+      }
+    },
+    "_provenance": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "source_path": { "type": "string" },
+        "parsed_at":   { "type": "string" },
+        "row_count":   { "type": "integer" }
+      }
+    }
+  }
+}

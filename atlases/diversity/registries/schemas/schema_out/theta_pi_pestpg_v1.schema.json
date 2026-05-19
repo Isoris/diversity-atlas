@@ -1,0 +1,49 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "theta_pi_pestpg_v1.schema.json",
+  "title": "theta_pi_pestpg_v1 — per-window θπ / Tajima's D payload",
+  "description": "Output of extract_pestpg_v1. Source: results_diversity/03_theta_pi/{sample}.win{N}.step{M}.pestPG — an ANGSD doThetaStat per-window TSV. The first line is an annotation header (#(indexStart...)) that the extractor skips; the second line is the column header.",
+  "type": "object",
+  "required": ["sample_id", "win_bp", "step_bp", "windows"],
+  "additionalProperties": true,
+  "properties": {
+    "sample_id": { "type": "string", "pattern": "^CGA[0-9]+$" },
+    "win_bp":    { "type": "integer", "minimum": 100 },
+    "step_bp":   { "type": "integer", "minimum": 100 },
+    "windows": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["chrom", "win_center"],
+        "properties": {
+          "chrom":       { "type": "string" },
+          "win_center":  { "type": "integer", "minimum": 0 },
+          "tW":          { "type": ["number", "null"] },
+          "tP":          { "type": ["number", "null"] },
+          "tajima":      { "type": ["number", "null"] },
+          "n_sites":     { "type": ["integer", "null"], "minimum": 0 }
+        }
+      }
+    },
+    "summary": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "n_windows":  { "type": "integer", "minimum": 0 },
+        "mean_pi":    { "type": ["number", "null"] },
+        "median_pi":  { "type": ["number", "null"] },
+        "max_tajima": { "type": ["number", "null"] },
+        "min_tajima": { "type": ["number", "null"] }
+      }
+    },
+    "_provenance": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "source_path": { "type": "string" },
+        "parsed_at":   { "type": "string" },
+        "row_count":   { "type": "integer" }
+      }
+    }
+  }
+}

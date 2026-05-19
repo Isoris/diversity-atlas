@@ -1,0 +1,70 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "texture_metrics_v1.schema.json",
+  "title": "texture_metrics_v1 — per-sample window-H texture payload",
+  "description": "Output payload consumed by the diversity-atlas `texture` page. Spec sources: shared/data_loader.js comments + _handoff_docs/DATA_PROVENANCE.md §3.1. Round-1 ships an empty-stub on disk; page9 detects hasTexture()===false and renders the 'data pending' card. Upstream substrate: per-sample ANGSD `${SAMPLE}.win50000.step50000.pestPG` aggregated by catfish-diversity-analysis/phase_2_discovery/04_window_H_and_DDI.sh (to be written).",
+  "type": "object",
+  "additionalProperties": true,
+  "properties": {
+    "params": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "win_bp":        { "type": "integer", "minimum": 100 },
+        "step_bp":       { "type": "integer", "minimum": 100 },
+        "min_callable":  { "type": ["integer", "null"], "minimum": 0 }
+      }
+    },
+    "cohort_summary": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "n_samples":         { "type": "integer", "minimum": 0 },
+        "median_ddi":        { "type": ["number", "null"] },
+        "median_h_gw":       { "type": ["number", "null"] },
+        "median_chi_min":    { "type": ["number", "null"] },
+        "mad_h_w_cohort":    { "type": ["number", "null"] }
+      }
+    },
+    "per_sample": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["sample"],
+        "additionalProperties": true,
+        "properties": {
+          "sample":       { "type": "string", "pattern": "^CGA[0-9]+$" },
+          "h_gw":         { "type": ["number", "null"], "minimum": 0 },
+          "ddi":          { "type": ["number", "null"] },
+          "chi_min":      { "type": ["number", "null"] },
+          "chi_min_chr":  { "type": ["string", "null"] },
+          "chi_min_pos":  { "type": ["integer", "null"], "minimum": 0 },
+          "median_H_w":   { "type": ["number", "null"] },
+          "mad_H_w":      { "type": ["number", "null"] }
+        }
+      }
+    },
+    "windows": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "chroms":             { "type": "array", "items": { "type": "string" } },
+        "cohort_median_H_w":  { "type": "array", "items": { "type": ["number", "null"] } },
+        "cohort_q25_H_w":     { "type": "array", "items": { "type": ["number", "null"] } },
+        "cohort_q75_H_w":     { "type": "array", "items": { "type": ["number", "null"] } }
+      },
+      "description": "Parallel arrays — one entry per genome window in chrom order. Length must agree across the four arrays."
+    },
+    "per_sample_H_w": {
+      "type": "object",
+      "description": "Keyed by sample_id; value is the per-window H array parallel to windows.cohort_median_H_w.",
+      "additionalProperties": {
+        "type": "array",
+        "items": { "type": ["number", "null"] }
+      }
+    },
+    "version":      { "type": "string" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "_doc":         { "type": "string" }
+  }
+}

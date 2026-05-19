@@ -1,0 +1,89 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "roh_gene_overlap_v1.schema.json",
+  "title": "roh_gene_overlap_v1 — ROH × gene-model intersection payload",
+  "description": "Output payload consumed by the diversity-atlas `roh` page extension (Plot A cumulative gene-burden + Plot B biotype × peak heatmap-table). Spec source: _handoff_docs/SPEC_2026-05-12_roh_gene_burden.md §3 (Plot A — plot_a_blocks[] + per_group_cumulative['K=8'][]) + §4 (Plot B — plot_b_peaks[]). Round-1 ships an empty-stub on disk. Open data dependency: constraint proxy (pLI analog) — §6.2 is still data-blocked.",
+  "type": "object",
+  "additionalProperties": true,
+  "properties": {
+    "version":      { "type": "string" },
+    "generated_at": { "type": "string", "format": "date-time" },
+    "params": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "rank_criterion":   { "type": ["string", "null"], "description": "Spec §6.1 — pipeline-side decision." },
+        "constraint_proxy": { "type": ["string", "null"], "description": "Spec §6.2 — pipeline-side decision (BUSCO / OrthoFinder / dN/dS / pLI / GERP)." },
+        "gene_model_release": { "type": ["string", "null"] }
+      }
+    },
+    "blocks": {
+      "type": "array",
+      "description": "Per ROH block (per-sample tract OR consensus block; the rank_value semantics depend on params.rank_criterion). Feeds Plot A. Spec §3 plot_a_blocks[].",
+      "items": {
+        "type": "object",
+        "required": ["block_id", "chrom", "start", "end"],
+        "additionalProperties": true,
+        "properties": {
+          "block_id":               { "type": "string" },
+          "chrom":                  { "type": "string" },
+          "start":                  { "type": "integer", "minimum": 0 },
+          "end":                    { "type": "integer", "minimum": 0 },
+          "len_mb":                 { "type": ["number", "null"], "minimum": 0 },
+          "rank_value":             { "type": ["number", "null"] },
+          "sample_id":              { "type": ["string", "null"], "pattern": "^CGA[0-9]+$" },
+          "k_group":                { "type": ["string", "null"] },
+          "family_id":              { "type": ["string", "null"] },
+          "gene_ids":               { "type": "array", "items": { "type": "string" } },
+          "n_genes_total":          { "type": ["integer", "null"], "minimum": 0 },
+          "n_genes_constraint_pos": { "type": ["integer", "null"], "minimum": 0 },
+          "biotype_counts": {
+            "type": "object",
+            "additionalProperties": { "type": "integer", "minimum": 0 }
+          }
+        }
+      }
+    },
+    "peaks": {
+      "type": "array",
+      "description": "Named ROH peaks selected for Plot B. Spec §4 plot_b_peaks[].",
+      "items": {
+        "type": "object",
+        "required": ["peak_id", "label", "chrom", "start", "end"],
+        "additionalProperties": true,
+        "properties": {
+          "peak_id":             { "type": "string" },
+          "label":               { "type": "string", "description": "e.g. 'ROH Chr 6 52.9 Mb'" },
+          "chrom":               { "type": "string" },
+          "start":               { "type": "integer", "minimum": 0 },
+          "end":                 { "type": "integer", "minimum": 0 },
+          "cohort_sample_count": { "type": ["integer", "null"], "minimum": 0 },
+          "biotype_counts": {
+            "type": "object",
+            "description": "Per Spec §4 — canonical 9-row biotype set (protein_coding, pseudogene, lncRNA, miRNA, transcribed_pseudogene, snoRNA, tRNA, snRNA, antisense_RNA) plus any present rRNA/misc_RNA. Missing biotype = 0 (matches the reference figure's blank treatment).",
+            "additionalProperties": { "type": "integer", "minimum": 0 }
+          }
+        }
+      }
+    },
+    "per_group_cumulative": {
+      "type": "object",
+      "description": "Cumulative constraint-positive gene counts vs ROH-block rank, per stratification mode. Default key 'K=8'.",
+      "additionalProperties": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "group":      { "type": "string" },
+            "x":          { "type": "array", "items": { "type": "integer", "minimum": 0 }, "description": "Block rank (0-indexed)" },
+            "y":          { "type": "array", "items": { "type": "integer", "minimum": 0 }, "description": "Cumulative constraint-pos gene count for this group at each rank" },
+            "n_samples":  { "type": ["integer", "null"], "minimum": 0 }
+          }
+        }
+      }
+    },
+    "per_family_cumulative":  { "type": "array" },
+    "per_quartile_cumulative":{ "type": "array" },
+    "_doc": { "type": "string" }
+  }
+}

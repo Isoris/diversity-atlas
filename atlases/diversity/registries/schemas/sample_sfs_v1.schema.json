@@ -1,0 +1,41 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "sample_sfs_v1.schema.json",
+  "title": "sample_sfs_v1 — folded 1-D site frequency spectrum for one sample",
+  "description": "Output of `realSFS -fold 1` for a single per-sample SAF file. The on-disk format is a single whitespace-separated line of two values: bin0_count, bin1_count (ML expectations under the folded SFS). The extractor (extract_sfs_ml_v1) reads this line and emits the object shape below. One file per sample; ~226 files total. Tier=warm/explicit because per-sample SFS is only fetched when a sample-detail panel asks for it.",
+  "type": "object",
+  "required": ["sample", "bin0", "bin1"],
+  "additionalProperties": true,
+  "properties": {
+    "sample": {
+      "type": "string",
+      "description": "CGA-prefixed sample id, derived from the filename stem (<sample>.est.ml → sample)."
+    },
+    "bin0": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Folded-SFS bin 0 = expected count of monomorphic sites (ML estimate)."
+    },
+    "bin1": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Folded-SFS bin 1 = expected count of singleton/heterozygous sites (ML estimate)."
+    },
+    "n_total": {
+      "type": "number",
+      "minimum": 0,
+      "description": "Convenience field = bin0 + bin1. Optional; the extractor populates it for callers that want a denominator without re-summing."
+    },
+    "het": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1,
+      "description": "Convenience field = bin1 / (bin0 + bin1). Optional; matches the value in samples_genomewide_het_v1.het_genomewide."
+    }
+  },
+  "_provenance": {
+    "pipeline":   "catfish-diversity-analysis/01_het_theta_pi/STEP_A02_run_heterozygosity.sh (realSFS stage)",
+    "method_doc": "catfish-diversity-analysis/docs/methods/MODULE_3_methods.md §A02",
+    "on_disk":    "diversity_heterozygosity root → 02_sfs/<sample>.est.ml"
+  }
+}
