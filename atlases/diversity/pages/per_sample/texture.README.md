@@ -51,3 +51,18 @@ card and the DDI × H scatter falls back to cohort-summary fields only.
 (`STEP_A06_window_H_and_DDI.sh` +
 `compute_window_metrics.py`). Adapter that produces the JSON in the
 schema above is **not yet written** for this session.
+
+---
+
+## Mode-B cross-check
+
+This page renders a small inline `data-source-badge` above its first card.
+Probes `texture_metrics_payload` (the optional `data/texture_metrics.json`)
+through the registry, extracting `per_sample[]`. Today's badge reports
+`○ data pending` since the file ships as an empty stub until the upstream
+pipeline (`04_window_H_and_DDI.sh`) lands; auto-flips to `●` when 226
+samples are present.
+
+See [`atlas-core/docs/SPEC_mode_b_pattern.md`](../../../../../atlas-core/docs/SPEC_mode_b_pattern.md)
+for the full pattern (helper API, comparator authoring, workspace tally).
+

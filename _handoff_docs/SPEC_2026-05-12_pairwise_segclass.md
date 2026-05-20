@@ -382,3 +382,18 @@ will render correctly whichever estimator the pipeline emits.
 - Authors of upstream framework: Quentin Andres (cohort & inversion
   framework), Claude (atlas-side design).
 - Status: **spec only**. No pipeline run. No atlas page.
+
+---
+
+## Implementation status (updated 2026-05-20)
+
+- Diversity-atlas: **not registered here** (per Spec §6, this is a
+  Population Atlas concern). The diversity-atlas's `MISSING_DATA.md` §7a
+  carries a doc-only cross-atlas pointer naming this spec.
+- Population-atlas: not yet implemented. When it lands, the wiring
+  shape per Spec §3 is one JSON at `atlases/population/data/pairwise_segclass.json`
+  with `params`, `cohort_summary`, `pairs[]` (25k entries), and
+  `cluster_pair_summary[]` (28 K-pair rows).
+- Cross-link policy (Spec §6 footnote): diversity-atlas's `texture`
+  page sample-detail panel should eventually deep-link into the
+  population-atlas pairwise scatter filtered to that sample's pairs.

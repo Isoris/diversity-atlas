@@ -1167,3 +1167,20 @@ endpoint that runs pyMSAviz on request. Out of scope for v1.
 - Pairs with `SPEC_2026-05-12_roh_gene_burden.md` — both should be
   resolved together to share the same stratification toggle and the
   same upstream ROH × functional-site intersection.
+
+---
+
+## Implementation status (updated 2026-05-20)
+
+- Registry wiring: layer `functional_burden_payload` declared in
+  [`../atlases/diversity/registries/data/layers.registry.json`](../atlases/diversity/registries/data/layers.registry.json)
+  §8. Path `data/functional_burden.json` ships an empty-stub today.
+- Schema: [`../atlases/diversity/registries/schemas/functional_burden_v1.schema.json`](../atlases/diversity/registries/schemas/functional_burden_v1.schema.json)
+  — 13 top-level blocks (cohort_summary, variant_inventory, gerp_inventory,
+  per_sample, per_group, pairwise_ks, alternative_stratifications,
+  top_burden_genes_by_group, transcripts, splice_events, msa_links).
+  `schema_status: draft` — flip to `validated` once upstream emits a non-stub
+  payload.
+- Browser-side cross-check: Mode-B probe wired on page `burden`
+  ([`../atlases/diversity/pages/functional/burden.js`](../atlases/diversity/pages/functional/burden.js)).
+  Today's badge reports `○ data pending` until the pipeline ships.

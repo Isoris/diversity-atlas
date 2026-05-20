@@ -61,3 +61,18 @@ Adapter **not yet written**. Upstream runs `bcftools csq + snpEff +
 VESM + custom splice module`; see
 [_handoff_docs/SPEC_2026-05-12_functional_burden.md](../../../../_handoff_docs/SPEC_2026-05-12_functional_burden.md)
 for full schema.
+
+---
+
+## Mode-B cross-check
+
+This page renders a small inline `data-source-badge` above its first card.
+Probes `functional_burden_payload` (optional `data/functional_burden.json`),
+extracting `per_sample[]`. Comparator surfaces sample count plus
+`variant_inventory.length` + `per_group['K=8'].length`. Today's badge
+reports `○ data pending` until the upstream csq + snpEff + VESM + splice
+pipeline (Spec `SPEC_2026-05-12_functional_burden.md`) ships a real payload.
+
+See [`atlas-core/docs/SPEC_mode_b_pattern.md`](../../../../../atlas-core/docs/SPEC_mode_b_pattern.md)
+for the full pattern (helper API, comparator authoring, workspace tally).
+

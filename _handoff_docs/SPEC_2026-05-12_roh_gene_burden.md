@@ -403,3 +403,21 @@ Estimated effort: 3–4 hours once data exists.
 - Authors of upstream framework: Quentin Andres; atlas-side design:
   Claude.
 - Status: **spec only**. No pipeline. No page code.
+
+---
+
+## Implementation status (updated 2026-05-20)
+
+- Registry wiring: layer `roh_gene_overlap_payload` declared in
+  [`../atlases/diversity/registries/data/layers.registry.json`](../atlases/diversity/registries/data/layers.registry.json)
+  §8. Path `data/roh_gene_overlap.json` ships an empty-stub today.
+- Schema: [`../atlases/diversity/registries/schemas/roh_gene_overlap_v1.schema.json`](../atlases/diversity/registries/schemas/roh_gene_overlap_v1.schema.json)
+  — `blocks[]` (Plot A) + `peaks[]` (Plot B 9-row biotype set) +
+  `per_group_cumulative['K=8']`. `schema_status: draft` until the
+  constraint-proxy decision (§6.2) is resolved upstream and the pipeline
+  ships a non-stub payload.
+- Browser-side cross-check: no dedicated Mode-B probe today (the page
+  `roh` is not in the 18 wired set — its ROH-substrate side is blocked at
+  the empty `04_roh/` root, see `MISSING_DATA.md` §2). When the substrate
+  lands, mirror the texture-page pattern in
+  [`../atlases/diversity/pages/per_sample/texture.js`](../atlases/diversity/pages/per_sample/texture.js).

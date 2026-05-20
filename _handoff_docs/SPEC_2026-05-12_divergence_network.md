@@ -404,3 +404,20 @@ build effort unchanged from §6 (4–5 h once data exists).
 - Authors: upstream framework — Quentin Andres; atlas-side design —
   Claude.
 - Status: **spec only.** No pipeline. No page code.
+
+---
+
+## Implementation status (updated 2026-05-20)
+
+- Registry wiring: layer `divergence_network_payload` declared in
+  [`../atlases/diversity/registries/data/layers.registry.json`](../atlases/diversity/registries/data/layers.registry.json)
+  §8. Path `data/divergence_network.json` ships an empty-stub today.
+- Schema: [`../atlases/diversity/registries/schemas/divergence_network_v1.schema.json`](../atlases/diversity/registries/schemas/divergence_network_v1.schema.json)
+  — `groups[]` (8 nodes for K=8) + `edges[]` (28 edges) +
+  `alternative_groupings{}` (farm/sex/karyotype). `schema_status: draft`
+  until the FST-estimator choice is resolved upstream and the pipeline
+  ships a non-stub payload.
+- Browser-side cross-check: Mode-B probe wired on page `divergence`
+  ([`../atlases/diversity/pages/stratified/divergence.js`](../atlases/diversity/pages/stratified/divergence.js)).
+  Comparator cross-checks `n_edges === C(n_nodes, 2)`. Today's badge
+  reports `○ data pending`.

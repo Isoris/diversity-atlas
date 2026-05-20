@@ -25,3 +25,17 @@ From [shared/data_loader.js](../../shared/data_loader.js)
 ## Fallback behavior
 
 Required spine (`embedded_tables`) — no per-page fallback.
+
+---
+
+## Mode-B cross-check
+
+This page renders a small inline `data-source-badge` above its first card.
+Probes `ancestry_het_pruned81_samples` — the single-column TSV listing
+the NAToRA-retained subset. Cross-checks row count against
+`D.globals.n_pruned81` (carve says 81) AND that every `D.S11.status==='Retained'`
+sample appears in the pipeline file.
+
+See [`atlas-core/docs/SPEC_mode_b_pattern.md`](../../../../../atlas-core/docs/SPEC_mode_b_pattern.md)
+for the full pattern (helper API, comparator authoring, workspace tally).
+

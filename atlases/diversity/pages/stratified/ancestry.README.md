@@ -27,3 +27,17 @@ From [shared/data_loader.js](../../shared/data_loader.js)
 ## Fallback behavior
 
 Required spine (`embedded_tables`) — no per-page fallback.
+
+---
+
+## Mode-B cross-check
+
+This page renders a small inline `data-source-badge` above its first card.
+Probes `ancestry_het_kruskal_all` — the cross-K aggregate file
+(`02_heterozygosity/05_ancestry_heterozygosity/tables/kruskal_results_all.tsv`).
+Cross-checks the row count against `D.S7`'s K-sweep trajectory and the
+distinct-K coverage. Pass when both counts agree within a small tolerance.
+
+See [`atlas-core/docs/SPEC_mode_b_pattern.md`](../../../../../atlas-core/docs/SPEC_mode_b_pattern.md)
+for the full pattern (helper API, comparator authoring, workspace tally).
+

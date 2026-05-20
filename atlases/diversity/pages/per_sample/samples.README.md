@@ -43,3 +43,18 @@ Run from `diversity-atlas/`:
 ```
 node atlases/diversity/pages/per_sample/test_samples_provenance.js
 ```
+
+---
+
+## Mode-B cross-check
+
+This page renders a small inline `data-source-badge` above its first card.
+Probes `samples_genomewide_het` through the registry — a direct read of
+`02_heterozygosity/04_summary/genomewide_heterozygosity.tsv` via the
+`diversity_heterozygosity` master_config root. Comparator: median H within
+1 % of `D.globals.h_median` (the manuscript carve). Badge flips to `⚠`
+on drift, `○` when the registry path is unreachable.
+
+See [`atlas-core/docs/SPEC_mode_b_pattern.md`](../../../../../atlas-core/docs/SPEC_mode_b_pattern.md)
+for the full pattern (helper API, comparator authoring, workspace tally).
+

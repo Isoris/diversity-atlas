@@ -25,3 +25,18 @@ From [shared/data_loader.js](../../shared/data_loader.js)
 ## Fallback behavior
 
 Required spine (`embedded_tables`) — no per-page fallback.
+
+---
+
+## Mode-B cross-check
+
+This page renders a small inline `data-source-badge` above its first card.
+Probes `samples_theta_pi_pestpg` for one representative sample (CGA009)
+at the 500 kb scale — the closest-to-carve resolution. Cross-checks 28
+distinct chroms (strict) + per-window mean θπ within 30 % of
+`D.globals.theta_pi_mean` (loose, since per-sample θπ is noisier than
+cohort mean).
+
+See [`atlas-core/docs/SPEC_mode_b_pattern.md`](../../../../../atlas-core/docs/SPEC_mode_b_pattern.md)
+for the full pattern (helper API, comparator authoring, workspace tally).
+

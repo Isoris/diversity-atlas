@@ -43,3 +43,19 @@ chosen pipeline-side; the atlas displays whatever value ships.
 Adapter **not yet written** — see
 [_handoff_docs/SPEC_2026-05-12_divergence_network.md](../../../../_handoff_docs/SPEC_2026-05-12_divergence_network.md) §4
 for the target schema.
+
+---
+
+## Mode-B cross-check
+
+This page renders a small inline `data-source-badge` above its first card.
+Probes `divergence_network_payload` (optional `data/divergence_network.json`),
+extracting `edges[]`. Comparator cross-checks `n_edges === C(n_nodes, 2)` —
+which holds for any grouping mode (K=8 → 28 edges, K-farm/sex → different
+counts, all consistent with the n(n-1)/2 relation). Today: `○ data pending`
+until the realSFS + bootstrap pipeline ships (Spec
+`SPEC_2026-05-12_divergence_network.md`).
+
+See [`atlas-core/docs/SPEC_mode_b_pattern.md`](../../../../../atlas-core/docs/SPEC_mode_b_pattern.md)
+for the full pattern (helper API, comparator authoring, workspace tally).
+
