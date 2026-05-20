@@ -32,25 +32,31 @@ Registered in `atlas-core/toolkit_registries/relatedness/01_registry/atlases.jso
 
 | SPEC | what it covers | implementation |
 |------|----------------|----------------|
-| _none yet — first migration round in flight_ | | |
+| _none yet — all 11 per-page SPECs sit in `specs_todo/`; they describe both v1 (current scaffolds, mostly DEMO-backed) and v2 (envelope-aware target) state. SPECs will migrate to `specs_done/` page-by-page as the consume-stage migrations land. The `samples` page is closest — its envelope-advertise provenance badge already ships with a 14-assertion smoke._ | | |
 
-## Backlog — `specs_todo/`
+## Backlog — `specs_todo/` (all 11 pages, written 2026-05-20)
 
-### Per-page SPECs (one per visible page in the manifest)
+### Per-page SPECs
 
-| stage          | page id      | SPEC | tooltip summary |
-|----------------|--------------|------|-----------------|
-| per_sample     | `samples`    | [SPEC_samples_page.md](specs_todo/SPEC_samples_page.md)     | per-sample table — H, F_ROH, ROH bins, θπ; click row → drill-down |
-| per_sample     | `roh`        | [SPEC_roh_page.md](specs_todo/SPEC_roh_page.md)             | ROH composition: length-class bins + heatmap + spectrum |
-| per_sample     | `texture`    | [SPEC_texture_page.md](specs_todo/SPEC_texture_page.md)     | DDI + χ_min (per-sample texture metrics) |
-| per_chromosome | `chromosomes`| [SPEC_chromosomes_page.md](specs_todo/SPEC_chromosomes_page.md) | per-chromosome θπ + F_ROH + KW tests |
-| per_chromosome | `hotspots`   | [SPEC_hotspots_page.md](specs_todo/SPEC_hotspots_page.md)   | θπ outlier windows (19 above 99th percentile) |
-| stratified     | `ancestry`   | [SPEC_ancestry_page.md](specs_todo/SPEC_ancestry_page.md)   | K=8 clusters + K-sweep + per-Q correlations + KW/pairwise |
-| stratified     | `divergence` | [SPEC_divergence_page.md](specs_todo/SPEC_divergence_page.md) | group-divergence network (node-link plot) — references _handoff_docs/SPEC_2026-05-12_divergence_network.md |
-| functional     | `burden`     | [SPEC_burden_page.md](specs_todo/SPEC_burden_page.md)       | VESM burden + πN/πS + LOF count + ROH overlap; 5 stratifications — references _handoff_docs/SPEC_2026-05-12_functional_burden.md |
-| qc             | `pruning_qc` | [SPEC_pruning_qc_page.md](specs_todo/SPEC_pruning_qc_page.md) | NAToRA pruning + ngsF-HMM stability + Spearman matrix |
-| meta           | `about`      | [SPEC_about_page.md](specs_todo/SPEC_about_page.md)         | methods (SD1-SD8), glossary, headline numbers, lineage |
-| meta           | `roadmap`    | [SPEC_roadmap_page.md](specs_todo/SPEC_roadmap_page.md)     | what's planned but not yet shipped |
+Each SPEC documents the biological hypothesis, data input (current
+DEMO-backed vs target envelope shape), per-view math, statistical null
+models, failure modes, cross-page hooks, and v1-vs-v2 promotion criteria.
+Substance ~150–400 lines per page, matching the meiosis-atlas SPEC
+depth standard.
+
+| stage          | page id      | SPEC | lines | scope summary |
+|----------------|--------------|------|-------|---------------|
+| per_sample     | `samples`    | [SPEC_samples_page.md](specs_todo/SPEC_samples_page.md)             | 218 | per-sample table; envelope-advertise shipped; envelope-consume v2 |
+| per_sample     | `roh`        | [SPEC_roh_page.md](specs_todo/SPEC_roh_page.md)                     | 277 | ROH bins + heatmap + length spectrum; shared stratification pill |
+| per_sample     | `texture`    | [SPEC_texture_page.md](specs_todo/SPEC_texture_page.md)             | 237 | DDI (CoV of windowed H) + χ_min (cohort-relative floor) |
+| per_chromosome | `chromosomes`| [SPEC_chromosomes_page.md](specs_todo/SPEC_chromosomes_page.md)     | 222 | per-chrom θπ + F_ROH + KW omnibus + per-chrom Mann-Whitney + Bonferroni |
+| per_chromosome | `hotspots`   | [SPEC_hotspots_page.md](specs_todo/SPEC_hotspots_page.md)           | 224 | θπ outlier windows above 99th percentile; per-sample support heatmap |
+| stratified     | `ancestry`   | [SPEC_ancestry_page.md](specs_todo/SPEC_ancestry_page.md)           | 252 | K=8 hard-call + K-sweep + per-cluster KW + Spearman Q-correlations |
+| stratified     | `divergence` | [SPEC_divergence_page.md](specs_todo/SPEC_divergence_page.md)       | 265 | group-divergence node-link graph; FST/DXY/dA; references legacy _handoff_docs spec |
+| functional     | `burden`     | [SPEC_burden_page.md](specs_todo/SPEC_burden_page.md)               | 397 | 5 layers (VESM/πN/πS/π0/π4/LOF/ROH-overlap) × 4 stratifications; bootstrap CIs; cross-stratum KW |
+| qc             | `pruning_qc` | [SPEC_pruning_qc_page.md](specs_todo/SPEC_pruning_qc_page.md)       | 314 | NAToRA pruning + ngsF-HMM stability + Spearman matrix + het in/out ROH |
+| meta           | `about`      | [SPEC_about_page.md](specs_todo/SPEC_about_page.md)                 | 172 | methods (SD1-SD8) + glossary + headline tiles + lineage diagram |
+| meta           | `roadmap`    | [SPEC_roadmap_page.md](specs_todo/SPEC_roadmap_page.md)             | 107 | inverse view of specs_todo — what's planned but not shipped |
 
 ### Legacy product/feature SPECs (`_handoff_docs/`)
 
