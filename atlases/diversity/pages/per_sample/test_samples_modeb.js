@@ -1,5 +1,5 @@
 // Smoke tests for the shared Mode-B probe + badge helpers
-// (atlases/diversity/shared/mode_b_badge.js).
+// (core/mode_b_badge.js).
 //
 // Tests the real shared module via dynamic import — no mirroring. Runs
 // the same scenarios as before plus a real-disk variant that parses
@@ -10,7 +10,7 @@
 import fs from 'node:fs';
 import {
   probeModeB, renderModeBBadge, medianOf, relDiff,
-} from '../../shared/mode_b_badge.js';
+} from '../../../../core/mode_b_badge.js';
 
 // ----- fake DOM ---------------------------------------------------------
 const _domElements = new Map();
@@ -225,6 +225,49 @@ console.log('stub payload → stub-payload reason:');
   renderModeBBadge('ssModeBBadge', probe, { label: 'texture metrics', layerKey: 'texture_metrics_payload' });
   const slot = document.getElementById('ssModeBBadge');
   ok(slot.textContent.includes('data pending'), 'badge says "data pending" for stubs');
+}
+
+// ----- test 9: provenance threads into the badge tooltip ----------------
+console.log('provenance appears in badge tooltip:');
+{
+  _domElements.clear();
+  _makeSlot('ssModeBBadge');
+  const fakeRows = [{ sample: 'A', het_genomewide: 0.00457 }];
+  const registry = { resolve: () => fakeRows };
+  const provenance = {
+    data_version:   'v2.4-carve-2026-05-20',
+    content_sha256: 'abc1234567890def',
+    carved_at:      '2026-05-14T06:39:13Z',
+  };
+  const probe = await probeModeB(registry, 'samples_genomewide_het');
+  renderModeBBadge('ssModeBBadge', probe, {
+    label:       'per-sample H',
+    layerKey:    'samples_genomewide_het',
+    provenance,
+  });
+  const slot = document.getElementById('ssModeBBadge');
+  ok(slot.title.includes('v2.4-carve-2026-05-20'),
+     'tooltip carries data_version');
+  ok(slot.title.includes('abc1234567890def'),
+     'tooltip carries content_sha256');
+  ok(slot.title.includes('vs carve:'),
+     'tooltip labels the carve section');
+}
+
+// ----- test 10: provenance absent → tooltip stays clean ----------------
+console.log('no provenance → tooltip unchanged:');
+{
+  _domElements.clear();
+  _makeSlot('ssModeBBadge');
+  const fakeRows = [{ sample: 'A', het_genomewide: 0.00457 }];
+  const registry = { resolve: () => fakeRows };
+  const probe = await probeModeB(registry, 'samples_genomewide_het');
+  renderModeBBadge('ssModeBBadge', probe, {
+    label: 'per-sample H', layerKey: 'samples_genomewide_het',
+  });
+  const slot = document.getElementById('ssModeBBadge');
+  ok(!slot.title.includes('vs carve:'),
+     'tooltip omits carve line when no provenance passed');
 }
 
 console.log('\nALL OK');

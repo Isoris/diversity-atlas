@@ -17,7 +17,7 @@ import { plotHist, plotBoxes, plotBarH } from '../../shared/plots.js';
 import { quartiles } from '../../shared/svg.js';
 import {
   probeModeB, renderModeBBadge,
-} from '../../shared/mode_b_badge.js';
+} from '../../../../core/mode_b_badge.js';
 
 let D = null;
 let CLUSTER_COLORS = null;
@@ -211,9 +211,11 @@ export async function mount(root, atlasState, registry) {
       label:    'NAToRA pruned81',
       layerKey: 'ancestry_het_pruned81_samples',
       compare:  _compareNATORA,
+      provenance: ctx.PROVENANCE,
     }))
     .catch(() => renderModeBBadge('prModeBBadge', { ok: false, reason: 'unknown' }, {
       label: 'NAToRA pruned81', layerKey: 'ancestry_het_pruned81_samples',
+      provenance: ctx.PROVENANCE,
     }));
 }
 

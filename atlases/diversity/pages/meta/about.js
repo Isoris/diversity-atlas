@@ -13,6 +13,47 @@ import { fmtSci, fmtP } from '../../shared/formatters.js';
 import { fillSimpleTable, applySortIndicators } from '../../shared/tables.js';
 
 let D = null;
+let PROVENANCE = null;
+
+function renderProvenance() {
+  const body = document.getElementById('abProvenanceBody');
+  const tag  = document.getElementById('abProvenanceTag');
+  if (!body) return;
+  const p = PROVENANCE || {};
+  const stamped = !!(p.data_version || p.content_sha256 || p.carved_at);
+  if (!stamped) {
+    if (tag) { tag.textContent = 'unstamped'; tag.classList.add('pending'); }
+    body.innerHTML =
+      '<p>This <code>embedded_tables.json</code> predates the provenance ' +
+      'block (added 2026-05-20 per MISSING_DATA.md #5). Re-run the carve ' +
+      'with the upstream script to stamp <code>_data_version</code>, ' +
+      '<code>_content_sha256</code>, and <code>_carved_at</code> at the ' +
+      'JSON head.</p>';
+    return;
+  }
+  if (tag) tag.classList.add('shipped');
+  const rows = [
+    ['data version',  p.data_version],
+    ['source HTML',   p.source_html],
+    ['carved at',     p.carved_at],
+    ['content sha-256 (first 16)', p.content_sha256
+       ? `<code>${p.content_sha256}</code>` : null],
+    ['n dt_* blobs',  p.n_dt_blobs],
+  ].filter(([, v]) => v != null);
+  body.innerHTML =
+    '<p>The numbers on this page come from a carve of the manuscript v2.4 ' +
+    'inlined-JSON blocks. Every cell across pages 1–7 traces back to one ' +
+    '<code>dt_*</code> blob in this carve. The fingerprint below lets a ' +
+    'future session detect when the carve has changed without re-reading ' +
+    'the file.</p>' +
+    '<div class="pg" style="grid-template-columns: 0.6fr 1.4fr; margin-top: 8px;">' +
+      rows.map(([k, v]) =>
+        `<div style="color: var(--ink-dim);">${k}</div><div>${v}</div>`
+      ).join('') +
+    '</div>' +
+    '<p style="margin-top: 8px; font-size: 10.5px;">Mirrored on the ' +
+    'Mode-B cross-check badge tooltip on every data-bearing page.</p>';
+}
 
 function aboutHeadline() {
   const g = D.globals;
@@ -396,6 +437,8 @@ export async function mount(root, atlasState, registry) {
   ensureTip();
   const ctx = await ensureData();
   D = ctx.D;
+  PROVENANCE = ctx.PROVENANCE || null;
+  renderProvenance();
   aboutHeadline();
   aboutSDTables();
   coverageTableRender();

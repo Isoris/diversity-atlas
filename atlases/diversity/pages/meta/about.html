@@ -5,6 +5,21 @@
       Scope, four-atlas family, headline numbers, MODULE_3 methods documentation, glossary, lineage.
     </div>
 
+    <!-- Carve provenance (2026-05-20). Surfaces the _data_version /
+         _content_sha256 / _carved_at fields added to embedded_tables.json
+         per MISSING_DATA.md #5. Visible here so anyone auditing the
+         numbers can confirm which carve they are looking at; mirrored
+         on every page's Mode-B badge tooltip. Falls back to a "carve
+         provenance not stamped" hint when the legacy embedded_tables.json
+         (pre-2026-05-20) is loaded. -->
+    <div class="card" id="abProvenanceCard">
+      <div class="card-head">
+        <div class="card-title">Carve provenance</div>
+        <div class="card-tag" id="abProvenanceTag">stamped</div>
+      </div>
+      <div id="abProvenanceBody" style="font-size: 11.5px; color: var(--ink-dim); line-height: 1.6;"></div>
+    </div>
+
     <div class="card">
       <div class="card-head">
         <div class="card-title">What this atlas is</div>

@@ -13,7 +13,7 @@
 import { ensureData } from '../../shared/data_loader.js';
 import { ensureTip }  from '../../shared/tooltip.js';
 import { listLayers, getLayer } from '../../shared/api_client.js';
-import { probeModeB, renderModeBBadge, medianOf, relDiff } from '../../shared/mode_b_badge.js';
+import { probeModeB, renderModeBBadge, medianOf, relDiff } from '../../../../core/mode_b_badge.js';
 import {
   fmtSci, fmt2, fmt3, fmtH, fmtMb, fmtKb, fmtP, fmtPct, clusterSwatch
 } from '../../shared/formatters.js';
@@ -307,7 +307,7 @@ function _renderProvenanceBadge(envelope) {
 // config root → static mount → parseDelimited) and compares the result's
 // median H against D.globals.h_median (the manuscript-carve baseline).
 //
-// Helpers live in shared/mode_b_badge.js so the chromosomes + ancestry
+// Helpers live in core/mode_b_badge.js so the chromosomes + ancestry
 // pages reuse the same probe + render path. The page stays interactive
 // regardless of probe outcome — this is a cross-check, not a dependency.
 
@@ -356,9 +356,11 @@ export async function mount(root, atlasState, registry) {
       label:    'per-sample H',
       layerKey: 'samples_genomewide_het',
       compare:  _compareSamplesHet,
+      provenance: ctx.PROVENANCE,
     }))
     .catch(() => renderModeBBadge('ssModeBBadge', { ok: false, reason: 'unknown' }, {
       label: 'per-sample H', layerKey: 'samples_genomewide_het',
+      provenance: ctx.PROVENANCE,
     }));
 }
 

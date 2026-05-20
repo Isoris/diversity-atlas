@@ -21,7 +21,7 @@ import { ensureTip, showTip, hideTip } from '../../shared/tooltip.js';
 import { fmt2, fmt3, fmtSci, clusterSwatch } from '../../shared/formatters.js';
 import { buildSVG, svgClose, linScale } from '../../shared/svg.js';
 import { kColor } from '../../shared/palette.js';
-import { probeModeB, renderModeBBadge } from '../../shared/mode_b_badge.js';
+import { probeModeB, renderModeBBadge } from '../../../../core/mode_b_badge.js';
 
 // ─── Mode-B cross-check ─────────────────────────────────────────────────
 function _extractDivergenceRows(payload) {
@@ -397,9 +397,11 @@ export async function mount(root, atlasState, registry) {
       label:    'group divergence',
       layerKey: 'divergence_network_payload',
       compare:  _compareDivergence,
+      provenance: ctx.PROVENANCE,
     }))
     .catch(() => renderModeBBadge('dnModeBBadge', { ok: false, reason: 'unknown' }, {
       label: 'group divergence', layerKey: 'divergence_network_payload',
+      provenance: ctx.PROVENANCE,
     }));
 }
 

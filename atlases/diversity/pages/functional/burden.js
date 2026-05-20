@@ -28,7 +28,7 @@ import { fmt2, fmt3, fmtH, fmtPct, fmtSci, clusterSwatch } from '../../shared/fo
 import { buildSVG, svgClose, linScale, niceTicks } from '../../shared/svg.js';
 import { mountStratificationPills, frohQuartiles } from '../../shared/stratification.js';
 import { SNPEFF_IMPACT_COLORS, GERP_HIGHLIGHT, kColor } from '../../shared/palette.js';
-import { probeModeB, renderModeBBadge } from '../../shared/mode_b_badge.js';
+import { probeModeB, renderModeBBadge } from '../../../../core/mode_b_badge.js';
 
 // ─── Mode-B cross-check ─────────────────────────────────────────────────
 function _extractBurdenRows(payload) {
@@ -728,9 +728,11 @@ export async function mount(root, atlasState, registry) {
       label:    'functional burden',
       layerKey: 'functional_burden_payload',
       compare:  _compareBurden,
+      provenance: ctx.PROVENANCE,
     }))
     .catch(() => renderModeBBadge('fbModeBBadge', { ok: false, reason: 'unknown' }, {
       label: 'functional burden', layerKey: 'functional_burden_payload',
+      provenance: ctx.PROVENANCE,
     }));
 }
 

@@ -26,7 +26,7 @@ import { ensureTip }  from '../../shared/tooltip.js';
 import { fmtSci, fmt3, fmtH, clusterSwatch } from '../../shared/formatters.js';
 import { plotScatter } from '../../shared/plots.js';
 import { buildSVG, svgClose, linScale, niceTicks } from '../../shared/svg.js';
-import { probeModeB, renderModeBBadge } from '../../shared/mode_b_badge.js';
+import { probeModeB, renderModeBBadge } from '../../../../core/mode_b_badge.js';
 
 // ─── Mode-B cross-check ─────────────────────────────────────────────────
 // texture_metrics_payload is loaded today as a stub (`{}` placeholder). The
@@ -523,9 +523,11 @@ export async function mount(root, atlasState, registry) {
       label:    'texture metrics',
       layerKey: 'texture_metrics_payload',
       compare:  _compareTexture,
+      provenance: ctx.PROVENANCE,
     }))
     .catch(() => renderModeBBadge('txModeBBadge', { ok: false, reason: 'unknown' }, {
       label: 'texture metrics', layerKey: 'texture_metrics_payload',
+      provenance: ctx.PROVENANCE,
     }));
 }
 

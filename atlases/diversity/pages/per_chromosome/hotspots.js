@@ -17,7 +17,7 @@ import {
 } from '../../shared/svg.js';
 import {
   probeModeB, renderModeBBadge, distinctCount
-} from '../../shared/mode_b_badge.js';
+} from '../../../../core/mode_b_badge.js';
 
 let D = null;
 
@@ -207,9 +207,11 @@ export async function mount(root, atlasState, registry) {
       label:    'fine-scale θπ',
       layerKey: 'samples_theta_pi_pestpg',
       compare:  _compareHotspots,
+      provenance: ctx.PROVENANCE,
     }))
     .catch(() => renderModeBBadge('hsModeBBadge', { ok: false, reason: 'unknown' }, {
       label: 'fine-scale θπ', layerKey: 'samples_theta_pi_pestpg',
+      provenance: ctx.PROVENANCE,
     }));
 }
 

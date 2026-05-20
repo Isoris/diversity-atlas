@@ -17,7 +17,7 @@ import { plotBoxes, plotBarH } from '../../shared/plots.js';
 import { buildSVG, svgClose, linScale, niceTicks, quartiles } from '../../shared/svg.js';
 import {
   probeModeB, renderModeBBadge, distinctCount
-} from '../../shared/mode_b_badge.js';
+} from '../../../../core/mode_b_badge.js';
 
 let D = null;
 let CLUSTER_COLORS = null;
@@ -276,9 +276,11 @@ export async function mount(root, atlasState, registry) {
       label:    'K-sweep KW',
       layerKey: 'ancestry_het_kruskal_all',
       compare:  _compareKSweep,
+      provenance: ctx.PROVENANCE,
     }))
     .catch(() => renderModeBBadge('ancModeBBadge', { ok: false, reason: 'unknown' }, {
       label: 'K-sweep KW', layerKey: 'ancestry_het_kruskal_all',
+      provenance: ctx.PROVENANCE,
     }));
 }
 

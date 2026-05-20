@@ -16,7 +16,7 @@ import { sortRows, applySortIndicators } from '../../shared/tables.js';
 import { plotBarH } from '../../shared/plots.js';
 import {
   probeModeB, renderModeBBadge, meanOf, distinctCount, relDiff
-} from '../../shared/mode_b_badge.js';
+} from '../../../../core/mode_b_badge.js';
 
 let D = null;
 
@@ -233,9 +233,11 @@ export async function mount(root, atlasState, registry) {
       label:    'per-chrom θπ',
       layerKey: 'samples_theta_pi_pestpg',
       compare:  _compareChromsTheta,
+      provenance: ctx.PROVENANCE,
     }))
     .catch(() => renderModeBBadge('chrModeBBadge', { ok: false, reason: 'unknown' }, {
       label: 'per-chrom θπ', layerKey: 'samples_theta_pi_pestpg',
+      provenance: ctx.PROVENANCE,
     }));
 }
 
