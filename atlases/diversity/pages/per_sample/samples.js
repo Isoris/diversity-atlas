@@ -14,6 +14,7 @@ import { ensureData } from '../../shared/data_loader.js';
 import { ensureTip }  from '../../shared/tooltip.js';
 import { listLayers, getLayer } from '../../shared/api_client.js';
 import { probeModeB, renderModeBBadge, medianOf, relDiff } from '../../shared/mode_b_badge.js';
+import { statCellHTML, wireInterpIcons, interpIcon } from '../../shared/interp.js';
 import {
   fmtSci, fmt2, fmt3, fmtH, fmtMb, fmtKb, fmtP, fmtPct, clusterSwatch
 } from '../../shared/formatters.js';
@@ -31,18 +32,65 @@ let CLUSTER_COLORS = null;
 
 function ssTopStrip() {
   const g = D.globals;
+
+  // F_HOM and S_ROH (= total ROH length in Mb per sample) are per-sample
+  // numbers in D.S1. The cohort summary cells below aggregate them on the
+  // fly so we don't depend on a new field in globals.
+  const fhomVals = D.S1.map(r => r.f_hom).filter(v => v != null && isFinite(v));
+  const fhomMean = fhomVals.length ? fhomVals.reduce((s, v) => s + v, 0) / fhomVals.length : null;
+  const fhomSd = (() => {
+    if (fhomVals.length < 2 || fhomMean == null) return null;
+    const m2 = fhomVals.reduce((s, v) => s + (v - fhomMean) ** 2, 0) / fhomVals.length;
+    return Math.sqrt(m2);
+  })();
+  const srohValsMb = D.S1.map(r => (r.roh_total_bp || 0) / 1e6);
+  const srohMean = srohValsMb.reduce((s, v) => s + v, 0) / srohValsMb.length;
+  const srohSd = (() => {
+    if (srohValsMb.length < 2) return 0;
+    const m2 = srohValsMb.reduce((s, v) => s + (v - srohMean) ** 2, 0) / srohValsMb.length;
+    return Math.sqrt(m2);
+  })();
+
   const cells = [
-    { lbl: 'samples',          val: g.n_samples,                  sub: g.n_pruned81 + ' in pruned81' },
-    { lbl: 'callable genome',  val: g.callable_mb + ' Mb',         sub: 'mosdepth pass-mask' },
-    { lbl: 'mean H',           val: fmtSci(g.h_mean, 2),           sub: 'SD ' + fmtSci(g.h_sd, 1) },
-    { lbl: 'mean F_ROH',       val: g.froh_mean.toFixed(3),        sub: '± ' + g.froh_sd.toFixed(3) + ' (≥ 1 Mb)' },
-    { lbl: 'ρ(H, F_ROH)',      val: g.rho_h_froh.toFixed(3),       sub: 'P = ' + fmtP(g.rho_h_froh_p) },
-    { lbl: 'ngsF-HMM stable',  val: '26/28',                       sub: 'chromosomes very_stable' }
+    { lbl: 'samples', val: g.n_samples,
+      sub: g.n_pruned81 + ' in pruned81',
+      interp: '<b>Total hatchery cohort, n = ' + g.n_samples + '.</b><br>' +
+              'The 81 <i>pruned81</i> samples are the NAToRA-retained subset after removing kin-related individuals (κ &ge; 0.0884). The 145 dropped samples are kin-related to at least one retained sample. Cohort-level statistics on this page use all 226 by default; cluster/ancestry analyses on page 4 use the 81-sample subset.' },
+
+    { lbl: 'callable genome', val: g.callable_mb + ' Mb',
+      sub: 'mosdepth pass-mask',
+      interp: '<b>Sum of genomic positions passing the depth/quality mask</b> (mosdepth ≥ 4×, ≤ 2× the per-sample median; non-N reference). Per-sample θπ and F_ROH are normalised by this length, so different callable-genome sizes between samples do not distort comparisons.' },
+
+    { lbl: 'mean H', val: fmtSci(g.h_mean, 2),
+      sub: 'SD ' + fmtSci(g.h_sd, 1),
+      interp: '<b>Per-sample heterozygosity averaged across the cohort.</b> Range across 226 samples: ' + fmtSci(g.h_min, 2) + ' &ndash; ' + fmtSci(g.h_max, 2) + '.<br>' +
+              'Low H may indicate inbreeding, recent bottleneck, or ascertainment bias. High H may indicate outbred lineage or admixture. Cross-check with F_ROH and F_HOM to disambiguate.' },
+
+    { lbl: 'mean F_ROH', val: g.froh_mean.toFixed(3),
+      sub: '± ' + g.froh_sd.toFixed(3) + ' (≥ 1 Mb)',
+      interp: '<b>Mean fraction of callable genome inside ROH ≥ 1 Mb.</b> Range: ' + g.froh_min.toFixed(3) + ' &ndash; ' + g.froh_max.toFixed(3) + '.<br>' +
+              '≈ ' + (g.froh_mean * 100).toFixed(0) + '% of each genome is autozygous on long blocks — high for an outbred wild population, typical for hatchery broodstock with limited founder size. A higher F_ROH in a sub-population (vs. a control) suggests a smaller effective founder size and recent close-kin mating.' },
+
+    { lbl: 'mean F_HOM', val: fhomMean != null ? fhomMean.toFixed(3) : '—',
+      sub: fhomSd != null ? '± ' + fhomSd.toFixed(3) : 'expected-vs-observed het',
+      interp: '<b>F_HOM = (H<sub>expected</sub> − H<sub>observed</sub>) / H<sub>expected</sub></b>, the heterozygosity-deficit inbreeding estimator.<br>' +
+              'Cross-validates F_ROH: high F_ROH should give high F_HOM (and vice versa). Discordance is diagnostic: F_ROH ≫ F_HOM may indicate over-called ROH (false-positive tracts); F_HOM ≫ F_ROH may indicate Wahlund-effect / population structure that ROH calls miss. The two estimators agreeing strengthens confidence in the ROH set.' },
+
+    { lbl: 'mean S_ROH', val: srohMean.toFixed(0) + ' Mb',
+      sub: '± ' + srohSd.toFixed(0) + ' Mb / sample',
+      interp: '<b>S_ROH = sum of ROH segment lengths per sample, in Mb.</b> Raw equivalent of F_ROH (which is S_ROH / callable_genome).<br>' +
+              'Useful for comparing absolute autozygosity load between samples with different callable-genome sizes (where F_ROH normalises out the genome-size effect). S_ROH × class breakdown lives on page 5.' },
+
+    { lbl: 'ρ(H, F_ROH)', val: g.rho_h_froh.toFixed(3),
+      sub: 'P = ' + fmtP(g.rho_h_froh_p),
+      interp: '<b>Spearman rank correlation between per-sample H and per-sample F_ROH.</b> Strong negative correlation (≈ ' + g.rho_h_froh.toFixed(2) + ') confirms that high-F_ROH samples have suppressed heterozygosity — the expected mechanical effect of autozygosity, since ROH tracts are by definition homozygous-by-descent and have H = 0 inside them. Departure from −1 reflects out-of-ROH diversity variation.' },
+
+    { lbl: 'ngsF-HMM stable', val: '26/28',
+      sub: 'chromosomes very_stable',
+      interp: '<b>26 of 28 chromosomes pass the &ldquo;very stable&rdquo; ngsF-HMM convergence criterion</b> across the 10 replicate inference runs. The 2 unstable chromosomes (see page 6 for which) carry lower-confidence ROH calls; flag samples whose F_ROH is dominated by tracts on those chromosomes.' },
   ];
-  document.getElementById('ssTopStrip').innerHTML = cells.map(c =>
-    `<div class="stat-cell"><div class="lbl">${c.lbl}</div>` +
-    `<div class="val">${c.val}</div><div class="sub">${c.sub}</div></div>`
-  ).join('');
+  document.getElementById('ssTopStrip').innerHTML = cells.map(statCellHTML).join('');
+  wireInterpIcons(document.getElementById('ssTopStrip'));
 }
 
 function ssApply() {
@@ -125,20 +173,39 @@ function renderSampleDetail(s) {
     f_roh: percentileOf(D.S1.map(x => x.f_roh), s.f_roh)
   };
   const cells = [
-    { lbl: 'H (genome-wide)', val: fmtH(s.h), sub: 'percentile ' + ranks.h.toFixed(0) },
-    { lbl: 'F_ROH', val: fmt3(s.f_roh), sub: 'percentile ' + ranks.f_roh.toFixed(0) },
-    { lbl: 'F_HOM', val: fmt3(s.f_hom), sub: 'cross-validates F_ROH' },
-    { lbl: 'ROH n tracts', val: s.roh_n, sub: 'mean length ' + fmtKb(s.roh_mean_bp) + ' kb' },
-    { lbl: 'ROH total', val: fmtMb(s.roh_total_bp) + ' Mb', sub: fmtPct(s.roh_total_bp / s.callable_bp) + ' of callable' },
-    { lbl: 'longest ROH', val: fmtMb(s.roh_longest_bp) + ' Mb', sub: 'recent inbreeding if > 8 Mb' },
-    { lbl: 'θ inside ROH', val: fmtSci(s.th_in, 2), sub: 'expected: depressed' },
-    { lbl: 'θ outside ROH', val: fmtSci(s.th_out, 2), sub: 'expected: ≈ pop mean' },
-    { lbl: 'θ ratio in/out', val: fmt3(s.th_ratio), sub: 'cohort typical 0.20–0.30' }
+    { lbl: 'H (genome-wide)', val: fmtH(s.h), sub: 'percentile ' + ranks.h.toFixed(0),
+      interp: '<b>Per-sample heterozygosity.</b> Cohort percentile shown. ' +
+              (s.h > g.h_mean + 1.5*g.h_sd ? 'Elevated vs cohort &mdash; possible hybrid / off-target. ' :
+               s.h < g.h_mean - 1.5*g.h_sd ? 'Depressed vs cohort &mdash; consistent with elevated F_ROH. ' :
+               'Within cohort range.') },
+    { lbl: 'F_ROH', val: fmt3(s.f_roh), sub: 'percentile ' + ranks.f_roh.toFixed(0),
+      interp: '<b>Fraction of callable genome inside ROH ≥ 1 Mb.</b> ' +
+              (s.f_roh > 0.35 ? 'Top-decile autozygosity &mdash; recent inbreeding signal.' :
+               s.f_roh < 0.10 ? 'Low autozygosity for this cohort &mdash; likely outbred or migrant.' :
+               'Typical for this cohort.') },
+    { lbl: 'F_HOM', val: fmt3(s.f_hom), sub: 'cross-validates F_ROH',
+      interp: '<b>F_HOM = (H<sub>expected</sub> − H<sub>observed</sub>) / H<sub>expected</sub></b>. ' +
+              'Should agree with F_ROH for a clean autozygosity signal. Discordance is diagnostic of ROH-calling artefacts or population structure.' },
+    { lbl: 'ROH n tracts', val: s.roh_n, sub: 'mean length ' + fmtKb(s.roh_mean_bp) + ' kb',
+      interp: '<b>Number of ROH segments called.</b> Many short tracts → ancient autozygosity (deep coancestry); few long tracts → recent inbreeding (close-kin parents).' },
+    { lbl: 'S_ROH (total)', val: fmtMb(s.roh_total_bp) + ' Mb',
+      sub: fmtPct(s.roh_total_bp / s.callable_bp) + ' of callable',
+      interp: '<b>S_ROH = total length of this sample\'s ROH segments.</b> Raw equivalent of F_ROH (which is S_ROH / callable genome). Useful when comparing absolute autozygosity load across samples with different callable-genome sizes.' },
+    { lbl: 'longest ROH', val: fmtMb(s.roh_longest_bp) + ' Mb', sub: 'recent inbreeding if > 8 Mb',
+      interp: '<b>Length of this sample\'s longest single ROH.</b> &gt; 8 Mb is consistent with first-cousin or closer mating in the immediate parental generation; &gt; 16 Mb is consistent with parent-offspring / full-sib mating.' },
+    { lbl: 'θ inside ROH', val: fmtSci(s.th_in, 2), sub: 'expected: depressed',
+      interp: '<b>Pairwise nucleotide diversity within this sample\'s ROH calls.</b> Should be near 0 (ROHs are by definition homozygous-by-descent). Non-trivial θ_in flags potential ROH-call errors.' },
+    { lbl: 'θ outside ROH', val: fmtSci(s.th_out, 2), sub: 'expected: ≈ pop mean',
+      interp: '<b>Pairwise nucleotide diversity outside ROH.</b> Should approximate the population θ (≈ 4N<sub>e</sub>μ). Compare to mean H from the cohort stat strip.' },
+    { lbl: 'θ ratio in/out', val: fmt3(s.th_ratio), sub: 'cohort typical 0.20–0.30',
+      interp: '<b>θ<sub>in-ROH</sub> / θ<sub>out-of-ROH</sub>.</b> Typical 0.20–0.30 (4–5× depression inside ROH). Higher ratios flag possible false-positive ROH tracts; lower ratios indicate exceptionally clean autozygosity calls.' }
   ];
-  document.getElementById('sdGrid').innerHTML = cells.map(c =>
-    `<div><div class="lbl">${c.lbl}</div><div class="val">${c.val}</div>` +
-    `<div style="font-size:9.5px;color:var(--ink-dim);margin-top:2px;">${c.sub}</div></div>`
-  ).join('');
+  document.getElementById('sdGrid').innerHTML = cells.map(c => {
+    const q = c.interp ? ' ' + interpIcon(c.interp) : '';
+    return `<div><div class="lbl">${c.lbl}${q}</div><div class="val">${c.val}</div>` +
+      `<div style="font-size:9.5px;color:var(--ink-dim);margin-top:2px;">${c.sub}</div></div>`;
+  }).join('');
+  wireInterpIcons(document.getElementById('sdGrid'));
   let notes = '';
   if (s.f_roh > 0.35) notes += '· F_ROH in the top decile — recent inbreeding signal. ';
   if (s.h > g.h_mean + 1.5*g.h_sd) notes += '· H elevated — possible hybrid or non-target sample. ';

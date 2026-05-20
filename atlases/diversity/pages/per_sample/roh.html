@@ -191,5 +191,83 @@
       </div>
       <div id="plotRohBiotype" style="min-height: 180px;"></div>
     </div>
+
+    <div class="card" id="rohGenesPerSampleCard">
+      <div class="card-head">
+        <div class="card-title">Genes inside ROH — per sample (with private-ROH counts)</div>
+        <div class="card-tag" id="rohGenesPerSampleTag">⏳ awaiting ROH × gene-model overlap</div>
+      </div>
+      <div class="plot-card-sub" style="margin-bottom: 8px;">
+        For each sample: count of protein-coding genes whose locus falls
+        inside that sample's ROH calls, broken down by whether the ROH is
+        <b>shared</b> (also seen in ≥1 other cohort sample) or <b>private</b>
+        (unique to this sample — the wild-individuals paper's Table S17 style).
+        Private-ROH genes are candidates for recent, sample-specific
+        autozygosity events.
+      </div>
+      <div class="toolbar">
+        <input id="rgpSearch" type="search" placeholder="filter by sample id…" style="width:180px;" />
+        <select id="rgpClusterFilter">
+          <option value="">all K=8 clusters</option>
+        </select>
+        <span class="pill on" data-rgp-mode="all">all 226</span>
+        <span class="pill" data-rgp-mode="private_only">private-ROH only</span>
+        <span class="count" id="rgpCount"></span>
+      </div>
+      <div style="max-height: 360px; overflow-y: auto; border: 1px solid var(--rule); border-radius: 3px;">
+        <table class="dt" id="rgpTable">
+          <thead>
+            <tr>
+              <th data-sort="sample">sample</th>
+              <th data-sort="k8">K8</th>
+              <th data-sort="f_roh">F_ROH</th>
+              <th data-sort="n_genes_in_roh">genes in ROH</th>
+              <th data-sort="n_genes_private_roh">private-ROH genes</th>
+              <th data-sort="frac_private">% private</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="card" id="rohPrivateGeneListCard">
+      <div class="card-head">
+        <div class="card-title">Private-ROH gene list (cohort-wide aggregate)</div>
+        <div class="card-tag" id="rohPrivateGeneListTag">⏳ awaiting ROH × gene-model overlap</div>
+      </div>
+      <div class="plot-card-sub" style="margin-bottom: 8px;">
+        Unique genes appearing in any sample's private ROH across the
+        cohort, with a count of <i>how many samples</i> carry each gene
+        in a private ROH. References the wild-individuals paper:
+        <i>"80 genes were in these wild individual private ROHs (table S17)."</i>
+      </div>
+      <div class="toolbar">
+        <input id="rpgSearch" type="search" placeholder="filter by gene symbol / ENS id…" style="width:200px;" />
+        <select id="rpgBiotypeFilter">
+          <option value="">all biotypes</option>
+          <option value="Protein_coding">Protein_coding</option>
+          <option value="Pseudogene">Pseudogene</option>
+          <option value="lncRNA">lncRNA</option>
+          <option value="miRNA">miRNA</option>
+        </select>
+        <span class="count" id="rpgCount"></span>
+      </div>
+      <div style="max-height: 320px; overflow-y: auto; border: 1px solid var(--rule); border-radius: 3px;">
+        <table class="dt" id="rpgTable">
+          <thead>
+            <tr>
+              <th data-sort="gene_symbol">gene</th>
+              <th data-sort="gene_id">ID</th>
+              <th data-sort="biotype">biotype</th>
+              <th data-sort="chrom">chrom</th>
+              <th data-sort="start">start (Mb)</th>
+              <th data-sort="n_samples_private">n samples (private)</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
   </div>
 </div>
