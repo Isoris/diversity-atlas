@@ -349,6 +349,8 @@ fetches.
       "k8": "G3",
       "family_id": null,
       "F_ROH": 0.18,
+      "F_ROH_long": null,
+      "F_HOM": null,
       "pi": null,
       "piN": null, "piS": null, "piN_piS": null, "piN_piS_ci": [null, null],
       "pi0": null, "pi4": null, "pi0_pi4": null, "pi0_pi4_ci": [null, null],
@@ -356,7 +358,23 @@ fetches.
       "vesm_n_sites": null,
       "lof_count": null,
       "lof_in_roh": null,
-      "vesm_in_roh_frac": null
+      "vesm_in_roh_frac": null,
+
+      // --- Hom/het split (round-4 addendum, 2026-05-20). See §4.1 below
+      // and IDEA_2026-05-20_h_roh_page_integration.md §7.3 for rationale.
+      // The framework requires distinguishing EXPOSED load (homozygous
+      // deleterious genotypes — drive inbreeding depression) from
+      // HIDDEN/CARRIER load (heterozygous deleterious genotypes — masked
+      // until offspring inherit two copies). Lumping both as
+      // "vesm_burden" / "lof_count" cannot separate "inbred fish" from
+      // "carrier-rich fish" from "actually exposed-load fish".
+      "n_hom_deleterious_vesm": null,    // count of homozygous-alt at VESM-deleterious sites
+      "n_het_deleterious_vesm": null,    // count of het carriers at VESM-deleterious sites
+      "n_hom_lof": null,                 // homozygous LOF (snpEff HIGH ∩ csq) — exposed
+      "n_het_lof": null,                 // heterozygous LOF carriers
+      "n_hom_missense_damaging": null,   // homozygous damaging missense
+      "n_het_missense_damaging": null,   // heterozygous damaging missense carriers
+      "diagnostic_class": null           // 4-class label: inbred / founder / carrier-rich / exposed-load (see §4.1)
     }
   ],
   "per_group": {
@@ -369,7 +387,16 @@ fetches.
         "pi0_pi4": null, "pi0_pi4_ci": [null, null],
         "vesm_burden_mean": null,
         "lof_count_mean": null,
-        "roh_overlap_frac": null
+        "roh_overlap_frac": null,
+
+        // --- Round-4 addendum (2026-05-20). Group-level medians of the
+        // same hom/het split, plus the A/B/C/D classification.
+        "median_F_HOM": null,
+        "median_F_ROH_long": null,
+        "median_n_hom_deleterious": null,
+        "median_n_het_deleterious": null,
+        "diagnostic_class_group": null   // A=high recent inbreeding / B=old founder structure /
+                                         // C=carrier-rich but not exposed / D=clean high-diversity
       }
     ]
   },
@@ -380,6 +407,59 @@ fetches.
   }
 }
 ```
+
+### 4.1 Hom/het deleterious-burden split — round-4 addendum (2026-05-20)
+
+**Decision (recorded 2026-05-20):** the per-sample payload must carry
+**both** the homozygous and the heterozygous count for each
+deleterious-variant tier (VESM, LOF, damaging missense). Lumping them
+(as `vesm_burden` / `lof_count` did in round 3) cannot separate the
+four kinds of fish the framework distinguishes:
+
+1. **Inbred fish** — homozygosity state alone (high F_HOM / F_ROH).
+2. **Founder-structured fish** — homozygosity + ancient timescale
+   (high F_ROH on short blocks, low F_ROH_long).
+3. **Carrier-rich fish** — high heterozygous deleterious load.
+4. **Actually exposed-load fish** — high homozygous deleterious
+   load. The category that maps to inbreeding-depression candidates.
+
+The two axes (F_HOM/F_ROH × homozygous deleterious burden) form a
+2D diagnostic plane — see `IDEA_2026-05-20_h_roh_page_integration.md`
+§7.5 for the plot specification and §7.4 for the four-quadrant
+interpretation table.
+
+**`diagnostic_class` per-sample label** — derived field computed
+upstream from the new fields. Four-state enum:
+`"exposed_load"` (top-right quadrant: high F_HOM + high
+n_hom_deleterious — inbreeding-depression candidate);
+`"founder_homozygous"` (bottom-right: high F_HOM + low
+n_hom_deleterious — purged / founder line);
+`"carrier_rich"` (top-left: low F_HOM + high n_het_deleterious —
+masked load);
+`"baseline"` (bottom-left: low F_HOM + low n_hom_deleterious —
+lower-risk).
+
+**`diagnostic_class_group` per-group label** — A/B/C/D analog of the
+per-sample diagnostic class, computed on group medians.
+
+**Pipeline-side requirement.** The upstream csq + snpEff + VESM +
+splice product (§6.5) already needs per-site genotype calls to score
+burden — adding the hom/het split is just keeping the genotype-aware
+count two-dimensional rather than collapsing to a scalar. Concretely:
+
+```python
+# pseudo
+for variant in deleterious_set:
+    for sample in cohort:
+        gt = genotype(sample, variant)            # 0 / 1 / 2 alt alleles
+        if gt == 1: n_het_<tier>[sample] += 1
+        if gt == 2: n_hom_<tier>[sample] += 1
+```
+
+Atlas-side: page 10's stat strip and per-sample table consume the new
+fields; the four-quadrant plot card consumes them as the y-axis +
+dot-size encoding. Empty / null fields → renders "data pending"
+fallback as before.
 
 Size estimate: ~226 sample rows × ~15 numeric fields + 8 group rows ×
 ~12 numeric fields + alt stratifications ≈ small (low tens of kB).

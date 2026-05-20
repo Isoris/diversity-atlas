@@ -79,3 +79,219 @@ When a future session picks this up:
 1. Pick one of (A)–(E) (probably (B) + (E) together — cheap, highest information density).
 2. Confirm the page-contract format can express cross-page coupling.
 3. Upgrade this `IDEA_*.md` to a `SPEC_*.md` and proceed via the same `AskUserQuestion` resolution flow round-3 used.
+
+---
+
+## 7. Expanded conceptual framework (2026-05-20 addendum)
+
+User captured a longer framing on 2026-05-20 that fills in the *why*
+and *how* this integration matters. It also surfaces the right
+diagnostic plot, which is now the recommended build target.
+
+### 7.1 Three layers of one genetic-health problem
+
+```
+Segregating load           — the pool of harmful alleles present in the population
+        ↓ exposed by
+Increased homozygosity /   — how many of those alleles end up as aa rather than Aa
+reduced heterozygosity
+        ↓ causes
+Inbreeding depression      — fitness cost when recessive load becomes homozygous
+```
+
+**Key sentence (verbatim from user):**
+
+> *"Segregating load is the pool of harmful alleles; heterozygosity
+> determines how much of that load is masked or exposed; inbreeding
+> depression is the fitness cost when recessive load becomes
+> homozygous."*
+
+The three layers map cleanly onto three things the atlas already has
+(or should have):
+
+| Layer | What measures it | Currently on which page |
+|---|---|---|
+| Segregating load | Total deleterious variant burden (VESM / LOF / damaging missense) | page 10 (functional burden) — `per_sample[].vesm_burden`, `lof_count` |
+| Homozygosity state | H, F_ROH, F_HOM, S_ROH, ROH-length classes | page 1 (samples) + page 5 (roh) |
+| Realised burden | Homozygous deleterious burden | **not yet computed** — see §7.3 |
+| Phenotype context | Growth / survival / fertility / disease | not in atlas (out of scope) |
+
+### 7.2 The four diagnostic cases (cohort-level)
+
+When you cross load × heterozygosity (cohort-level), you get four
+qualitatively distinct populations:
+
+| | high heterozygosity | low heterozygosity |
+|---|---|---|
+| **high load** | Hidden load. Looks healthy under random mating; **dangerous if relatives mate** (recessive load gets exposed). | **Bad — classic inbreeding-depression case.** Exposed load → reduced survival/fertility/growth. |
+| **low load** | **Best case.** What breeding programmes want. Many heterozygous sites, few harmful alleles, low exposure. | Long-term-purged population. Mildly deleterious alleles can still accumulate by drift, but strongly deleterious ones have been removed. |
+
+The same axes work at the **individual** level (one fish), at the
+**group** level (K=8 ancestry / family), and at the **karyotype**
+level (STD/HET/INV at one inversion). The atlas should report all
+three scales.
+
+### 7.3 Hom-vs-het deleterious-burden split (payload addition needed)
+
+The framework requires a distinction that the current
+`functional_burden.json` payload **does not yet make**:
+
+- **Heterozygous deleterious burden** (`n_het_deleterious`) — count
+  of `Aa` genotypes at deleterious variants per sample. This is the
+  *hidden carrier load* — fitness-neutral in the carrier but can
+  emerge in offspring.
+- **Homozygous deleterious burden** (`n_hom_deleterious`) — count
+  of `aa` genotypes at deleterious variants per sample. This is the
+  *exposed load* — directly contributes to inbreeding depression.
+
+Currently `per_sample[].vesm_burden` and `lof_count` lump both.
+**Splitting them is a deliberate payload-schema change** — see
+`SPEC_2026-05-12_functional_burden.md` §4.1 (round-4 addendum) for
+the new field list.
+
+### 7.4 Per-sample diagnostic matrix (extends §7.2 to individuals)
+
+Pattern recognition for individual fish on a 2D plane:
+
+| Pattern | Interpretation |
+|---|---|
+| high F_HOM + high homozygous deleterious burden | **Exposed load, possible inbreeding depression.** Top concern. |
+| high F_HOM + low homozygous deleterious burden | Homozygous but not obviously loaded. **Possible purging or founder line** (deleterious alleles already removed; remaining homozygosity is benign). |
+| low F_HOM + high heterozygous deleterious burden | **Carrier-rich but masked load.** Risk emerges only if mated to another carrier. |
+| high heterozygosity + high total deleterious burden | **Many variants carried, not necessarily exposed.** Watch for offspring outcomes. |
+
+This is the most operationally useful framing — it lets a hatchery
+manager classify any individual fish into a treatment / breeding
+recommendation category.
+
+### 7.5 The 2D diagnostic plot — recommended build target
+
+**This is now the recommended primary integration view.** It supersedes
+the menu options in §4 (those become secondary).
+
+```
+   y = homozygous deleterious burden (n_hom_deleterious)
+      ▲
+      │  top-left:                            top-right:
+      │  high exposed load                    MOST CONCERNING FISH
+      │  without strong ROH signal            (exposed load + autozygous)
+      │                                       — candidates for inbreeding
+      │                                         depression
+      │  ─────────────────────────────────
+      │
+      │  bottom-left:                         bottom-right:
+      │  lower-risk baseline                  homozygous but not
+      │  (clean diversity, no load)           obviously loaded
+      │                                       — possible purging /
+      │                                         founder line
+      │
+      └─────────────────────────────────────────► x = F_ROH_long or F_HOM
+```
+
+Encoding:
+- **x-axis** — F_ROH_long (autozygosity timescale signal) **or** F_HOM
+  (heterozygosity-deficit signal). Toggle.
+- **y-axis** — homozygous deleterious burden (`n_hom_deleterious`).
+- **Colour** — ancestry group (K=8 default; family / karyotype as
+  alternative groupings, mirroring the stratification toggle from
+  `shared/stratification.js`).
+- **Size** — heterozygous deleterious burden (`n_het_deleterious`).
+  Big dots = carrier-rich; small dots = clean.
+- **Hover** — sample id, F_ROH, F_HOM, S_ROH, n_hom_del, n_het_del,
+  K=8 / family / karyotype labels.
+
+Quadrant tooltips are the four-pattern interpretations from §7.4.
+
+**Where it lives.** Cleanest home is **page 10 (functional/burden)**
+as a top-level card above the stat strip — the four-quadrant view IS
+the headline diagnostic for the functional-burden page. The
+**samples page** then deep-links into it (clicking a sample on the
+H × F_ROH scatter pivots to the corresponding dot on this plot).
+This collapses options (B), (C), (D) from §4 into one card and is
+where the atlas's "what's the genetic-health status of this fish?"
+question gets its single most informative answer.
+
+### 7.6 Per-group A/B/C/D classification
+
+Same machinery applied at the group level (K=8 ancestry, family,
+karyotype):
+
+| Group label | High recent inbreeding | Old founder structure | Carrier-rich, not exposed | Clean / high-diversity |
+|---|---|---|---|---|
+| | A | B | C | D |
+| Median F_ROH_long | high | high | low | low |
+| Median homozygous deleterious burden | high | low | low | low |
+| Median heterozygous deleterious burden | (any) | (any) | high | low |
+
+This gives the page-4 (ancestry) and page-11 (divergence) views a
+**breeding/genetic-health interpretation overlay**, not just a
+diversity / structure interpretation.
+
+### 7.7 Manuscript wording the user proposed
+
+For when the page text needs to anchor its claims:
+
+> *"Individual homozygosity metrics were used comparatively rather
+> than as absolute indicators of genetic health. Fish with elevated
+> FHOM or FROH were interpreted as candidates for increased
+> autozygosity, but evidence for potential inbreeding depression
+> required concordant elevation of homozygous deleterious burden.
+> Conversely, individuals with high heterozygous deleterious burden
+> but low homozygous burden were interpreted as carrier-rich but
+> largely masked."*
+
+This is the framing the page-10 interpretation card should adopt.
+
+### 7.8 Separating four kinds of fish — the operational goal
+
+```
+1. inbred fish              — homozygosity state alone
+2. founder-structured fish  — homozygosity + timescale (long ROHs)
+3. carrier-rich fish        — heterozygous deleterious burden
+4. actually exposed-load    — homozygous deleterious burden + phenotype
+   fish                       (when phenotype lands)
+```
+
+The four-quadrant plot in §7.5 separates (1) from (2) (timescale via
+F_ROH_long vs F_HOM) and separates (3) from (4) (het vs hom
+deleterious-burden axis). Phenotype is out of scope until that data
+lands.
+
+### 7.9 What this changes about the integration build plan
+
+The §4 option menu was written before the framework. With the
+framework in hand:
+
+- **§4 (B)** "embedded mini-ROH-class bar in samples drill-down" —
+  still good, becomes the per-sample timescale read.
+- **§4 (E)** "F_ROH-quartile stratification toggle promoted to both
+  pages" — still good, becomes the way of computing the four-class
+  cohort classification.
+- **§4 (C)** F_HOM vs F_ROH scatter — superseded by §7.5 (which adds
+  the load axis to make the cross-check biologically interpretive,
+  not just a QC chart).
+- **§4 (D)** "H decomposed by ROH-class contribution" — orthogonal
+  to §7.5; still useful as a per-page deep dive.
+- **NEW §4 (H) — The four-quadrant diagnostic plot** (§7.5). This is
+  now the recommended single primary integration view.
+
+### 7.10 Pipeline implications (what catfish-diversity-analysis must add)
+
+The framework requires fields that the upstream pipeline does not yet
+emit. Concretely, when the functional-burden product gets generated
+(csq + snpEff + VESM + custom splice module from
+`SPEC_2026-05-12_functional_burden.md` §6.5):
+
+- For each per-sample row, **emit both the homozygous and the
+  heterozygous count** for each burden tier (VESM-high, VESM-mid,
+  LOF-strict, LOF-loose, missense).
+- Equivalently, emit a per-variant matrix with genotype-aware
+  scoring: `score_genotype = score × (2 if homozygous_alt else 1
+  if heterozygous else 0)` plus a `homozygous_dosage` indicator so
+  the atlas can compute both per-sample integrals.
+- The existing field `vesm_in_roh_frac` already partitions burden by
+  ROH-overlap — keep that; add the hom/het split as **orthogonal**
+  to the in/out-ROH split.
+
+This stays inside the upstream pipeline's responsibility; the atlas
+just consumes whatever fields land.
